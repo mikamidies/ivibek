@@ -50,12 +50,13 @@ const links = [
   height: 100%;
   border-right: 1px solid var(--border);
   position: fixed;
+  z-index: 3;
+  background: white;
 }
 .slider {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   overflow: auto;
 }
 .slider::-webkit-scrollbar {

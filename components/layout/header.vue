@@ -27,6 +27,10 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 3;
 }
 .title {
   font-size: 24px;
