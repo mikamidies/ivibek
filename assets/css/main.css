@@ -1,6 +1,7 @@
 :root {
   --black: #101828;
   --border: #f3f4f6;
+  --border-darker: #d1d5db;
   --light-grey: #6a7282;
   --blue: #2b7fff;
   --light-blue: #2b7fff1a;
@@ -43,6 +44,13 @@ button,
 textarea,
 select {
   font: inherit;
+  border: none;
+}
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+  outline: none;
 }
 
 p,

@@ -1,5 +1,5 @@
 <script setup>
-import PersonalCard from "./person/PersonalCard.vue";
+import PersonalCard from "@/components/cards/PersonalCard.vue";
 const links = [
   { name: "Dashboard", link: "/", icon: "lucide:layout-dashboard" },
   { name: "Academics", link: "/", icon: "lucide:graduation-cap" },
@@ -26,7 +26,7 @@ const links = [
           alt="Brand"
           class="logo"
           width="140"
-          height="auto"
+          height="48"
         />
       </div>
       <div class="bottom">
@@ -68,7 +68,7 @@ const links = [
   -ms-overflow-style: none;
 }
 .top {
-  padding: 16px 24px;
+  padding: 19px 24px;
   border-bottom: 1px solid var(--border);
 }
 .bottom {
