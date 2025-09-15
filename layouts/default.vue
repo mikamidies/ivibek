@@ -17,6 +17,6 @@ import Header from "../components/layout/header.vue";
 main {
   margin-left: 264px;
   height: 100vh;
-  overflow: auto;
+  overflow: hidden;
 }
 </style>

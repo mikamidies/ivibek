@@ -30,7 +30,7 @@
   );
   position: relative;
   display: grid;
-  grid-template-columns: 4fr 6fr;
+  grid-template-columns: 1fr 1fr;
 }
 img {
   position: absolute;
