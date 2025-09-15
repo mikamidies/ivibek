@@ -9,7 +9,11 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ["@/assets/css/main.css"],
+  css: [
+    "ant-design-vue/dist/antd.css",
+    "@/assets/css/antd-overrides.css",
+    "@/assets/css/main.css",
+  ],
 
   modules: ["@nuxt/fonts", "nuxt-icon", "@nuxt/image"],
 

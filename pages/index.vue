@@ -1,5 +1,58 @@
 <script setup>
 import AiBanner from "~/components/AiBanner.vue";
+
+definePageMeta({
+  layoutTitle: "Dashboard",
+});
+
+const sessions = [
+  {
+    date: "Aug 19",
+    items: [
+      {
+        name: "Yu Jimin",
+        time: "5:00 pm-6:00 pm",
+        title: "Abror and Muhammet: General Meeting Hannibal Lectus",
+        img: "/images/person.jpg",
+      },
+      {
+        name: "Yu Jimin",
+        time: "5:00 pm-6:00 pm",
+        title: "Abror and Muhammet: General Meeting",
+        img: "/images/person.jpg",
+      },
+    ],
+  },
+  {
+    date: "Aug 20",
+    items: [
+      {
+        name: "Yu Jimin",
+        time: "5:00 pm-6:00 pm",
+        title: "Abror and Muhammet: General Meeting",
+        img: "/images/person.jpg",
+      },
+    ],
+  },
+];
+
+const tasks = [
+  {
+    name: "Develop research methodology and data collection tools City of Stars",
+    desc: "The Influence of Language Clubs on Cultural Awareness",
+    date: "Sep 26, 2025",
+  },
+  {
+    name: "Develop research methodology and data collection tools",
+    desc: "The Influence of Language Clubs on Cultural Awareness",
+    date: "Sep 26, 2025",
+  },
+  {
+    name: "Develop research methodology and data collection tools",
+    desc: "The Influence of Language Clubs on Cultural Awareness",
+    date: "Sep 26, 2025",
+  },
+];
 </script>
 
 <template>
@@ -14,62 +67,31 @@ import AiBanner from "~/components/AiBanner.vue";
               <NuxtLink to="/">View</NuxtLink>
             </div>
             <div class="sessions__items">
-              <div class="sessions__by-date">
-                <p class="sessions__date-date">Aug 19</p>
-                <div class="sessions__item">
+              <div
+                class="sessions__by-date"
+                v-for="(session, index) in sessions"
+                :key="index"
+              >
+                <p class="sessions__date-date">{{ session.date }}</p>
+                <div
+                  class="sessions__item"
+                  v-for="(item, itemIndex) in session.items"
+                  :key="itemIndex"
+                >
                   <NuxtLink to="/">
                     <div class="sessions__item-top">
                       <div class="sessions__item-person">
                         <NuxtImg
-                          src="/images/person.jpg"
+                          :src="item.img"
                           alt=""
                           class="sessions__item-pic"
                         />
-                        <p class="sessions__item-name">Yu Jimin</p>
+                        <p class="sessions__item-name">{{ item.name }}</p>
                       </div>
-                      <p class="sessions__item-time">5:00 pm-6:00 pm</p>
+                      <p class="sessions__item-time">{{ item.time }}</p>
                     </div>
                     <h4 class="sessions__item-title">
-                      Abror and Muhammet: General Meeting
-                    </h4>
-                  </NuxtLink>
-                </div>
-                <div class="sessions__item">
-                  <NuxtLink to="/">
-                    <div class="sessions__item-top">
-                      <div class="sessions__item-person">
-                        <NuxtImg
-                          src="/images/person.jpg"
-                          alt=""
-                          class="sessions__item-pic"
-                        />
-                        <p class="sessions__item-name">Yu Jimin</p>
-                      </div>
-                      <p class="sessions__item-time">5:00 pm-6:00 pm</p>
-                    </div>
-                    <h4 class="sessions__item-title">
-                      Abror and Muhammet: General Meeting
-                    </h4>
-                  </NuxtLink>
-                </div>
-              </div>
-              <div class="sessions__by-date">
-                <p class="sessions__date-date">Aug 20</p>
-                <div class="sessions__item">
-                  <NuxtLink to="/">
-                    <div class="sessions__item-top">
-                      <div class="sessions__item-person">
-                        <NuxtImg
-                          src="/images/person.jpg"
-                          alt=""
-                          class="sessions__item-pic"
-                        />
-                        <p class="sessions__item-name">Yu Jimin</p>
-                      </div>
-                      <p class="sessions__item-time">5:00 pm-6:00 pm</p>
-                    </div>
-                    <h4 class="sessions__item-title">
-                      Abror and Muhammet: General Meeting
+                      {{ item.title }}
                     </h4>
                   </NuxtLink>
                 </div>
@@ -82,50 +104,24 @@ import AiBanner from "~/components/AiBanner.vue";
               <NuxtLink to="/">View</NuxtLink>
             </div>
             <div class="tasks__items">
-              <div class="tasks__item">
+              <div
+                class="tasks__item"
+                v-for="(task, index) in tasks"
+                :key="index"
+              >
                 <div class="check">
-                  <input type="checkbox" id="task1" />
-                  <label for="task1"></label>
+                  <input type="checkbox" :id="'task' + index" />
+                  <label :for="'task' + index"></label>
                 </div>
                 <div class="tasks__item-mid">
                   <p class="tasks__item-name">
-                    Develop research methodology and data collection tools
+                    {{ task.name }}
                   </p>
                   <p class="tasks__item-desc">
-                    The Influence of Language Clubs on Cultural Awareness
+                    {{ task.desc }}
                   </p>
                 </div>
-                <p class="tasks__item-date">Sep 26, 2025</p>
-              </div>
-              <div class="tasks__item">
-                <div class="check">
-                  <input type="checkbox" id="task1" />
-                  <label for="task1"></label>
-                </div>
-                <div class="tasks__item-mid">
-                  <p class="tasks__item-name">
-                    Develop research methodology and data collection tools
-                  </p>
-                  <p class="tasks__item-desc">
-                    The Influence of Language Clubs on Cultural Awareness
-                  </p>
-                </div>
-                <p class="tasks__item-date">Sep 26, 2025</p>
-              </div>
-              <div class="tasks__item">
-                <div class="check">
-                  <input type="checkbox" id="task1" />
-                  <label for="task1"></label>
-                </div>
-                <div class="tasks__item-mid">
-                  <p class="tasks__item-name">
-                    Develop research methodology and data collection tools
-                  </p>
-                  <p class="tasks__item-desc">
-                    The Influence of Language Clubs on Cultural Awareness
-                  </p>
-                </div>
-                <p class="tasks__item-date">Sep 26, 2025</p>
+                <p class="tasks__item-date">{{ task.date }}</p>
               </div>
             </div>
           </div>
@@ -144,7 +140,7 @@ import AiBanner from "~/components/AiBanner.vue";
           </div>
           <div>
             <p class="profile__name">Yu Jimin</p>
-            <p class="profile__email">yu.jimin@example.com</p>
+            <p class="profile__email">aespa@naver.com</p>
           </div>
         </div>
         <div class="profile__items">

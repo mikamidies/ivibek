@@ -1,7 +1,13 @@
+<script setup>
+defineProps({
+  title: { type: [String], default: "" },
+});
+</script>
+
 <template>
   <div class="container">
     <div class="left">
-      <h1 class="title">Dashboard</h1>
+      <h1 class="title">{{ title }}</h1>
     </div>
     <div class="right">
       <div class="search">

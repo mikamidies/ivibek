@@ -1,6 +1,6 @@
 <template>
   <div class="PersonalCard">
-    <NuxtLink to="/">
+    <NuxtLink to="/profile">
       <NuxtImg
         src="/images/person.jpg"
         alt="person"

@@ -47,6 +47,7 @@ select {
   border: none;
   padding: 0;
   margin: 0;
+  background: transparent;
 }
 input:focus,
 textarea:focus,
@@ -54,7 +55,9 @@ select:focus,
 button:focus {
   outline: none;
 }
-
+button {
+  cursor: pointer;
+}
 p,
 h1,
 h2,
@@ -63,6 +66,7 @@ h4,
 h5,
 h6 {
   overflow-wrap: break-word;
+  margin: 0;
 }
 
 p {
