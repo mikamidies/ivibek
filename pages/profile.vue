@@ -1,26 +1,50 @@
-<script>
+<script setup>
 definePageMeta({
   layoutTitle: "Profile",
 });
 
-import { defineComponent, ref } from "vue";
-export default defineComponent({
-  setup() {
-    const visible = ref(false);
-    const showModal = () => {
-      visible.value = true;
-    };
-    const handleOk = (e) => {
-      console.log(e);
-      visible.value = false;
-    };
-    return {
-      visible,
-      showModal,
-      handleOk,
-    };
-  },
-});
+import { ref } from "vue";
+
+const visible = ref(false);
+const showModal = () => {
+  visible.value = true;
+};
+const handleOk = (e) => {
+  console.log(e);
+  visible.value = false;
+};
+
+const filterOption = (input, option) => {
+  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+};
+
+const countries = [
+  { value: "USA", label: "USA" },
+  { value: "Canada", label: "Canada" },
+  { value: "UK", label: "UK" },
+  { value: "Australia", label: "Australia" },
+  { value: "Germany", label: "Germany" },
+  { value: "France", label: "France" },
+  { value: "India", label: "India" },
+  { value: "China", label: "China" },
+  { value: "Japan", label: "Japan" },
+  { value: "South Korea", label: "South Korea" },
+];
+
+const relationships = [
+  { value: "Single", label: "Single" },
+  { value: "In a relationship", label: "In a relationship" },
+  { value: "Married", label: "Married" },
+  { value: "It's complicated", label: "It's complicated" },
+];
+
+const gender = [
+  { value: "Male", label: "Male" },
+  { value: "Female", label: "Female" },
+  { value: "Other", label: "Other" },
+  { value: "Helicopter", label: "Helicopter" },
+  { value: "Prefer not to say", label: "Prefer not to say" },
+];
 </script>
 
 <template>
@@ -123,9 +147,62 @@ export default defineComponent({
         >Save information</a-button
       >
     </template>
-    <p>Some contents...</p>
-    <p>Some contents...</p>
-    <p>Some contents...</p>
+    <div class="form__wrapper">
+      <a-form :model="form" layout="vertical">
+        <a-form-item label="First Name" name="firstName">
+          <a-input placeholder="Enter your first name" />
+        </a-form-item>
+        <a-form-item label="Last Name" name="lastName">
+          <a-input placeholder="Enter your last name" />
+        </a-form-item>
+        <a-form-item label="Phone" name="phone">
+          <a-input placeholder="Enter your phone number" />
+        </a-form-item>
+        <a-form-item label="Country" name="country">
+          <a-select
+            show-search
+            placeholder="Select a country"
+            :options="countries"
+            :filter-option="filterOption"
+          ></a-select>
+        </a-form-item>
+        <a-form-item label="Email" name="email">
+          <a-input placeholder="Enter your email" />
+        </a-form-item>
+        <a-form-item label="Relationships" name="relationships">
+          <a-select
+            show-search
+            placeholder="Choose wisely"
+            :options="relationships"
+            :filter-option="filterOption"
+          ></a-select>
+        </a-form-item>
+        <a-form-item label="Date of Birth" name="dob">
+          <a-date-picker style="width: 100%" format="DD/MM/YYYY" />
+        </a-form-item>
+        <a-form-item label="Gender" name="gender">
+          <a-select
+            show-search
+            placeholder="Choose wisely"
+            :options="gender"
+            :filter-option="filterOption"
+          ></a-select>
+        </a-form-item>
+        <a-form-item label="Language" name="language">
+          <a-input placeholder="Enter your Language" />
+        </a-form-item>
+        <a-form-item label="English Proficiency" name="englishProficiency">
+          <a-input placeholder="Enter your English Proficiency" />
+        </a-form-item>
+        <a-form-item label="About Me" name="about" class="long-form-item">
+          <a-textarea
+            rows="4"
+            placeholder="Tell us about yourself"
+            :autosize="{ minRows: 4, maxRows: 6 }"
+          />
+        </a-form-item>
+      </a-form>
+    </div>
   </a-modal>
 </template>
 

@@ -59,3 +59,41 @@
   font-size: 20px;
   line-height: 28px;
 }
+.ant-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.ant-row {
+  margin: 0;
+}
+.ant-form-item-label {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 22px;
+  margin-bottom: 4px;
+  padding: 0 !important;
+}
+.ant-input {
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.ant-select-selector,
+.ant-picker {
+  border-radius: 8px !important;
+  height: 42px !important;
+}
+.ant-select-selection-search-input {
+  font-size: 14px;
+  line-height: 20px;
+  height: 100% !important;
+}
+.ant-select-selection-placeholder {
+  display: flex;
+  align-items: center;
+}
+.long-form-item {
+  grid-column: span 2;
+}
