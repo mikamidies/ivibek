@@ -1,9 +1,24 @@
 <script setup>
 definePageMeta({
   layoutTitle: "Tasks",
+  layout: "noTitle",
 });
 
 import PageBanner from "@/components/PageBanner.vue";
+import { ref } from "vue";
+
+const visible = ref(false);
+const showModal = () => {
+  visible.value = true;
+};
+const handleOk = (e) => {
+  console.log(e);
+  visible.value = false;
+};
+
+const filterOption = (input, option) => {
+  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+};
 
 const tasks = [
   {
@@ -29,7 +44,7 @@ const tasks = [
     <div class="left">
       <PageBanner />
       <div class="tasks__body">
-        <button class="tasks__btn">
+        <button class="tasks__btn" @click="showModal">
           <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add Task
         </button>
         <div class="tasks__item" v-for="(task, index) in tasks" :key="index">
@@ -145,6 +160,39 @@ const tasks = [
       </div>
     </div>
   </div>
+
+  <a-modal v-model:visible="visible" title="Edit Profile" @ok="handleOk">
+    <template #footer>
+      <a-button key="back" @click="handleCancel">Cancel</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="handleOk"
+        >Save information</a-button
+      >
+    </template>
+    <div class="form__wrapper">
+      <a-form :model="form" layout="vertical">
+        <a-form-item
+          style="grid-column: 1 / 3"
+          label="Task Name"
+          name="taskName"
+        >
+          <a-input placeholder="Task Name" />
+        </a-form-item>
+        <a-form-item
+          style="grid-column: 1 / 3"
+          label="Project"
+          name="projectName"
+        >
+          <a-input placeholder="Enter your project name" />
+        </a-form-item>
+        <a-form-item label="Session" name="session_start">
+          <a-date-picker style="width: 100%" format="DD/MM/YYYY" />
+        </a-form-item>
+        <a-form-item label=" " name="session_end">
+          <a-date-picker style="width: 100%" format="DD/MM/YYYY" />
+        </a-form-item>
+      </a-form>
+    </div>
+  </a-modal>
 </template>
 
 <style scoped>

@@ -3,7 +3,7 @@ import PersonalCard from "@/components/cards/PersonalCard.vue";
 const links = [
   { name: "Dashboard", link: "/", icon: "lucide:layout-dashboard" },
   { name: "Academics", link: "/", icon: "lucide:graduation-cap" },
-  { name: "Tasks", link: "/", icon: "lucide:file-check" },
+  { name: "Tasks", link: "/tasks", icon: "lucide:file-check" },
   { name: "Testing", link: "/", icon: "lucide:file-pen" },
   { name: "Activities", link: "/", icon: "lucide:folder-pen" },
   { name: "Honors", link: "/", icon: "lucide:medal" },
