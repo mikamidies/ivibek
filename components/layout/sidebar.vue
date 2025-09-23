@@ -2,18 +2,26 @@
 import PersonalCard from "@/components/cards/PersonalCard.vue";
 const links = [
   { name: "Dashboard", link: "/", icon: "lucide:layout-dashboard" },
-  { name: "Academics", link: "/", icon: "lucide:graduation-cap" },
+  { name: "Academics", link: "/academics", icon: "lucide:graduation-cap" },
   { name: "Tasks", link: "/tasks", icon: "lucide:file-check" },
-  { name: "Testing", link: "/", icon: "lucide:file-pen" },
-  { name: "Activities", link: "/", icon: "lucide:folder-pen" },
-  { name: "Honors", link: "/", icon: "lucide:medal" },
-  { name: "Personal Development", link: "/", icon: "lucide:book-open" },
-  { name: "Majors & Careers", link: "/", icon: "lucide:briefcase-business" },
-  { name: "Booking", link: "/", icon: "lucide:calendar-days" },
-  { name: "Essay Lab", link: "/", icon: "lucide:test-tubes" },
-  { name: "Teachers", link: "/", icon: "lucide:user-round-pen" },
-  { name: "Students", link: "/", icon: "lucide:graduation-cap" },
-  { name: "University", link: "/", icon: "lucide:university" },
+  { name: "Testing", link: "/testing", icon: "lucide:file-pen" },
+  { name: "Activities", link: "/activities", icon: "lucide:folder-pen" },
+  { name: "Honors", link: "/honors", icon: "lucide:medal" },
+  {
+    name: "Personal Development",
+    link: "/personal-development",
+    icon: "lucide:book-open",
+  },
+  {
+    name: "Majors & Careers",
+    link: "/majors-careers",
+    icon: "lucide:briefcase-business",
+  },
+  { name: "Booking", link: "/booking", icon: "lucide:calendar-days" },
+  { name: "Essay Lab", link: "/essay-lab", icon: "lucide:test-tubes" },
+  { name: "Teachers", link: "/teachers", icon: "lucide:user-round-pen" },
+  { name: "Students", link: "/students", icon: "lucide:graduation-cap" },
+  { name: "University", link: "/university", icon: "lucide:university" },
 ];
 </script>
 
@@ -117,6 +125,14 @@ const links = [
 .bottom a:hover {
   background-color: var(--light-blue);
   color: var(--blue);
+}
+.bottom a.router-link-active {
+  background-color: var(--light-blue);
+  color: var(--blue);
+}
+.bottom a.router-link-active::after {
+  opacity: 1;
+  visibility: visible;
 }
 .bottom span {
   width: 20px;

@@ -1,6 +1,17 @@
+<script setup>
+defineProps({
+  titleProps: {
+    type: String,
+    default: "Dashboard",
+  },
+});
+</script>
+
 <template>
   <div class="page-banner">
-    <h1 class="title">Tasks</h1>
+    <h1 class="title">
+      {{ titleProps }}
+    </h1>
   </div>
 </template>
 
