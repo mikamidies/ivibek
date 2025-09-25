@@ -2,6 +2,8 @@
 import PageBanner from "@/components/PageBanner.vue";
 import GeneralCard from "~/components/cards/GeneralCard.vue";
 import AiBanner from "~/components/AiBanner.vue";
+import AcademicsInformation from "~/components/academics-page/AcademicsInformation.vue";
+import AcademicsSchool from "~/components/academics-page/AcademicsSchool.vue";
 
 const school__options = [
   {
@@ -63,70 +65,13 @@ const school__items = [
       <PageBanner titleProps="Academics" class="marginer" />
       <AiBanner class="marginer" />
 
-      <div class="information">
-        <div class="information__head">
-          <h2 class="information__title">Education Information</h2>
-          <button class="add__btn">
-            <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add
-            school
-          </button>
-        </div>
-        <div class="information__filter">
-          <a-select
-            v-model:value="value__one"
-            :options="school__options"
-            placeholder="Select an option"
-          ></a-select>
-          <a-select
-            v-model:value="value__one"
-            :options="school__options"
-            placeholder="Select an option"
-          ></a-select>
-          <a-select
-            v-model:value="value__one"
-            :options="school__options"
-            placeholder="Select an option"
-          ></a-select>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>School</th>
-              <th>Country</th>
-              <th>Start Year</th>
-              <th>End Year</th>
-              <th>Special status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, index) in school__items" :key="index">
-              <td>{{ item.school }}</td>
-              <td>{{ item.country }}</td>
-              <td>{{ item.start_year }}</td>
-              <td>{{ item.end_year }}</td>
-              <td>
-                <span class="status">{{ item.status }}</span>
-              </td>
-              <td>
-                <button>
-                  <Icon name="lucide:ellipsis-vertical" />
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <AcademicsInformation
+        :school__options="school__options"
+        :school__items="school__items"
+        class="marginer"
+      />
 
-      <div class="academics">
-        <div class="academics__head">
-          <h2 class="academics__title">School academics</h2>
-          <button class="add__btn">
-            <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add
-            course
-          </button>
-        </div>
-      </div>
+      <AcademicsSchool :school__items="school__items" class="marginer" />
     </div>
     <div class="right">
       <GeneralCard />
@@ -139,7 +84,7 @@ const school__items = [
   display: grid;
   gap: 24px;
   grid-template-columns: 1fr 384px;
-  padding: 24px;
+  padding: 24px 24px 120px 24px;
   background: var(--border);
   height: 100vh;
   overflow: auto;
@@ -152,72 +97,5 @@ const school__items = [
 }
 .marginer {
   margin-bottom: 16px;
-}
-.information {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-}
-.information__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-.information__title {
-  font-weight: 500;
-  font-size: 20px;
-  line-height: 28px;
-}
-.add__btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--blue);
-  color: var(--blue);
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-}
-.information__filter {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  border: 1px solid var(--border);
-}
-th {
-  padding: 16px 20px;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-  background: var(--border);
-  border-bottom: 1px solid var(--border);
-}
-td {
-  padding: 16px 20px;
-  border-block: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text-grey);
-}
-tr td:last-child {
-  text-align: right;
-}
-.status {
-  background: var(--light-blue);
-  color: var(--blue);
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 16px;
 }
 </style>
