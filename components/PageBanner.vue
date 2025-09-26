@@ -20,6 +20,7 @@ defineProps({
   padding: 36px 40px;
   border-radius: 16px;
   background: var(--blue);
+  height: max-content;
 }
 .title {
   font-weight: 600;

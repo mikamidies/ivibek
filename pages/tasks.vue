@@ -105,18 +105,12 @@ const tasks = [
   display: grid;
   gap: 24px;
   grid-template-columns: 1fr 384px;
-
   padding: 24px;
   background: var(--border);
   height: 100vh;
   overflow: auto;
 }
-.right {
-  background: white;
-  border-radius: 16px;
-  padding: 20px 24px;
-  height: fit-content;
-}
+
 .tasks__items {
   display: flex;
   flex-direction: column;

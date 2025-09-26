@@ -104,7 +104,6 @@ const school__items = [
 .right {
   background: white;
   border-radius: 16px;
-  padding: 20px 24px;
   height: fit-content;
 }
 .marginer {
