@@ -7,6 +7,12 @@ const props = defineProps({
     required: true,
   },
 });
+
+const activeKey = ref(["1"]);
+
+watch(activeKey, (val) => {
+  console.log(val);
+});
 </script>
 
 <template>
@@ -19,8 +25,8 @@ const props = defineProps({
     </div>
 
     <div class="academics__body">
-      <a-collapse accordion>
-        <a-collapse-panel key="10">
+      <a-collapse accordion v-model:activeKey="activeKey">
+        <a-collapse-panel key="1">
           <template #header>
             <div class="panel-header">
               <div class="panel-title">
@@ -181,7 +187,7 @@ const props = defineProps({
             </button>
           </div>
         </a-collapse-panel>
-        <a-collapse-panel key="9">
+        <a-collapse-panel key="2">
           <template #header>
             <div class="panel-header">
               <div class="panel-title">
