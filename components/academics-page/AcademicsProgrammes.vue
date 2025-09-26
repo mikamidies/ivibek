@@ -9,6 +9,12 @@ defineProps({
     required: true,
   },
 });
+
+const activeKey = ref(["1"]);
+
+watch(activeKey, (val) => {
+  console.log(val);
+});
 </script>
 
 <template>
@@ -17,7 +23,6 @@ defineProps({
       <h2 class="programmes__title">Summer Programs & Univercity Courses</h2>
       <button class="add__btn">
         <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add
-        programme
       </button>
     </div>
     <div class="programmes__items">
@@ -51,7 +56,7 @@ defineProps({
           </div>
         </div>
         <div class="programmes__item-body">
-          <a-collapse accordion>
+          <a-collapse accordion v-model:activeKey="activeKey">
             <a-collapse-panel key="1" :show-arrow="false">
               <template #header>
                 <div class="panel-header">

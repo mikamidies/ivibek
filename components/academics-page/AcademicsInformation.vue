@@ -16,7 +16,7 @@ defineProps({
     <div class="information__head">
       <h2 class="information__title">Education Information</h2>
       <button class="add__btn">
-        <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add school
+        <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add
       </button>
     </div>
     <div class="information__filter">

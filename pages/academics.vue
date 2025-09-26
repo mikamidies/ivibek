@@ -5,6 +5,8 @@ import AiBanner from "~/components/AiBanner.vue";
 import AcademicsInformation from "~/components/academics-page/AcademicsInformation.vue";
 import AcademicsSchool from "~/components/academics-page/AcademicsSchool.vue";
 import AcademicsProgrammes from "~/components/academics-page/AcademicsProgrammes.vue";
+import AcademicsResearch from "~/components/academics-page/AcademicsReseach.vue";
+import AcademicsPortfolio from "~/components/academics-page/AcademicsPortfolio.vue";
 
 const school__options = [
   {
@@ -79,6 +81,9 @@ const school__items = [
         :school__items="school__items"
         class="marginer"
       />
+
+      <AcademicsResearch :school__items="school__items" class="marginer" />
+      <AcademicsPortfolio :school__items="school__items" />
     </div>
     <div class="right">
       <GeneralCard />

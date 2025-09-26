@@ -20,7 +20,7 @@ watch(activeKey, (val) => {
     <div class="academics__head">
       <h2 class="academics__title">School academics</h2>
       <button class="add__btn">
-        <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add course
+        <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add
       </button>
     </div>
 
