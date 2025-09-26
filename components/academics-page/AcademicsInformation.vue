@@ -71,7 +71,7 @@ defineProps({
 .information {
   background: white;
   border-radius: 16px;
-  padding: 20px;
+  padding: 24px;
 }
 .information__head {
   display: flex;
