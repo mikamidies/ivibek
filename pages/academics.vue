@@ -100,11 +100,14 @@ const school__items = [
   background: var(--border);
   height: 100vh;
   overflow: auto;
+  position: relative;
 }
 .right {
   background: white;
   border-radius: 16px;
   height: fit-content;
+  position: sticky;
+  top: 0;
 }
 .marginer {
   margin-bottom: 16px;
