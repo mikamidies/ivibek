@@ -118,7 +118,7 @@ const tasks = [
 }
 .tasks__item {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
   padding: 16px;
@@ -126,7 +126,7 @@ const tasks = [
 .tasks__item-name {
   font-weight: 500;
   font-size: 16px;
-  line-height: 24px;
+  line-height: 100%;
   margin-bottom: 8px;
 }
 .tasks__item-desc {

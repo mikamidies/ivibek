@@ -342,7 +342,7 @@ const tasks = [
 }
 .tasks__item {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
   padding: 16px;

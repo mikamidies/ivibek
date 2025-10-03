@@ -112,4 +112,10 @@ const school__items = [
 .marginer {
   margin-bottom: 16px;
 }
+:deep(.ant-select) {
+  width: 192px;
+}
+:deep(.ant-select-selection-placeholder) {
+  color: var(--text-grey);
+}
 </style>

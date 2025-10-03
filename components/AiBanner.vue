@@ -8,19 +8,26 @@
       </p>
     </div>
 
-    <NuxtImg
-      src="/images/building.png"
-      alt="AI Banner"
-      width="100%"
-      height="100%"
-    />
+    <div class="images">
+      <NuxtImg
+        src="/images/banner-1.png"
+        alt="AI Banner"
+        width="100%"
+        height="100%"
+      />
+      <NuxtImg
+        src="/images/banner-2.png"
+        alt="AI Banner"
+        width="100%"
+        height="100%"
+      />
+    </div>
   </div>
 </template>
 
 <style scoped>
 .ai-banner {
   width: 100%;
-  height: 164px;
   border-radius: 16px;
   overflow: hidden;
   background: radial-gradient(
@@ -30,16 +37,12 @@
   );
   position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 4fr 6fr;
 }
-img {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%) scale(1.1);
-  width: 60%;
-  height: 100%;
-  object-fit: contain;
+.images {
+  position: relative;
+  z-index: 2;
+  display: flex;
 }
 .ai-banner::before {
   content: "";
@@ -70,11 +73,12 @@ img {
   font-size: 24px;
   line-height: 32px;
   font-weight: 600;
+  letter-spacing: 0.5px;
 }
 .link {
   font-size: 14px;
   line-height: 20px;
-  padding: 10px 12px;
+  padding: 10px 0px;
   display: flex;
   align-items: center;
   gap: 8px;

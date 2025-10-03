@@ -36,7 +36,7 @@
           </div>
           <div class="active__session-right">
             <p class="active__session-date">Avg. 20</p>
-            <div class="active__session-time">19.00</div>
+            <div class="active__session-time">19:00</div>
           </div>
         </div>
         <div class="active__session-item">
@@ -49,7 +49,7 @@
           </div>
           <div class="active__session-right">
             <p class="active__session-date">Avg. 20</p>
-            <div class="active__session-time">19.00</div>
+            <div class="active__session-time">19:00</div>
           </div>
         </div>
       </div>
@@ -172,8 +172,9 @@
   justify-content: space-between;
   padding: 16px 24px;
   background: var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
   position: relative;
+  overflow: hidden;
 }
 .active__session-item::before {
   content: "";
@@ -183,8 +184,6 @@
   width: 4px;
   height: 100%;
   background: var(--blue);
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
 }
 .active__session-name {
   font-weight: 400;

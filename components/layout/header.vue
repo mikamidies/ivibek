@@ -49,7 +49,7 @@ defineProps({
 }
 .search {
   position: relative;
-  border: 1px solid var(--border-darker);
+  border: 1px solid var(--border);
   border-radius: 14px;
   font-size: 14px;
   overflow: hidden;
@@ -70,7 +70,7 @@ defineProps({
   gap: 8px;
 }
 .buttons a {
-  border: 1px solid var(--border-darker);
+  border: 1px solid var(--border);
   width: 36px;
   height: 36px;
   border-radius: 14px;

@@ -9,13 +9,24 @@ defineProps({
     required: true,
   },
 });
+
+import { ref } from "vue";
+
+const visible = ref(false);
+const showModal = () => {
+  visible.value = true;
+};
+const handleOk = (e) => {
+  console.log(e);
+  visible.value = false;
+};
 </script>
 
 <template>
   <div class="information">
     <div class="information__head">
       <h2 class="information__title">Education Information</h2>
-      <button class="add__btn">
+      <button @click="showModal" class="add__btn">
         <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add
       </button>
     </div>
@@ -65,6 +76,13 @@ defineProps({
       </tbody>
     </table>
   </div>
+
+  <a-modal v-model:visible="visible" @ok="handleOk">
+    <p>Some contents...</p>
+    <p>Some contents...</p>
+    <p>Some contents...</p>
+    <p>Some contents...</p>
+  </a-modal>
 </template>
 
 <style scoped>
@@ -72,6 +90,7 @@ defineProps({
   background: white;
   border-radius: 16px;
   padding: 24px;
+  margin-bottom: 16px;
 }
 .information__head {
   display: flex;
