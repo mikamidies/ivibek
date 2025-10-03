@@ -146,3 +146,14 @@ tr td:last-child {
   font-size: 12px;
   line-height: 16px;
 }
+.add__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-color: var(--blue);
+  color: var(--blue);
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
