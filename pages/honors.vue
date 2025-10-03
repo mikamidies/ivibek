@@ -134,9 +134,6 @@ const handleOk = (e) => {
   justify-content: space-between;
   margin-bottom: 24px;
 }
-.section__title {
-  margin-bottom: 0;
-}
 .honors__items {
   display: flex;
   flex-direction: column;

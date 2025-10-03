@@ -303,6 +303,7 @@ const gender = [
   font-weight: 500;
   font-size: 20px;
   line-height: 28px;
+  margin-bottom: 16px;
 }
 .profile__about-head,
 .profile__details-head {

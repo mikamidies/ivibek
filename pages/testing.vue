@@ -144,9 +144,6 @@ import GeneralCard from "@/components/cards/GeneralCard.vue";
   justify-content: space-between;
   margin-bottom: 24px;
 }
-.section__title {
-  margin-bottom: 0;
-}
 .testing__items {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

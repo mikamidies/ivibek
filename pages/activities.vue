@@ -328,9 +328,6 @@ const handleOk = (e) => {
   justify-content: space-between;
   margin-bottom: 24px;
 }
-.section__title {
-  margin-bottom: 0;
-}
 .act__top {
   margin-bottom: 16px;
   display: flex;

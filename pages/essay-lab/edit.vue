@@ -204,9 +204,7 @@
   line-height: 20px;
   color: var(--light-grey);
 }
-.section__title {
-  margin: 0;
-}
+
 .feedback__items {
   display: flex;
   flex-direction: column;
