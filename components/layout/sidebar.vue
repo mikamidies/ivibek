@@ -20,7 +20,11 @@ const links = [
   { name: "Booking", link: "/booking", icon: "lucide:calendar-days" },
   { name: "Essay Lab", link: "/essay-lab", icon: "lucide:test-tubes" },
   { name: "Teachers", link: "/teachers", icon: "lucide:user-round-pen" },
-  { name: "Courses", link: "/courses", icon: "lucide:graduation-cap" },
+  {
+    name: "Universities",
+    link: "/universities",
+    icon: "lucide:building",
+  },
 ];
 </script>
 

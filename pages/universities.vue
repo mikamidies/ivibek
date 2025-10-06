@@ -4,7 +4,7 @@ import PageBanner from "@/components/PageBanner.vue";
 
 <template>
   <div class="courses-page">
-    <PageBanner titleProps="Courses" />
+    <PageBanner titleProps="Universities" />
   </div>
 </template>
 
