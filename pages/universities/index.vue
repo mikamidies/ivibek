@@ -117,7 +117,7 @@ import PageBanner from "@/components/PageBanner.vue";
           </NuxtLink>
         </div>
         <div class="uni__item">
-          <NuxtLink to="/">
+          <NuxtLink to="/universities/id">
             <div class="uni__item-img">
               <NuxtImg
                 src="/images/tsuos.jpg"
