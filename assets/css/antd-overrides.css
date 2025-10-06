@@ -5,13 +5,20 @@
   left: auto;
   margin: 0;
   width: 660px !important;
-  height: 95%;
+  height: 100%;
+}
+.ant-modal-wrap {
+  overflow: hidden;
 }
 .ant-modal .ant-modal-content {
   border-radius: 16px !important;
   overflow: hidden;
-  height: 90%;
+  height: 99%;
   padding: 24px;
+}
+.ant-modal-body {
+  height: 93%;
+  overflow: auto;
 }
 .ant-modal .ant-modal-header {
   border-top-left-radius: 16px;
