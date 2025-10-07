@@ -114,7 +114,7 @@ const gender = [
       <div class="profile__about">
         <div class="profile__about-head">
           <h4 class="section__title">About Me</h4>
-          <button class="profile__about-edit">
+          <button class="profile__about-edit" @click="showModal">
             <Icon name="lucide:pencil" />
           </button>
         </div>

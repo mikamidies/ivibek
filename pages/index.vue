@@ -101,7 +101,7 @@ const tasks = [
           <div class="tasks">
             <div class="tasks__head">
               <p class="tasks__title">Student tasks</p>
-              <NuxtLink to="/">View</NuxtLink>
+              <NuxtLink to="/tasks">View</NuxtLink>
             </div>
             <div class="tasks__items">
               <div
@@ -130,7 +130,7 @@ const tasks = [
       <div class="profile">
         <div class="profile__head">
           <p class="profile__title">My Profile</p>
-          <NuxtLink to="/">
+          <NuxtLink to="/profile">
             <Icon name="lucide:ellipsis-vertical" />
           </NuxtLink>
         </div>
