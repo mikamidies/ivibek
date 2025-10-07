@@ -13,7 +13,11 @@ import DevelopmentCirruculum from "@/components/development-page/DevelopmentCirr
 <template>
   <div class="personal-development-page">
     <div class="personal-development__left">
-      <PageBanner titleProps="Personal Development" />
+      <PageBanner
+        titleProps="Personal Development"
+        backgroundProps="#4116FF"
+        iconProps="/page-icons/personal.png"
+      />
       <DevelopmentBooks />
       <DevelopmentWritings />
       <DevelopmentSkills />

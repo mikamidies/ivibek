@@ -6,7 +6,11 @@ import GeneralCard from "@/components/cards/GeneralCard.vue";
 <template>
   <div class="testing-page">
     <div class="testing__left">
-      <PageBanner titleProps="Testing" />
+      <PageBanner
+        titleProps="Testing"
+        backgroundProps="#FB64B6"
+        iconProps="/page-icons/testing.png"
+      />
       <div class="testing__body">
         <div class="testing__header">
           <h4 class="section__title">Testing overview</h4>

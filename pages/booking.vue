@@ -23,7 +23,11 @@ const handlePaymentOk = () => {
 
 <template>
   <div class="booking-page">
-    <PageBanner titleProps="Booking" />
+    <PageBanner
+      titleProps="Booking"
+      backgroundProps="#0092B8"
+      iconProps="/page-icons/booking.png"
+    />
 
     <div class="booking__body">
       <div class="booking__header">

@@ -4,7 +4,11 @@ import PageBanner from "@/components/PageBanner.vue";
 
 <template>
   <div class="essay-page">
-    <PageBanner titleProps="Essay Lab" />
+    <PageBanner
+      titleProps="Essay Lab"
+      backgroundProps="#00A155"
+      iconProps="/page-icons/tasks.png"
+    />
 
     <div class="essay__body">
       <div class="essay__head">

@@ -36,7 +36,11 @@ const tasks = [
 <template>
   <div class="tasks-page">
     <div class="left">
-      <PageBanner titleProps="Tasks" />
+      <PageBanner
+        titleProps="Tasks"
+        backgroundProps="#0764F1"
+        iconProps="/page-icons/tasks.png"
+      />
       <div class="tasks__body">
         <button class="tasks__btn" @click="showModal">
           <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add Task

@@ -19,7 +19,11 @@ const handleOk = (e) => {
 <template>
   <div class="activities-page">
     <div class="activities__left">
-      <PageBanner titleProps="Activities" />
+      <PageBanner
+        titleProps="Activities"
+        backgroundProps="#18A171"
+        iconProps="/page-icons/activities.png"
+      />
 
       <div class="activities__body">
         <div class="act__header">

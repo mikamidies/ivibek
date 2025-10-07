@@ -17,7 +17,11 @@ const handleOk = (e) => {
 <template>
   <div class="honors-page">
     <div class="honors__left">
-      <PageBanner titleProps="Honors" />
+      <PageBanner
+        titleProps="Honors"
+        backgroundProps="#FF4C16"
+        iconProps="/page-icons/honors.png"
+      />
 
       <div class="honors__body">
         <div class="honors__header">

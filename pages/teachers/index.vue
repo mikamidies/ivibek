@@ -4,7 +4,11 @@ import PageBanner from "@/components/PageBanner.vue";
 
 <template>
   <div class="booking-page">
-    <PageBanner titleProps="Teachers" />
+    <PageBanner
+      titleProps="Teachers"
+      backgroundProps="#00A155"
+      iconProps="/page-icons/tasks.png"
+    />
     <div class="teachers__body">
       <div class="teachers__top">
         <div class="teachers__top-left">

@@ -6,7 +6,11 @@ import GeneralCard from "@/components/cards/GeneralCard.vue";
 <template>
   <div class="careers-page">
     <div class="careers__left">
-      <PageBanner titleProps="Majors & Careers" />
+      <PageBanner
+        titleProps="Majors & Careers"
+        backgroundProps="#FF163D"
+        iconProps="/page-icons/majors.png"
+      />
 
       <div class="majors-body">
         <div class="majors__header">

@@ -65,7 +65,12 @@ const school__items = [
 <template>
   <div class="academics-page">
     <div class="left">
-      <PageBanner titleProps="Academics" class="marginer" />
+      <PageBanner
+        titleProps="Academics"
+        backgroundProps="#0764F1"
+        iconProps="/page-icons/academics.png"
+        class="marginer"
+      />
       <AiBanner class="marginer" />
 
       <AcademicsInformation
