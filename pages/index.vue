@@ -1,5 +1,6 @@
 <script setup>
 import AiBanner from "~/components/AiBanner.vue";
+import { ref } from "vue";
 
 definePageMeta({
   layoutTitle: "Dashboard",
@@ -36,23 +37,26 @@ const sessions = [
   },
 ];
 
-const tasks = [
+const tasks = ref([
   {
     name: "Develop research methodology and data collection tools City of Stars",
     desc: "The Influence of Language Clubs on Cultural Awareness",
     date: "Sep 26, 2025",
+    checked: false,
   },
   {
     name: "Develop research methodology and data collection tools",
     desc: "The Influence of Language Clubs on Cultural Awareness",
     date: "Sep 26, 2025",
+    checked: false,
   },
   {
     name: "Develop research methodology and data collection tools",
     desc: "The Influence of Language Clubs on Cultural Awareness",
     date: "Sep 26, 2025",
+    checked: false,
   },
-];
+]);
 </script>
 
 <template>
@@ -108,15 +112,20 @@ const tasks = [
                 class="tasks__item"
                 v-for="(task, index) in tasks"
                 :key="index"
+                :class="{ checked: task.checked }"
               >
                 <div class="check">
-                  <input type="checkbox" :id="'task' + index" />
+                  <input
+                    type="checkbox"
+                    :id="'task' + index"
+                    v-model="task.checked"
+                  />
                   <label :for="'task' + index"></label>
                 </div>
                 <div class="tasks__item-mid">
-                  <p class="tasks__item-name">
+                  <label :for="'task' + index" class="tasks__item-name">
                     {{ task.name }}
-                  </p>
+                  </label>
                   <p class="tasks__item-desc">
                     {{ task.desc }}
                   </p>
@@ -347,6 +356,11 @@ const tasks = [
   gap: 12px;
   padding: 16px;
 }
+.tasks__item.checked .tasks__item-name,
+.tasks__item.checked .tasks__item-desc {
+  text-decoration: line-through;
+  color: var(--light-grey);
+}
 .tasks__item-name {
   font-weight: 500;
   font-size: 16px;
@@ -426,6 +440,9 @@ const tasks = [
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-top: 16px;
+}
+.section__title {
+  margin-bottom: 16px;
 }
 .profile__overview-item {
   background: var(--border);

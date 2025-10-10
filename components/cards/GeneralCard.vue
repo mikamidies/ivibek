@@ -107,7 +107,9 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-  margin-top: 16px;
+}
+.section__title {
+  margin-bottom: 16px;
 }
 .profile__overview-item {
   background: var(--border);

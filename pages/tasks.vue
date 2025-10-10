@@ -14,23 +14,26 @@ const handleOk = (e) => {
   visible.value = false;
 };
 
-const tasks = [
+const tasks = ref([
   {
-    name: "Design new landing page",
-    desc: "Create a modern and responsive design for the new product landing page.",
-    date: "2023-10-01",
+    name: "Develop research methodology and data collection tools City of Stars",
+    desc: "The Influence of Language Clubs on Cultural Awareness",
+    date: "Sep 26, 2025",
+    checked: false,
   },
   {
-    name: "Fix login bug",
-    desc: "Resolve the issue where users are unable to log in with their social media accounts.",
-    date: "2023-10-03",
+    name: "Develop research methodology and data collection tools",
+    desc: "The Influence of Language Clubs on Cultural Awareness",
+    date: "Sep 26, 2025",
+    checked: false,
   },
   {
-    name: "Update user profile UI",
-    desc: "Redesign the user profile section to improve usability and aesthetics.",
-    date: "2023-10-05",
+    name: "Develop research methodology and data collection tools",
+    desc: "The Influence of Language Clubs on Cultural Awareness",
+    date: "Sep 26, 2025",
+    checked: false,
   },
-];
+]);
 </script>
 
 <template>
@@ -45,16 +48,25 @@ const tasks = [
         <button class="tasks__btn" @click="showModal">
           <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add Task
         </button>
-        <div class="tasks__item" v-for="(task, index) in tasks" :key="index">
+        <div
+          class="tasks__item"
+          v-for="(task, index) in tasks"
+          :key="index"
+          :class="{ checked: task.checked }"
+        >
           <div class="leftists">
             <div class="check">
-              <input type="checkbox" :id="'task' + index" />
+              <input
+                type="checkbox"
+                :id="'task' + index"
+                v-model="task.checked"
+              />
               <label :for="'task' + index"></label>
             </div>
             <div class="tasks__item-mid">
-              <p class="tasks__item-name">
+              <label :for="'task' + index" class="tasks__item-name">
                 {{ task.name }}
-              </p>
+              </label>
               <p class="tasks__item-desc">
                 {{ task.desc }}
               </p>
@@ -114,7 +126,6 @@ const tasks = [
   height: 100vh;
   overflow: auto;
 }
-
 .tasks__items {
   display: flex;
   flex-direction: column;
@@ -126,6 +137,11 @@ const tasks = [
   justify-content: space-between;
   gap: 12px;
   padding: 16px;
+}
+.tasks__item.checked .tasks__item-name,
+.tasks__item.checked .tasks__item-desc {
+  text-decoration: line-through;
+  color: var(--light-grey);
 }
 .tasks__item-name {
   font-weight: 500;
