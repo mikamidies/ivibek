@@ -3,47 +3,120 @@ definePageMeta({
   layoutTitle: "Profile",
 });
 
-import { ref } from "vue";
+import { message } from "ant-design-vue";
+import dayjs from "dayjs";
+
+const { user, updateProfile } = useAuth();
+const loading = ref(false);
+
+const form = ref({
+  fullName: "",
+  email: "",
+  dateOfBirth: null,
+  gender: "MALE",
+  countryId: 1,
+});
+
+const about = ref("");
+
+watch(
+  user,
+  (newUser) => {
+    if (newUser?.info) {
+      form.value = {
+        fullName: newUser.info.fullName || "",
+        email: newUser.info.email || "",
+        dateOfBirth: newUser.info.dateOfBirth
+          ? dayjs(newUser.info.dateOfBirth)
+          : null,
+        gender: newUser.info.gender || "MALE",
+        countryId: newUser.info.country?.id || 1,
+      };
+      about.value = newUser.info.about || "";
+    }
+  },
+  { immediate: true }
+);
 
 const visible = ref(false);
+const visibleDesc = ref(false);
+
 const showModal = () => {
+  console.log("click");
+
   visible.value = true;
 };
-const handleOk = (e) => {
-  console.log(e);
+
+const handleOk = async () => {
+  loading.value = true;
+
+  const profileData = {
+    fullName: form.value.fullName,
+    email: form.value.email,
+    dateOfBirth: form.value.dateOfBirth
+      ? dayjs(form.value.dateOfBirth).format("YYYY-MM-DD")
+      : undefined,
+    gender: form.value.gender,
+    countryId: form.value.countryId,
+  };
+
+  const result = await updateProfile(profileData);
+
+  loading.value = false;
+
+  if (result.success) {
+    message.success("Профиль успешно обновлен!");
+    visible.value = false;
+  } else {
+    message.error(result.error || "Ошибка обновления профиля");
+  }
+};
+
+const handleCancel = () => {
   visible.value = false;
 };
 
+const showModalDesc = () => {
+  visibleDesc.value = true;
+};
+
+const handleOkDesc = async () => {
+  loading.value = true;
+
+  const result = await updateProfile({
+    about: about.value,
+  });
+
+  loading.value = false;
+
+  if (result.success) {
+    message.success("Описание обновлено!");
+    visibleDesc.value = false;
+  } else {
+    message.error(result.error || "Ошибка обновления");
+  }
+};
+
 const filterOption = (input, option) => {
-  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+  return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
 
 const countries = [
-  { value: "USA", label: "USA" },
-  { value: "Canada", label: "Canada" },
-  { value: "UK", label: "UK" },
-  { value: "Australia", label: "Australia" },
-  { value: "Germany", label: "Germany" },
-  { value: "France", label: "France" },
-  { value: "India", label: "India" },
-  { value: "China", label: "China" },
-  { value: "Japan", label: "Japan" },
-  { value: "South Korea", label: "South Korea" },
+  { value: 1, label: "Uzbekistan" },
+  { value: 2, label: "USA" },
+  { value: 3, label: "Canada" },
+  { value: 4, label: "UK" },
+  { value: 5, label: "Australia" },
+  { value: 6, label: "Germany" },
+  { value: 7, label: "France" },
+  { value: 8, label: "India" },
+  { value: 9, label: "China" },
+  { value: 10, label: "Japan" },
 ];
 
-const relationships = [
-  { value: "Single", label: "Single" },
-  { value: "In a relationship", label: "In a relationship" },
-  { value: "Married", label: "Married" },
-  { value: "It's complicated", label: "It's complicated" },
-];
-
-const gender = [
-  { value: "Male", label: "Male" },
-  { value: "Female", label: "Female" },
-  { value: "Other", label: "Other" },
-  { value: "Helicopter", label: "Helicopter" },
-  { value: "Prefer not to say", label: "Prefer not to say" },
+const genderOptions = [
+  { value: "MALE", label: "Male" },
+  { value: "FEMALE", label: "Female" },
 ];
 </script>
 
@@ -63,14 +136,18 @@ const gender = [
             <Icon name="lucide:pencil" width="16" height="16" />
           </button>
         </div>
-        <div>
-          <h3 class="profile__name">Yu Jimin</h3>
-          <p class="profile__email">aespa@naver.com</p>
-          <p class="profile__apply">Apply year: 2023/2024</p>
+        <div v-if="user">
+          <h3 class="profile__name">
+            {{ user.info?.fullName || user.username }}
+          </h3>
+          <p class="profile__email">{{ user.info?.email || "Not set" }}</p>
+          <p class="profile__apply">
+            Joined {{ dayjs(user.joinedAt).format("MMM DD, YYYY") }}
+          </p>
         </div>
       </div>
-      <NuxtLink to="/"> Preview </NuxtLink>
     </div>
+
     <div class="profile__grid">
       <div class="profile__details">
         <div class="profile__details-head">
@@ -79,34 +156,36 @@ const gender = [
             <Icon name="lucide:pencil" />
           </button>
         </div>
-        <div class="profile__items">
-          <div class="profile__item">
-            <Icon name="lucide:mail" />
-            <p class="profile__item-text">aespa@naver.com</p>
-          </div>
+        <div class="profile__items" v-if="user">
           <div class="profile__item">
             <Icon name="lucide:user" />
-            <p class="profile__item-text">Female</p>
+            <p class="profile__item-text">{{ user.username }}</p>
+          </div>
+          <div class="profile__item">
+            <Icon name="lucide:mail" />
+            <p class="profile__item-text">
+              {{ user.info?.email || "Not set" }}
+            </p>
+          </div>
+          <div class="profile__item">
+            <Icon name="lucide:user-2" />
+            <p class="profile__item-text">
+              {{ user.info?.gender || "Not set" }}
+            </p>
           </div>
           <div class="profile__item">
             <Icon name="lucide:calendar-days" />
-            <p class="profile__item-text">Apr 6, 2000</p>
+            <p class="profile__item-text">
+              {{
+                dayjs(user.info.dateOfBirth).format("MMM DD, YYYY") || "Not set"
+              }}
+            </p>
           </div>
           <div class="profile__item">
             <Icon name="lucide:map-pin" />
-            <p class="profile__item-text">Seoul, South Korea</p>
-          </div>
-          <div class="profile__item">
-            <Icon name="lucide:languages" />
-            <p class="profile__item-text">Korean, English</p>
-          </div>
-          <div class="profile__item">
-            <Icon name="lucide:clock" />
-            <p class="profile__item-text">Joined Jan 1, 2023</p>
-          </div>
-          <div class="profile__item">
-            <Icon name="lucide:globe" />
-            <p class="profile__item-text">Asia</p>
+            <p class="profile__item-text">
+              {{ user.info?.country?.name || "Not set" }}
+            </p>
           </div>
         </div>
       </div>
@@ -114,99 +193,105 @@ const gender = [
       <div class="profile__about">
         <div class="profile__about-head">
           <h4 class="section__title">About Me</h4>
-          <button class="profile__about-edit" @click="showModal">
+          <button class="profile__about-edit" @click="showModalDesc">
             <Icon name="lucide:pencil" />
           </button>
         </div>
-        <p class="profile__about-text">
-          Hello! I'm Yu Jimin, a passionate individual with a love for music,
-          dance, and connecting with people. As a member of the global sensation
-          aespa, I thrive on creativity and teamwork. When I'm not performing, I
-          enjoy exploring new cultures, trying out different cuisines, and
-          spending quality time with friends and family. I'm always eager to
-          learn and grow, both personally and professionally. Feel free to reach
-          out if you'd like to connect or collaborate!
-          <br /><br />
-          As the leader of aespa, I strive to inspire my members and fans
-          through our music and performances. Our group is known for blending
-          virtual and real worlds, pushing boundaries in K-pop with innovative
-          concepts and technology. I'm proud of our achievements, including
-          chart-topping songs and global recognition. Beyond the stage, I value
-          kindness, hard work, and staying true to myself. Let's continue to
-          make meaningful connections and create unforgettable memories
-          together!
-        </p>
+        <div class="profile__about-text">
+          {{ user?.info?.about || "No description yet" }}
+        </div>
       </div>
     </div>
   </div>
 
-  <a-modal v-model:visible="visible" title="Edit Profile" @ok="handleOk">
+  <a-modal
+    v-model:visible="visible"
+    title="Edit Profile"
+    @ok="handleOk"
+    :confirm-loading="loading"
+  >
     <template #footer>
       <a-button key="back" @click="handleCancel">Cancel</a-button>
-      <a-button key="submit" type="primary" :loading="loading" @click="handleOk"
-        >Save information</a-button
+      <a-button
+        key="submit"
+        type="primary"
+        :loading="loading"
+        @click="handleOk"
       >
+        Save information
+      </a-button>
     </template>
     <div class="form__wrapper">
       <a-form :model="form" layout="vertical">
-        <a-form-item label="First Name" name="firstName">
-          <a-input placeholder="Enter your first name" />
+        <a-form-item label="Full Name" name="fullName">
+          <a-input
+            v-model:value="form.fullName"
+            placeholder="Enter your full name"
+          />
         </a-form-item>
-        <a-form-item label="Last Name" name="lastName">
-          <a-input placeholder="Enter your last name" />
+
+        <a-form-item label="Email" name="email">
+          <a-input
+            v-model:value="form.email"
+            type="email"
+            placeholder="Enter your email"
+          />
         </a-form-item>
-        <a-form-item label="Phone" name="phone">
-          <a-input placeholder="Enter your phone number" />
+
+        <a-form-item label="Date of Birth" name="dateOfBirth">
+          <a-date-picker
+            v-model:value="form.dateOfBirth"
+            style="width: 100%"
+            format="DD/MM/YYYY"
+          />
         </a-form-item>
-        <a-form-item label="Country" name="country">
+
+        <a-form-item label="Gender" name="gender">
           <a-select
+            v-model:value="form.gender"
+            placeholder="Choose gender"
+            :options="genderOptions"
+          />
+        </a-form-item>
+
+        <a-form-item label="Country" name="countryId">
+          <a-select
+            v-model:value="form.countryId"
             show-search
             placeholder="Select a country"
             :options="countries"
             :filter-option="filterOption"
-          ></a-select>
-        </a-form-item>
-        <a-form-item label="Email" name="email">
-          <a-input placeholder="Enter your email" />
-        </a-form-item>
-        <a-form-item label="Relationships" name="relationships">
-          <a-select
-            show-search
-            placeholder="Choose wisely"
-            :options="relationships"
-            :filter-option="filterOption"
-          ></a-select>
-        </a-form-item>
-        <a-form-item label="Date of Birth" name="dob">
-          <a-date-picker style="width: 100%" format="DD/MM/YYYY" />
-        </a-form-item>
-        <a-form-item label="Gender" name="gender">
-          <a-select
-            show-search
-            placeholder="Choose wisely"
-            :options="gender"
-            :filter-option="filterOption"
-          ></a-select>
-        </a-form-item>
-        <a-form-item label="Language" name="language">
-          <a-input placeholder="Enter your Language" />
-        </a-form-item>
-        <a-form-item label="English Proficiency" name="englishProficiency">
-          <a-input placeholder="Enter your English Proficiency" />
-        </a-form-item>
-        <a-form-item label="About Me" name="about" class="long-form-item">
-          <a-textarea
-            rows="4"
-            placeholder="Tell us about yourself"
-            :autosize="{ minRows: 4, maxRows: 6 }"
           />
         </a-form-item>
       </a-form>
     </div>
   </a-modal>
+
+  <a-modal
+    v-model:visible="visibleDesc"
+    title="Change Description"
+    @ok="handleOkDesc"
+    :confirm-loading="loading"
+  >
+    <a-form-item label="About Me" name="about" class="long-form-item columner">
+      <a-textarea
+        v-model:value="about"
+        rows="4"
+        placeholder="Tell us about yourself"
+        :autosize="{ minRows: 18, maxRows: 24 }"
+      />
+    </a-form-item>
+  </a-modal>
 </template>
 
 <style scoped>
+.columner {
+  display: flex;
+  flex-direction: column;
+}
+.columner :deep(.ant-col) {
+  text-align: left !important;
+}
 .profile-page {
   padding: 24px;
   background: var(--border);
@@ -303,7 +388,6 @@ const gender = [
   font-weight: 500;
   font-size: 20px;
   line-height: 28px;
-  margin-bottom: 16px;
 }
 .profile__about-head,
 .profile__details-head {
@@ -314,8 +398,9 @@ const gender = [
 }
 .profile__details-edit span,
 .profile__about-edit span {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
+  color: var(--light-grey);
 }
 .profile__items {
   display: flex;

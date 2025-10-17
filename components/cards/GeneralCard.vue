@@ -1,3 +1,5 @@
+<script setup></script>
+
 <template>
   <div class="general-card">
     <div class="general__info">

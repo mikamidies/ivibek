@@ -34,7 +34,7 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="login-page">
+  <div class="login-page auth">
     <div class="login__wrapper">
       <div class="login__logo">
         <NuxtImg src="images/brand.svg" alt="Logo" width="120" height="40" />

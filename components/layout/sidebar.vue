@@ -1,10 +1,13 @@
 <script setup>
 import PersonalCard from "@/components/cards/PersonalCard.vue";
+
+const { logout } = useAuth();
+
 const links = [
   { name: "Dashboard", link: "/", icon: "lucide:layout-dashboard" },
   { name: "Academics", link: "/academics", icon: "lucide:graduation-cap" },
   { name: "Tasks", link: "/tasks", icon: "lucide:file-check" },
-  { name: "Testing", link: "/testing", icon: "lucide:file-pen" },
+  // { name: "Testing", link: "/testing", icon: "lucide:file-pen" },
   { name: "Activities", link: "/activities", icon: "lucide:folder-pen" },
   { name: "Honors", link: "/honors", icon: "lucide:medal" },
   {
@@ -50,6 +53,12 @@ const links = [
             </NuxtLink>
           </li>
         </ul>
+        <div class="logout">
+          <button @click="logout">
+            <Icon name="lucide:log-out" class="icon" />
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -84,10 +93,10 @@ const links = [
   border-bottom: 1px solid var(--border);
 }
 .bottom {
-  padding: 24px 16px 64px 16px;
+  padding: 24px 16px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
 }
 .bottom ul {
   display: flex;
@@ -140,5 +149,29 @@ const links = [
 .bottom span {
   width: 20px;
   height: 20px;
+}
+.logout button {
+  display: grid;
+  grid-template-columns: 20px auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--light-grey);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s;
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  font-size: inherit;
+}
+.logout button:hover {
+  background-color: var(--light-blue);
+  color: var(--blue);
 }
 </style>

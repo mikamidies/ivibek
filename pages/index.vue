@@ -1,6 +1,7 @@
 <script setup>
 import AiBanner from "~/components/AiBanner.vue";
 import { ref } from "vue";
+const { user } = useAuth();
 
 definePageMeta({
   layoutTitle: "Dashboard",
@@ -139,8 +140,8 @@ const tasks = ref([
       <div class="profile">
         <div class="profile__head">
           <p class="profile__title">My Profile</p>
-          <NuxtLink to="/profile">
-            <Icon name="lucide:ellipsis-vertical" />
+          <NuxtLink to="/profile" class="profile__edit">
+            <Icon name="lucide:pencil" />
           </NuxtLink>
         </div>
         <div class="profile__person">
@@ -148,8 +149,8 @@ const tasks = ref([
             <NuxtImg src="/images/person.jpg" alt="" />
           </div>
           <div>
-            <p class="profile__name">Yu Jimin</p>
-            <p class="profile__email">aespa@naver.com</p>
+            <p class="profile__name">{{ user.info.fullName }}</p>
+            <p class="profile__email">{{ user.info.email }}</p>
           </div>
         </div>
         <div class="profile__items">
@@ -222,6 +223,10 @@ const tasks = ref([
 </template>
 
 <style scoped>
+.profile__edit span {
+  width: 16px;
+  height: 16px;
+}
 .index {
   padding: 24px;
   background: var(--border);

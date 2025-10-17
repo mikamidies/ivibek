@@ -1,5 +1,9 @@
+<script setup>
+const { user } = useAuth();
+</script>
+
 <template>
-  <div class="PersonalCard">
+  <div class="PersonalCard" v-if="user">
     <NuxtLink to="/profile">
       <NuxtImg
         src="/images/person.jpg"
@@ -9,8 +13,8 @@
         format="webp"
       />
       <div>
-        <h3>Yu Jimin</h3>
-        <p>aespa@naver.com</p>
+        <h3>{{ user.info.fullName }}</h3>
+        <p>{{ user.info.email }}</p>
       </div>
     </NuxtLink>
   </div>
