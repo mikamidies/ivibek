@@ -27,7 +27,6 @@ const form = ref({
 });
 
 const about = ref("");
-const fileList = ref([]);
 
 watch(
   user,
@@ -60,20 +59,22 @@ const handleOk = async () => {
   loading.value = true;
 
   try {
+    const body = {
+      fullName: form.value.fullName,
+      email: form.value.email,
+      dateOfBirth: dayjs(form.value.dateOfBirth).format("YYYY-MM-DD"),
+      gender: form.value.gender,
+      countryId: form.value.countryId,
+      timezone: "TIMEZONE",
+    };
+
     await $fetch(`https://api.ivybek.com/api/v1/student/profile`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${accessToken.value}`,
         "Content-Type": "application/json",
       },
-      body: {
-        fullName: form.value.fullName,
-        email: form.value.email,
-        dateOfBirth: dayjs(form.value.dateOfBirth).format("YYYY-MM-DD"),
-        gender: form.value.gender,
-        countryId: form.value.countryId,
-        timezone: form.value.timezone,
-      },
+      body,
     });
 
     await fetchUser();
@@ -107,23 +108,6 @@ const handleOkDesc = async () => {
     visibleDesc.value = false;
   } else {
     message.error(result.error || "Ошибка обновления");
-  }
-};
-
-const handleImageChange = async (info) => {
-  if (info.file.status === "uploading") {
-    uploadLoading.value = true;
-    return;
-  }
-
-  if (info.file.status === "done") {
-    uploadLoading.value = false;
-    message.success("Фото профиля обновлено!");
-  }
-
-  if (info.file.status === "error") {
-    uploadLoading.value = false;
-    message.error("Ошибка загрузки фото");
   }
 };
 
@@ -193,7 +177,7 @@ const timezones = [
       <div class="profile__top-left">
         <div class="profile__img">
           <NuxtImg
-            :src="user?.image || '/images/person.jpg'"
+            :src="user.image"
             alt="person"
             width="80"
             height="80"
@@ -415,6 +399,7 @@ const timezones = [
 }
 .profile__img img {
   border-radius: 50%;
+  object-fit: cover;
 }
 .profile__img-edit {
   position: absolute;

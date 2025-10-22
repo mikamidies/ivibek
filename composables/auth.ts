@@ -210,15 +210,24 @@ export const useAuth = () => {
       const formData = new FormData();
       formData.append("file", imageFile);
 
-      const uploadResponse = await $fetch(`${API_BASE}/api/v1/upload/image`, {
+      const response = await fetch(`${API_BASE}/api/v1/common/files/upload`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken.value}`,
-        },
         body: formData,
       });
 
-      const imagePath = uploadResponse.path || uploadResponse.url;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const uploadResponse = await response.json();
+      console.log("Upload response:", uploadResponse);
+
+      const imagePath = uploadResponse.filePath;
+      console.log("Image path:", imagePath);
+
+      if (!imagePath) {
+        throw new Error("Не удалось получить путь к изображению");
+      }
 
       await $fetch(`${API_BASE}/api/v1/student/profile/updateImage`, {
         method: "PATCH",
@@ -235,9 +244,10 @@ export const useAuth = () => {
 
       return { success: true };
     } catch (error: any) {
+      console.error("Image upload error:", error);
       return {
         success: false,
-        error: error.data?.message || "Ошибка загрузки фото",
+        error: error.message || "Ошибка загрузки фото",
       };
     }
   };

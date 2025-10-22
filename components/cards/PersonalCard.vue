@@ -6,7 +6,7 @@ const { user } = useAuth();
   <div class="PersonalCard" v-if="user">
     <NuxtLink to="/profile">
       <NuxtImg
-        src="/images/person.jpg"
+        :src="user.image"
         alt="person"
         width="80"
         height="80"
