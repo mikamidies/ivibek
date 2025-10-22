@@ -6,8 +6,16 @@ definePageMeta({
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 
-const { user, updateProfile } = useAuth();
+const {
+  user,
+  updateProfile,
+  updateProfileImage,
+  updateAbout,
+  accessToken,
+  fetchUser,
+} = useAuth();
 const loading = ref(false);
+const uploadLoading = ref(false);
 
 const form = ref({
   fullName: "",
@@ -15,9 +23,11 @@ const form = ref({
   dateOfBirth: null,
   gender: "MALE",
   countryId: 1,
+  timezone: "",
 });
 
 const about = ref("");
+const fileList = ref([]);
 
 watch(
   user,
@@ -31,8 +41,9 @@ watch(
           : null,
         gender: newUser.info.gender || "MALE",
         countryId: newUser.info.country?.id || 1,
+        timezone: newUser.info.timezone || "",
       };
-      about.value = newUser.info.about || "";
+      about.value = newUser.about || "";
     }
   },
   { immediate: true }
@@ -42,34 +53,38 @@ const visible = ref(false);
 const visibleDesc = ref(false);
 
 const showModal = () => {
-  console.log("click");
-
   visible.value = true;
 };
 
 const handleOk = async () => {
   loading.value = true;
 
-  const profileData = {
-    fullName: form.value.fullName,
-    email: form.value.email,
-    dateOfBirth: form.value.dateOfBirth
-      ? dayjs(form.value.dateOfBirth).format("YYYY-MM-DD")
-      : undefined,
-    gender: form.value.gender,
-    countryId: form.value.countryId,
-  };
+  try {
+    await $fetch(`https://api.ivybek.com/api/v1/student/profile`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken.value}`,
+        "Content-Type": "application/json",
+      },
+      body: {
+        fullName: form.value.fullName,
+        email: form.value.email,
+        dateOfBirth: dayjs(form.value.dateOfBirth).format("YYYY-MM-DD"),
+        gender: form.value.gender,
+        countryId: form.value.countryId,
+        timezone: form.value.timezone,
+      },
+    });
 
-  const result = await updateProfile(profileData);
+    await fetchUser();
+    message.success("Профиль обновлен!");
+    visible.value = false;
+  } catch (error) {
+    console.error(error);
+    message.error("Ошибка");
+  }
 
   loading.value = false;
-
-  if (result.success) {
-    message.success("Профиль успешно обновлен!");
-    visible.value = false;
-  } else {
-    message.error(result.error || "Ошибка обновления профиля");
-  }
 };
 
 const handleCancel = () => {
@@ -83,9 +98,7 @@ const showModalDesc = () => {
 const handleOkDesc = async () => {
   loading.value = true;
 
-  const result = await updateProfile({
-    about: about.value,
-  });
+  const result = await updateAbout(about.value);
 
   loading.value = false;
 
@@ -95,6 +108,51 @@ const handleOkDesc = async () => {
   } else {
     message.error(result.error || "Ошибка обновления");
   }
+};
+
+const handleImageChange = async (info) => {
+  if (info.file.status === "uploading") {
+    uploadLoading.value = true;
+    return;
+  }
+
+  if (info.file.status === "done") {
+    uploadLoading.value = false;
+    message.success("Фото профиля обновлено!");
+  }
+
+  if (info.file.status === "error") {
+    uploadLoading.value = false;
+    message.error("Ошибка загрузки фото");
+  }
+};
+
+const customRequest = async ({ file, onSuccess, onError }) => {
+  uploadLoading.value = true;
+
+  const result = await updateProfileImage(file);
+
+  uploadLoading.value = false;
+
+  if (result.success) {
+    onSuccess("ok");
+    message.success("Фото профиля обновлено!");
+  } else {
+    onError(new Error(result.error));
+    message.error(result.error);
+  }
+};
+
+const beforeUpload = (file) => {
+  const isImage = file.type.startsWith("image/");
+  if (!isImage) {
+    message.error("Можно загружать только изображения!");
+  }
+  const isLt5M = file.size / 1024 / 1024 < 5;
+  if (!isLt5M) {
+    message.error("Изображение должно быть меньше 5MB!");
+  }
+  return isImage && isLt5M;
 };
 
 const filterOption = (input, option) => {
@@ -118,6 +176,15 @@ const genderOptions = [
   { value: "MALE", label: "Male" },
   { value: "FEMALE", label: "Female" },
 ];
+
+const timezones = [
+  { value: "UTC", label: "UTC" },
+  { value: "Asia/Tashkent", label: "Asia/Tashkent (UTC+5)" },
+  { value: "America/New_York", label: "America/New_York (UTC-5)" },
+  { value: "Europe/London", label: "Europe/London (UTC+0)" },
+  { value: "Asia/Tokyo", label: "Asia/Tokyo (UTC+9)" },
+  { value: "Australia/Sydney", label: "Australia/Sydney (UTC+11)" },
+];
 </script>
 
 <template>
@@ -126,15 +193,25 @@ const genderOptions = [
       <div class="profile__top-left">
         <div class="profile__img">
           <NuxtImg
-            src="/images/person.jpg"
+            :src="user?.image || '/images/person.jpg'"
             alt="person"
             width="80"
             height="80"
             format="webp"
           />
-          <button class="profile__img-edit">
-            <Icon name="lucide:pencil" width="16" height="16" />
-          </button>
+          <a-upload
+            name="image"
+            list-type="picture"
+            :show-upload-list="false"
+            :custom-request="customRequest"
+            :before-upload="beforeUpload"
+            @change="handleImageChange"
+          >
+            <button class="profile__img-edit" :disabled="uploadLoading">
+              <a-spin v-if="uploadLoading" size="small" />
+              <Icon v-else name="lucide:pencil" width="16" height="16" />
+            </button>
+          </a-upload>
         </div>
         <div v-if="user">
           <h3 class="profile__name">
@@ -187,6 +264,12 @@ const genderOptions = [
               {{ user.info?.country?.name || "Not set" }}
             </p>
           </div>
+          <div class="profile__item">
+            <Icon name="lucide:clock" />
+            <p class="profile__item-text">
+              {{ user.info?.timezone || "Not set" }}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -198,7 +281,7 @@ const genderOptions = [
           </button>
         </div>
         <div class="profile__about-text">
-          {{ user?.info?.about || "No description yet" }}
+          {{ user?.about || "No description yet" }}
         </div>
       </div>
     </div>
@@ -261,6 +344,17 @@ const genderOptions = [
             placeholder="Select a country"
             :options="countries"
             :filter-option="filterOption"
+          />
+        </a-form-item>
+
+        <a-form-item label="Timezone" name="timezone">
+          <a-select
+            v-model:value="form.timezone"
+            show-search
+            placeholder="Select timezone"
+            :options="timezones"
+            :filter-option="filterOption"
+            allow-clear
           />
         </a-form-item>
       </a-form>

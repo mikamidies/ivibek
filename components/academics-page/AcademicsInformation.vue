@@ -17,7 +17,6 @@ const showModal = () => {
   visible.value = true;
 };
 const handleOk = (e) => {
-  console.log(e);
   visible.value = false;
 };
 </script>

@@ -15,10 +15,8 @@ import { ref } from "vue";
 const visible = ref(false);
 const showModal = () => {
   visible.value = true;
-  console.log("clicked");
 };
 const handleOk = (e) => {
-  console.log(e);
   visible.value = false;
 };
 </script>

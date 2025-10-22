@@ -10,10 +10,6 @@ const props = defineProps({
 
 const activeKey = ref(["1"]);
 
-watch(activeKey, (val) => {
-  console.log(val);
-});
-
 import { ref } from "vue";
 
 const visible = ref(false);
@@ -21,7 +17,6 @@ const showModal = () => {
   visible.value = true;
 };
 const handleOk = (e) => {
-  console.log(e);
   visible.value = false;
 };
 const secondModal = ref(false);

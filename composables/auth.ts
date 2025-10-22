@@ -10,13 +10,14 @@ interface UserInfo {
   dateOfBirth: string;
   country: Country;
   timezone: string | null;
-  about: string | null;
 }
 
 interface User {
   id: number;
   username: string;
+  image: string | null;
   info: UserInfo;
+  about: string | null;
   joinedAt: string;
 }
 
@@ -172,30 +173,62 @@ export const useAuth = () => {
     email?: string;
     dateOfBirth?: string;
     gender?: "MALE" | "FEMALE";
-    about?: string;
+    timezone?: string;
   }) => {
     if (!accessToken.value) {
       return { success: false, error: "Не авторизован" };
     }
 
-    const currentData = {
-      fullName: user.value?.info?.fullName || "",
-      email: user.value?.info?.email || "",
-      dateOfBirth: user.value?.info?.dateOfBirth || undefined,
-      gender: user.value?.info?.gender || "MALE",
-      countryId: user.value?.info?.country?.id || 1,
-      about: user.value?.info?.about || "",
-    };
-
-    const mergedData = { ...currentData, ...profileData };
-
     try {
-      const data = await $fetch(`${API_BASE}/api/v1/student/profile`, {
+      await $fetch(`${API_BASE}/api/v1/student/profile`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
+          "Content-Type": "application/json",
         },
-        body: mergedData,
+        body: profileData,
+      });
+
+      await fetchUser();
+
+      return { success: true };
+    } catch (error: any) {
+      console.error("Composable error:", error);
+      return {
+        success: false,
+        error: error.data?.message || "Ошибка обновления профиля",
+      };
+    }
+  };
+
+  const updateProfileImage = async (imageFile: File) => {
+    if (!accessToken.value) {
+      return { success: false, error: "Не авторизован" };
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", imageFile);
+
+      const uploadResponse = await $fetch(`${API_BASE}/api/v1/upload/image`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`,
+        },
+        body: formData,
+      });
+
+      const imagePath = uploadResponse.path || uploadResponse.url;
+
+      await $fetch(`${API_BASE}/api/v1/student/profile/updateImage`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`,
+          "Content-Type": "application/json",
+        },
+        body: {
+          image: imagePath,
+        },
       });
 
       await fetchUser();
@@ -204,7 +237,33 @@ export const useAuth = () => {
     } catch (error: any) {
       return {
         success: false,
-        error: error.data?.message || "Ошибка обновления профиля",
+        error: error.data?.message || "Ошибка загрузки фото",
+      };
+    }
+  };
+
+  const updateAbout = async (about: string) => {
+    if (!accessToken.value) {
+      return { success: false, error: "Не авторизован" };
+    }
+
+    try {
+      await $fetch(`${API_BASE}/api/v1/student/profile/updateAbout`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`,
+          "Content-Type": "application/json",
+        },
+        body: { about },
+      });
+
+      await fetchUser();
+
+      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.data?.message || "Ошибка обновления описания",
       };
     }
   };
@@ -239,6 +298,8 @@ export const useAuth = () => {
     refresh,
     fetchUser,
     updateProfile,
+    updateProfileImage,
+    updateAbout,
     resetPassword,
     logout,
   };

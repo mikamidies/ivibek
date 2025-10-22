@@ -12,16 +12,13 @@ defineProps({
 
 const activeKey = ref(["1"]);
 
-watch(activeKey, (val) => {
-  console.log(val);
-});
+watch(activeKey, (val) => {});
 
 const visible = ref(false);
 const showModal = () => {
   visible.value = true;
 };
 const handleOk = (e) => {
-  console.log(e);
   visible.value = false;
 };
 </script>
