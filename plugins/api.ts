@@ -1,10 +1,13 @@
 export default defineNuxtPlugin(() => {
-  const { logout } = useAuth();
+  const { logout, refresh } = useAuth();
 
-  $fetch.create({
-    onResponseError({ response }) {
+  globalThis.$fetch = $fetch.create({
+    async onResponseError({ response }) {
       if (response.status === 401) {
-        logout();
+        const refreshed = await refresh();
+        if (!refreshed) {
+          logout();
+        }
       }
     },
   });

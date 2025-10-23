@@ -23,7 +23,7 @@ const form = ref({
   dateOfBirth: null,
   gender: "MALE",
   countryId: 1,
-  timezone: "",
+  timezone: "UTC",
 });
 
 const about = ref("");
@@ -40,7 +40,7 @@ watch(
           : null,
         gender: newUser.info.gender || "MALE",
         countryId: newUser.info.country?.id || 1,
-        timezone: newUser.info.timezone || "",
+        timezone: newUser.info.timezone || "UTC",
       };
       about.value = newUser.about || "";
     }
@@ -65,7 +65,7 @@ const handleOk = async () => {
       dateOfBirth: dayjs(form.value.dateOfBirth).format("YYYY-MM-DD"),
       gender: form.value.gender,
       countryId: form.value.countryId,
-      timezone: "TIMEZONE",
+      timezone: form.value.timezone,
     };
 
     await $fetch(`https://api.ivybek.com/api/v1/student/profile`, {
@@ -177,7 +177,7 @@ const timezones = [
       <div class="profile__top-left">
         <div class="profile__img">
           <NuxtImg
-            :src="user.image"
+            :src="user?.image || '/images/default-person.jpg'"
             alt="person"
             width="80"
             height="80"

@@ -1,9 +1,9 @@
 export default defineNuxtPlugin(() => {
   const { refresh, accessToken } = useAuth();
 
-  if (accessToken.value) {
-    setInterval(async () => {
+  setInterval(async () => {
+    if (accessToken.value) {
       await refresh();
-    }, 14 * 60 * 1000);
-  }
+    }
+  }, 14 * 60 * 1000);
 });

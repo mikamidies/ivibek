@@ -38,6 +38,7 @@
   position: relative;
   display: grid;
   grid-template-columns: 4fr 6fr;
+  max-height: 165px;
 }
 .images {
   position: relative;

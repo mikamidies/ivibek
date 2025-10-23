@@ -146,7 +146,13 @@ const tasks = ref([
         </div>
         <div class="profile__person">
           <div class="profile__img">
-            <NuxtImg src="/images/person.jpg" alt="" />
+            <NuxtImg
+              :src="user?.image || '/images/default-person.jpg'"
+              alt="person"
+              width="48"
+              height="48"
+              format="webp"
+            />
           </div>
           <div>
             <p class="profile__name">{{ user.info.fullName }}</p>
