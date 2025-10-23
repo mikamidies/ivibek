@@ -1,0 +1,63 @@
+interface ChoiceItem {
+  id: number;
+  name: string;
+}
+
+interface PaginatedResponse<T> {
+  content: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export const useMentors = () => {
+  const API_BASE = "https://api.ivybek.com";
+
+  const fetchMentors = async (): Promise<ChoiceItem[]> => {
+    try {
+      const token = useCookie("access_token");
+
+      const data = await $fetch<PaginatedResponse<ChoiceItem>>(
+        `${API_BASE}/api/v1/student/mentors/choice-list?universityId=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${token.value}`,
+          },
+        }
+      );
+
+      const mentors = data?.content || [];
+
+      return mentors;
+    } catch (error) {
+      console.error("Failed to fetch mentors:", error);
+      return [];
+    }
+  };
+
+  const fetchMentorById = async (id: number) => {
+    try {
+      const token = useCookie("access_token");
+
+      const data = await $fetch(`${API_BASE}/api/v1/student/mentors/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      });
+
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch mentor:", error);
+      return null;
+    }
+  };
+
+  return {
+    fetchMentors,
+    fetchMentorById,
+  };
+};

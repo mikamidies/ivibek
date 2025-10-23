@@ -1,5 +1,13 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
+const { fetchMentors } = useMentors();
+const { fetchUniversities, fetchFaculties } = useCommon();
+
+const mentors = await fetchMentors();
+const universities = await fetchUniversities();
+const faculties = await fetchFaculties();
+const selectedUniversity = ref(null);
+const selectedFaculty = ref(null);
 </script>
 
 <template>
@@ -12,13 +20,31 @@ import PageBanner from "@/components/PageBanner.vue";
     <div class="teachers__body">
       <div class="teachers__top">
         <div class="teachers__top-left">
-          <a-select placeholder="Choose university">
-            <a-select-option value="1">All Teachers</a-select-option>
-            <a-select-option value="2">My Teachers</a-select-option>
+          <a-select
+            v-model:value="selectedUniversity"
+            placeholder="Choose university"
+          >
+            <a-select-option :value="null">All Universities</a-select-option>
+            <a-select-option
+              v-for="university in universities"
+              :key="university.id"
+              :value="university.id"
+            >
+              {{ university.name }}
+            </a-select-option>
           </a-select>
-          <a-select placeholder="Choose faculty">
-            <a-select-option value="1">All Subjects</a-select-option>
-            <a-select-option value="2">My Subjects</a-select-option>
+          <a-select
+            v-model:value="selectedFaculty"
+            placeholder="Choose faculty"
+          >
+            <a-select-option :value="null">All Faculties</a-select-option>
+            <a-select-option
+              v-for="faculty in faculties"
+              :key="faculty.id"
+              :value="faculty.id"
+            >
+              {{ faculty.name }}
+            </a-select-option>
           </a-select>
         </div>
         <div class="teachers__top-right">
@@ -27,89 +53,22 @@ import PageBanner from "@/components/PageBanner.vue";
         </div>
       </div>
       <div class="teachers__items">
-        <div class="teachers__item">
-          <NuxtLink to="/teachers/id">
+        <div class="teachers__item" v-for="item in mentors" :key="item.id">
+          <NuxtLink :to="`/teachers/${item.id}`">
             <div class="teachers__item-top">
               <div class="teachers__item-img">
                 <NuxtImg
-                  src="/images/person.jpg"
+                  :src="item.image || '/images/default-person.jpg'"
                   alt="Teacher"
                   width="56"
                   height="56"
                 />
               </div>
               <div class="teachers__item-info">
-                <h5 class="teachers__item-name">Yu Jimin</h5>
-                <span class="teachers__item-sub"> Computer Science </span>
-              </div>
-            </div>
-            <div class="teachers__item-bottom">
-              <p class="teachers__item-status">
-                Software Engineering Specialist
-              </p>
-            </div>
-          </NuxtLink>
-        </div>
-        <div class="teachers__item">
-          <NuxtLink to="/teachers/id">
-            <div class="teachers__item-top">
-              <div class="teachers__item-img">
-                <NuxtImg
-                  src="/images/person.jpg"
-                  alt="Teacher"
-                  width="56"
-                  height="56"
-                />
-              </div>
-              <div class="teachers__item-info">
-                <h5 class="teachers__item-name">Yu Jimin</h5>
-                <span class="teachers__item-sub"> Computer Science </span>
-              </div>
-            </div>
-            <div class="teachers__item-bottom">
-              <p class="teachers__item-status">
-                Software Engineering Specialist
-              </p>
-            </div>
-          </NuxtLink>
-        </div>
-        <div class="teachers__item">
-          <NuxtLink to="/teachers/id">
-            <div class="teachers__item-top">
-              <div class="teachers__item-img">
-                <NuxtImg
-                  src="/images/person.jpg"
-                  alt="Teacher"
-                  width="56"
-                  height="56"
-                />
-              </div>
-              <div class="teachers__item-info">
-                <h5 class="teachers__item-name">Yu Jimin</h5>
-                <span class="teachers__item-sub"> Computer Science </span>
-              </div>
-            </div>
-            <div class="teachers__item-bottom">
-              <p class="teachers__item-status">
-                Software Engineering Specialist
-              </p>
-            </div>
-          </NuxtLink>
-        </div>
-        <div class="teachers__item">
-          <NuxtLink to="/teachers/id">
-            <div class="teachers__item-top">
-              <div class="teachers__item-img">
-                <NuxtImg
-                  src="/images/person.jpg"
-                  alt="Teacher"
-                  width="56"
-                  height="56"
-                />
-              </div>
-              <div class="teachers__item-info">
-                <h5 class="teachers__item-name">Yu Jimin</h5>
-                <span class="teachers__item-sub"> Computer Science </span>
+                <h5 class="teachers__item-name">{{ item.fullName }}</h5>
+                <span class="teachers__item-sub">
+                  British Management university
+                </span>
               </div>
             </div>
             <div class="teachers__item-bottom">

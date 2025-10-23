@@ -1,4 +1,10 @@
-<script setup></script>
+<script setup>
+const route = useRoute();
+const { fetchMentorById } = useMentors();
+
+const mentorId = route.params.id;
+const mentor = await fetchMentorById(Number(mentorId));
+</script>
 
 <template>
   <div class="teacher-page">
