@@ -14,15 +14,20 @@ const {
   accessToken,
   fetchUser,
 } = useAuth();
+
+const { fetchCountries } = useCommon(); // ✅ Добавили
+
 const loading = ref(false);
 const uploadLoading = ref(false);
+
+const countries = ref([]); // ✅ Добавили
 
 const form = ref({
   fullName: "",
   email: "",
   dateOfBirth: null,
   gender: "MALE",
-  countryId: 1,
+  countryId: null, // ✅ Изменили с 1 на null
   timezone: "UTC",
 });
 
@@ -39,7 +44,7 @@ watch(
           ? dayjs(newUser.info.dateOfBirth)
           : null,
         gender: newUser.info.gender || "MALE",
-        countryId: newUser.info.country?.id || 1,
+        countryId: newUser.info.country?.id || null, // ✅ Изменили
         timezone: newUser.info.timezone || "UTC",
       };
       about.value = newUser.about || "";
@@ -51,8 +56,16 @@ watch(
 const visible = ref(false);
 const visibleDesc = ref(false);
 
-const showModal = () => {
+// ✅ Загружаем страны при открытии модалки
+const showModal = async () => {
   visible.value = true;
+
+  try {
+    const countriesData = await fetchCountries();
+    countries.value = countriesData;
+  } catch (error) {
+    console.error("Error loading countries:", error);
+  }
 };
 
 const handleOk = async () => {
@@ -139,23 +152,6 @@ const beforeUpload = (file) => {
   return isImage && isLt5M;
 };
 
-const filterOption = (input, option) => {
-  return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
-};
-
-const countries = [
-  { value: 1, label: "Uzbekistan" },
-  { value: 2, label: "USA" },
-  { value: 3, label: "Canada" },
-  { value: 4, label: "UK" },
-  { value: 5, label: "Australia" },
-  { value: 6, label: "Germany" },
-  { value: 7, label: "France" },
-  { value: 8, label: "India" },
-  { value: 9, label: "China" },
-  { value: 10, label: "Japan" },
-];
-
 const genderOptions = [
   { value: "MALE", label: "Male" },
   { value: "FEMALE", label: "Female" },
@@ -177,7 +173,7 @@ const timezones = [
       <div class="profile__top-left">
         <div class="profile__img">
           <NuxtImg
-            :src="user?.image || '/images/default-person.jpg'"
+            :src="user.image || '/images/default-person.jpg'"
             alt="person"
             width="80"
             height="80"
@@ -189,7 +185,6 @@ const timezones = [
             :show-upload-list="false"
             :custom-request="customRequest"
             :before-upload="beforeUpload"
-            @change="handleImageChange"
           >
             <button class="profile__img-edit" :disabled="uploadLoading">
               <a-spin v-if="uploadLoading" size="small" />
@@ -238,7 +233,9 @@ const timezones = [
             <Icon name="lucide:calendar-days" />
             <p class="profile__item-text">
               {{
-                dayjs(user.info.dateOfBirth).format("MMM DD, YYYY") || "Not set"
+                user.info?.dateOfBirth
+                  ? dayjs(user.info.dateOfBirth).format("MMM DD, YYYY")
+                  : "Not set"
               }}
             </p>
           </div>
@@ -321,14 +318,27 @@ const timezones = [
           />
         </a-form-item>
 
+        <!-- ✅ ОБНОВЛЕННЫЙ SELECT для стран -->
         <a-form-item label="Country" name="countryId">
           <a-select
             v-model:value="form.countryId"
             show-search
             placeholder="Select a country"
-            :options="countries"
-            :filter-option="filterOption"
-          />
+            :filter-option="
+              (input, option) =>
+                option.label.toLowerCase().includes(input.toLowerCase())
+            "
+            allow-clear
+          >
+            <a-select-option
+              v-for="country in countries"
+              :key="country.id"
+              :value="country.id"
+              :label="country.name"
+            >
+              {{ country.name }}
+            </a-select-option>
+          </a-select>
         </a-form-item>
 
         <a-form-item label="Timezone" name="timezone">
@@ -337,7 +347,6 @@ const timezones = [
             show-search
             placeholder="Select timezone"
             :options="timezones"
-            :filter-option="filterOption"
             allow-clear
           />
         </a-form-item>
@@ -361,7 +370,6 @@ const timezones = [
     </a-form-item>
   </a-modal>
 </template>
-
 <style scoped>
 .columner {
   display: flex;
