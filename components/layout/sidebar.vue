@@ -44,15 +44,17 @@ const links = [
         />
       </div>
       <div class="bottom">
-        <PersonalCard />
-        <ul>
-          <li v-for="link in links" :key="link.link">
-            <NuxtLink :to="link.link">
-              <Icon :name="link.icon" class="icon" />
-              {{ link.name }}
-            </NuxtLink>
-          </li>
-        </ul>
+        <div>
+          <PersonalCard />
+          <ul>
+            <li v-for="link in links" :key="link.link">
+              <NuxtLink :to="link.link">
+                <Icon :name="link.icon" class="icon" />
+                {{ link.name }}
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
         <div class="logout">
           <button @click="logout">
             <Icon name="lucide:log-out" class="icon" />
@@ -97,11 +99,14 @@ const links = [
   display: flex;
   flex-direction: column;
   gap: 32px;
+  height: 100%;
+  justify-content: space-between;
 }
 .bottom ul {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-top: 24px;
 }
 .bottom a {
   display: grid;

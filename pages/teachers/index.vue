@@ -3,11 +3,25 @@ import PageBanner from "@/components/PageBanner.vue";
 const { fetchMentors } = useMentors();
 const { fetchUniversities, fetchFaculties } = useCommon();
 
-const mentors = await fetchMentors();
 const universities = await fetchUniversities();
 const faculties = await fetchFaculties();
+
 const selectedUniversity = ref(null);
 const selectedFaculty = ref(null);
+const searchQuery = ref("");
+const mentors = ref([]);
+
+onMounted(async () => {
+  mentors.value = await fetchMentors();
+});
+
+watch([selectedUniversity, selectedFaculty, searchQuery], async () => {
+  mentors.value = await fetchMentors(
+    selectedUniversity.value,
+    selectedFaculty.value,
+    searchQuery.value
+  );
+});
 </script>
 
 <template>
@@ -48,7 +62,11 @@ const selectedFaculty = ref(null);
           </a-select>
         </div>
         <div class="teachers__top-right">
-          <a-input placeholder="Search" class="search__input" />
+          <a-input
+            v-model:value="searchQuery"
+            placeholder="Search"
+            class="search__input"
+          />
           <Icon name="lucide:search" style="width: 16px; height: 16px" />
         </div>
       </div>
