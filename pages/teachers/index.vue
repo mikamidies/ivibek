@@ -15,11 +15,21 @@ onMounted(async () => {
   mentors.value = await fetchMentors();
 });
 
-watch([selectedUniversity, selectedFaculty, searchQuery], async () => {
+const debouncedSearch = ref(searchQuery.value);
+let searchTimeout;
+
+watch(searchQuery, (newValue) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    debouncedSearch.value = newValue;
+  }, 500);
+});
+
+watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
   mentors.value = await fetchMentors(
     selectedUniversity.value,
     selectedFaculty.value,
-    searchQuery.value
+    debouncedSearch.value
   );
 });
 </script>
