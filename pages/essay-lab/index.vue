@@ -1,5 +1,77 @@
 <script setup>
+import { message } from "ant-design-vue";
 import PageBanner from "@/components/PageBanner.vue";
+
+definePageMeta({
+  layoutTitle: "Essay Lab",
+});
+
+const { fetchEssays } = useEssay();
+
+const loading = ref(false);
+const essays = ref([]);
+const pagination = ref({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+});
+
+// Загружаем эссе при монтировании
+onMounted(async () => {
+  await loadEssays();
+});
+
+const loadEssays = async (page = 0) => {
+  loading.value = true;
+
+  const result = await fetchEssays(page);
+
+  loading.value = false;
+
+  if (result.success) {
+    essays.value = result.data.content; // ✅ Берём content из ответа
+    pagination.value = {
+      current: result.data.page.number + 1, // ✅ API возвращает 0-based
+      pageSize: result.data.page.size,
+      total: result.data.page.totalElements,
+    };
+  } else {
+    message.error(result.error || "Не удалось загрузить эссе");
+  }
+};
+
+// Обработка смены страницы
+const handlePageChange = (page) => {
+  loadEssays(page - 1); // ✅ API использует 0-based pagination
+};
+
+// Форматирование даты
+const formatDate = (date) => {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+// Статус эссе
+const getStatusLabel = (status) => {
+  const statuses = {
+    UNPAID: "Unpaid",
+    PENDING: "Pending",
+    IN_PROGRESS: "In Progress",
+    COMPLETED: "Completed",
+    CANCELLED: "Cancelled",
+  };
+  return statuses[status] || status;
+};
+
+// Обрезаем длинный текст
+const truncateText = (text, maxLength = 60) => {
+  if (!text) return "-";
+  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+};
 </script>
 
 <template>
@@ -12,71 +84,73 @@ import PageBanner from "@/components/PageBanner.vue";
 
     <div class="essay__body">
       <div class="essay__head">
-        <h4 class="essay__title">Essay Lab</h4>
+        <h4 class="essay__title">My Essays</h4>
 
-        <NuxtLink to="/essay-lab/create">
+        <NuxtLink to="/essay-lab/create" class="essay__new-btn">
           <Icon name="lucide:plus" class="icon" />
           New Essay
         </NuxtLink>
       </div>
 
       <div class="essay__content">
-        <table>
-          <thead>
-            <tr>
-              <th>University</th>
-              <th>Teacher name</th>
-              <th>Essay</th>
-              <th>Payment</th>
-              <th>Target achieved</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Harvard University</td>
-              <td>John Doe</td>
-              <td>
-                School students should be allowed to curate their high school
-                curriculum.
-              </td>
-              <td>$50</td>
-              <td>Yes</td>
-              <td>
-                <NuxtLink to="/essay-lab/edit" class="btn btn--secondary">
-                  <Icon name="lucide:ellipsis-vertical" class="icon" />
-                </NuxtLink>
-              </td>
-            </tr>
-            <tr>
-              <td>Stanford University</td>
-              <td>Jane Smith</td>
-              <td>Should the death sentence be implemented globally?</td>
-              <td>$40</td>
-              <td>No</td>
-              <td>
-                <NuxtLink to="/essay-lab/edit" class="btn btn--secondary">
-                  <Icon name="lucide:ellipsis-vertical" class="icon" />
-                </NuxtLink>
-              </td>
-            </tr>
-            <tr>
-              <td>MIT</td>
-              <td>Emily Johnson</td>
-              <td>
-                It should be illegal to use certain types of animals for
-                experiments and other research purposes.
-              </td>
-              <td>$60</td>
-              <td>Yes</td>
-              <td>
-                <NuxtLink to="/essay-lab/edit" class="btn btn--secondary">
-                  <Icon name="lucide:ellipsis-vertical" class="icon" />
-                </NuxtLink>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div v-if="loading" class="essay__loading">
+          <a-spin size="large" />
+        </div>
+
+        <div v-else-if="!essays.length" class="essay__empty">
+          <Icon name="lucide:file-text" class="empty-icon" />
+          <p>No essays yet</p>
+        </div>
+
+        <div v-else>
+          <table>
+            <thead>
+              <tr>
+                <th>University</th>
+                <th>Mentor</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="essay in essays" :key="essay.id">
+                <td>{{ essay.mentor?.university?.name || "-" }}</td>
+                <td>{{ essay.mentor?.fullName || "-" }}</td>
+                <td>{{ truncateText(essay.title, 40) }}</td>
+                <td>
+                  <span
+                    class="status"
+                    :class="`status--${essay.status?.toLowerCase()}`"
+                  >
+                    {{ getStatusLabel(essay.status) }}
+                  </span>
+                </td>
+                <td>{{ formatDate(essay.createdAt) }}</td>
+                <td>
+                  <NuxtLink
+                    :to="`/essay-lab/${essay.id}`"
+                    class="btn btn--secondary"
+                    title="View details"
+                  >
+                    <Icon name="lucide:eye" class="icon" />
+                  </NuxtLink>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="essay__pagination">
+            <a-pagination
+              v-if="pagination.total > pagination.pageSize"
+              v-model:current="pagination.current"
+              :total="pagination.total"
+              :page-size="pagination.pageSize"
+              :show-size-changer="false"
+              @change="handlePageChange"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -86,7 +160,7 @@ import PageBanner from "@/components/PageBanner.vue";
 .essay-page {
   padding: 24px 24px 120px 24px;
   background: var(--border);
-  height: 100vh;
+  min-height: 100vh;
   overflow: auto;
 }
 .essay__body {
@@ -106,7 +180,7 @@ import PageBanner from "@/components/PageBanner.vue";
   line-height: 28px;
   font-weight: 500;
 }
-.essay__head a {
+.essay__new-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -114,5 +188,84 @@ import PageBanner from "@/components/PageBanner.vue";
   border: 1px solid var(--blue);
   padding: 10px 12px;
   border-radius: 8px;
+  transition: all 0.3s;
+}
+.essay__new-btn:hover {
+  background: var(--blue);
+  color: white;
+}
+.essay__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+}
+.essay__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 16px;
+}
+.empty-icon {
+  font-size: 48px;
+  color: var(--light-grey);
+}
+.essay__empty p {
+  font-size: 16px;
+  color: var(--light-grey);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead {
+  background: var(--border);
+}
+th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--light-grey);
+}
+td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+tbody tr:hover {
+  background: var(--border);
+}
+.status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status--unpaid {
+  background: #ffebee;
+  color: #d32f2f;
+}
+.status--pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+.status--in_progress {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+.status--completed {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+.status--cancelled {
+  background: #ffebee;
+  color: #d32f2f;
+}
+.essay__pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
 }
 </style>

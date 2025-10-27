@@ -93,6 +93,9 @@ const links = [
 .top {
   padding: 19px 24px;
   border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .bottom {
   padding: 24px 16px;

@@ -2,13 +2,17 @@
 import { message } from "ant-design-vue";
 
 definePageMeta({
-  layoutTitle: "Create Essay",
+  layoutTitle: "Edit Essay",
 });
 
-const { createEssay, calculatePrice } = useEssay();
+const route = useRoute();
+const router = useRouter();
+
+const { fetchEssayById, editEssay, calculatePrice } = useEssay();
 const { fetchMentors } = useMentors();
 
-const loading = ref(false);
+const loading = ref(true);
+const saving = ref(false);
 const priceLoading = ref(false);
 const mentors = ref([]);
 const calculatedPrice = ref(null);
@@ -21,13 +25,6 @@ const form = ref({
   title: "",
   body: "",
 });
-
-const agree = ref(false);
-
-const essayTypes = [
-  { value: "PERSONAL", label: "Personal" },
-  { value: "SUPPLEMENTAL", label: "Supplemental" },
-];
 
 const deadlines = [{ id: 1, label: "Standard (7 days)" }];
 
@@ -43,15 +40,46 @@ const selectedDeadline = computed(() => {
   return deadlines.find((d) => d.id === form.value.deadlineId);
 });
 
+const essayTypes = [
+  { value: "PERSONAL", label: "Personal" },
+  { value: "SUPPLEMENTAL", label: "Supplemental" },
+];
+
 onMounted(async () => {
+  const id = Number(route.params.id);
+  if (!id) {
+    message.error("Invalid essay ID");
+    router.push("/essay-lab");
+    return;
+  }
+
   try {
     mentors.value = await fetchMentors();
-
-    await handleCalculatePrice();
   } catch (error) {
     console.error("Error loading mentors:", error);
-    message.error("Не удалось загрузить список менторов");
   }
+
+  const result = await fetchEssayById(id);
+
+  if (result.success) {
+    const data = result.data;
+
+    form.value = {
+      mentorId: data.mentor?.id || null,
+      deadlineId: data.content?.deadline?.id || 1,
+      essayType: data.content?.type || null,
+      wordLimitId: data.content?.wordLimit?.id || 1,
+      title: data.content?.title || "",
+      body: data.content?.body || "",
+    };
+
+    await handleCalculatePrice();
+  } else {
+    message.error(result.error || "Не удалось загрузить эссе");
+    router.push("/essay-lab");
+  }
+
+  loading.value = false;
 });
 
 const handleCalculatePrice = async () => {
@@ -79,7 +107,7 @@ watch(
   }
 );
 
-const handleCreate = async () => {
+const handleSave = async () => {
   if (!form.value.mentorId) {
     message.error("Выберите ментора");
     return;
@@ -105,14 +133,10 @@ const handleCreate = async () => {
     return;
   }
 
-  if (!agree.value) {
-    message.error("Примите условия использования");
-    return;
-  }
+  saving.value = true;
 
-  loading.value = true;
-
-  const result = await createEssay({
+  const id = Number(route.params.id);
+  const result = await editEssay(id, {
     mentorId: form.value.mentorId,
     deadlineId: form.value.deadlineId,
     essayType: form.value.essayType,
@@ -122,13 +146,13 @@ const handleCreate = async () => {
     price: calculatedPrice.value,
   });
 
-  loading.value = false;
+  saving.value = false;
 
   if (result.success) {
-    message.success("Эссе успешно создано!");
-    navigateTo("/essay-lab");
+    message.success("Эссе успешно обновлено!");
+    router.push(`/essay-lab/${id}`);
   } else {
-    message.error(result.error || "Ошибка создания эссе");
+    message.error(result.error || "Ошибка обновления эссе");
   }
 };
 </script>
@@ -137,13 +161,17 @@ const handleCreate = async () => {
   <div class="essay__create-page">
     <div class="essay__grid">
       <div class="essay__left">
-        <NuxtLink to="/essay-lab" class="essay__back">
+        <NuxtLink :to="`/essay-lab/${route.params.id}`" class="essay__back">
           <Icon name="lucide:arrow-left" class="icon" />
           Back
         </NuxtLink>
-        <h4 class="essay__title">Create New Essay</h4>
+        <h4 class="essay__title">Edit Essay</h4>
 
-        <div class="essay__form">
+        <div v-if="loading" class="essay__loading">
+          <a-spin size="large" />
+        </div>
+
+        <div v-else class="essay__form">
           <div class="essay__selects">
             <div class="essay__select-item">
               <label for="teacher">Mentor *</label>
@@ -175,13 +203,7 @@ const handleCreate = async () => {
                 placeholder="Select Time Limit"
                 disabled
               >
-                <a-select-option
-                  v-for="deadline in deadlines"
-                  :key="deadline.id"
-                  :value="deadline.id"
-                >
-                  {{ deadline.label }}
-                </a-select-option>
+                <a-select-option :value="1">Standard (7 days)</a-select-option>
               </a-select>
             </div>
             <div class="essay__select-item">
@@ -211,29 +233,26 @@ const handleCreate = async () => {
                 v-model:value="form.body"
                 placeholder="Enter your essay"
                 class="input-full"
-                :autoSize="{ minRows: 30, maxRows: 30 }"
+                :autosize="{ minRows: 30, maxRows: 30 }"
               />
             </div>
           </div>
         </div>
       </div>
-      <div class="essay__right">
+      <div class="essay__right" v-if="!loading">
         <h4 class="section__title">Details</h4>
         <div class="details__items">
           <p class="detail__item">
             <Icon name="lucide:check-circle" class="icon icon--success" />
-            Ensure your story stands out. Receive honest advice from Ivy League
-            consultants.
+            Update your essay content and mentor selection
           </p>
           <p class="detail__item">
             <Icon name="lucide:check-circle" class="icon icon--success" />
-            Consultants will leave in-line edits, marginal comments, and a
-            thorough final comment.
+            Changes will be saved after payment confirmation
           </p>
           <p class="detail__item">
-            <Icon name="lucide:check-circle" class="icon icon--success" />
-            Ensure your story stands out. Receive honest advice from Ivy League
-            consultants.
+            <Icon name="lucide:alert-circle" class="icon icon--warning" />
+            Make sure all required fields are filled
           </p>
         </div>
         <div class="details__pricelist">
@@ -262,24 +281,30 @@ const handleCreate = async () => {
             </div>
           </div>
         </div>
-        <a-checkbox v-model:checked="agree" class="details__checkbox">
-          I agree to the <a href="#">Terms of Service</a> and have read the
-          <a href="#">Privacy Policy</a>.
-        </a-checkbox>
 
-        <a-button
-          type="primary"
-          class="btn--full btn--large"
-          :loading="loading"
-          :disabled="!calculatedPrice || priceLoading"
-          @click="handleCreate"
-        >
-          Proceed to Payment
-        </a-button>
+        <div class="essay__actions">
+          <a-button
+            type="primary"
+            class="btn--full btn--large"
+            :loading="saving"
+            :disabled="!calculatedPrice || priceLoading"
+            @click="handleSave"
+          >
+            Save Changes
+          </a-button>
+          <a-button
+            class="btn--full"
+            :disabled="saving"
+            @click="router.push(`/essay-lab/${route.params.id}`)"
+          >
+            Cancel
+          </a-button>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
 <style scoped>
 .essay__create-page {
   padding: 24px 24px 120px 24px;
@@ -303,6 +328,11 @@ const handleCreate = async () => {
   font-weight: 500;
   margin: 8px 0 16px 0;
 }
+.essay__loading {
+  display: flex;
+  justify-content: center;
+  padding: 60px;
+}
 .essay__form {
   margin-top: 16px;
 }
@@ -324,7 +354,6 @@ const handleCreate = async () => {
   flex-direction: column;
   gap: 24px;
 }
-
 .essay__input-item {
   display: flex;
   flex-direction: column;
@@ -363,8 +392,13 @@ label {
 }
 .detail__item .icon {
   font-size: 20px;
-  color: green;
   transform: translateY(8px);
+}
+.icon--success {
+  color: green;
+}
+.icon--warning {
+  color: orange;
 }
 .details__pricelist {
   border: 1px solid var(--ant-border);
@@ -376,6 +410,27 @@ label {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+.pricelist__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+}
+.pricelist__total p:nth-child(2) {
+  color: var(--blue);
+  font-size: 16px;
+}
+.essay__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.btn--full {
+  width: 100%;
+}
+.btn--large {
+  height: 48px;
 }
 .pricelist__item {
   display: flex;
@@ -390,23 +445,5 @@ label {
 .pricelist__item p:last-child {
   font-size: 16px;
   font-weight: 500;
-}
-.pricelist__total {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 700;
-  border-top: 1px solid var(--ant-border);
-  padding-top: 12px;
-}
-.pricelist__total p:nth-child(2) {
-  color: var(--blue);
-  font-size: 16px;
-}
-.details__checkbox {
-  margin-bottom: 24px;
-}
-.btn--full {
-  width: 100%;
 }
 </style>
