@@ -15,19 +15,19 @@ const {
   fetchUser,
 } = useAuth();
 
-const { fetchCountries } = useCommon(); // ✅ Добавили
+const { fetchCountries } = useCommon();
 
 const loading = ref(false);
 const uploadLoading = ref(false);
 
-const countries = ref([]); // ✅ Добавили
+const countries = ref([]);
 
 const form = ref({
   fullName: "",
   email: "",
   dateOfBirth: null,
   gender: "MALE",
-  countryId: null, // ✅ Изменили с 1 на null
+  countryId: null,
   timezone: "UTC",
 });
 
@@ -44,7 +44,7 @@ watch(
           ? dayjs(newUser.info.dateOfBirth)
           : null,
         gender: newUser.info.gender || "MALE",
-        countryId: newUser.info.country?.id || null, // ✅ Изменили
+        countryId: newUser.info.country?.id || null,
         timezone: newUser.info.timezone || "UTC",
       };
       about.value = newUser.about || "";
@@ -56,7 +56,6 @@ watch(
 const visible = ref(false);
 const visibleDesc = ref(false);
 
-// ✅ Загружаем страны при открытии модалки
 const showModal = async () => {
   visible.value = true;
 
@@ -318,7 +317,6 @@ const timezones = [
           />
         </a-form-item>
 
-        <!-- ✅ ОБНОВЛЕННЫЙ SELECT для стран -->
         <a-form-item label="Country" name="countryId">
           <a-select
             v-model:value="form.countryId"

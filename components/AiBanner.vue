@@ -89,4 +89,7 @@
   width: 18px;
   height: 18px;
 }
+.images img {
+  height: 165px;
+}
 </style>

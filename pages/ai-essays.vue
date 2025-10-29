@@ -78,38 +78,40 @@ import PageBanner from "@/components/PageBanner.vue";
                 </h4>
                 <p class="chat__description">Write your essay and wait</p>
               </div>
-              <div class="chat__suggests">
-                <h4>Prompt Suggestion for you</h4>
-                <div class="suggest__items">
-                  <div class="suggest__item">
-                    <Icon name="lucide:pencil" class="icon" />
-                    Narrative Essay
-                  </div>
-                  <div class="suggest__item">
-                    <Icon name="lucide:pencil" class="icon" />
-                    Descriptive Essay
-                  </div>
-                  <div class="suggest__item">
-                    <Icon name="lucide:pencil" class="icon" />
-                    Expository Essay
-                  </div>
-                  <div class="suggest__item">
-                    <Icon name="lucide:pencil" class="icon" />
-                    Persuasive Essay
-                  </div>
-                  <div class="suggest__item">
-                    <Icon name="lucide:pencil" class="icon" />
-                    Comparative Essay
+              <div class="chat__flexer">
+                <div class="chat__suggests">
+                  <h4>Prompt Suggestion for you</h4>
+                  <div class="suggest__items">
+                    <div class="suggest__item">
+                      <Icon name="lucide:pencil" class="icon" />
+                      Narrative Essay
+                    </div>
+                    <div class="suggest__item">
+                      <Icon name="lucide:pencil" class="icon" />
+                      Descriptive Essay
+                    </div>
+                    <div class="suggest__item">
+                      <Icon name="lucide:pencil" class="icon" />
+                      Expository Essay
+                    </div>
+                    <div class="suggest__item">
+                      <Icon name="lucide:pencil" class="icon" />
+                      Persuasive Essay
+                    </div>
+                    <div class="suggest__item">
+                      <Icon name="lucide:pencil" class="icon" />
+                      Comparative Essay
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="chat__input">
-                <input
-                  type="text"
-                  class="chat__text-input"
-                  placeholder="Type your essay prompt here..."
-                />
-                <button class="chat__send-btn">Generate</button>
+                <div class="chat__input">
+                  <input
+                    type="text"
+                    class="chat__text-input"
+                    placeholder="Type your essay prompt here..."
+                  />
+                  <button class="chat__send-btn">Generate</button>
+                </div>
               </div>
             </div>
           </div>
@@ -185,7 +187,7 @@ import PageBanner from "@/components/PageBanner.vue";
   border-radius: 16px;
   background: white;
   border: 1px solid var(--border);
-  min-height: 100vh;
+  min-height: 80vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -203,28 +205,19 @@ import PageBanner from "@/components/PageBanner.vue";
   font-size: 24px;
   line-height: 32px;
   font-weight: 600;
-  background: linear-gradient(
-      89.13deg,
-      #37ccff -2.89%,
-      #4560cc 54.3%,
-      #ff3076 106.94%
-    ),
-    linear-gradient(89.61deg, #e60076 9.01%, #9810fa 81.21%, #7f22fe 153.42%);
+  background: linear-gradient(to right, #ff3076, #4560cc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  max-width: 480px;
 }
 .chat__description {
   font-size: 14px;
   line-height: 20px;
   color: var(--text-grey);
 }
-.chat__suggests {
-  margin-bottom: 24px;
-}
 .suggest__items {
   display: flex;
   gap: 12px;
-  margin-top: 16px;
 }
 .suggest__item {
   display: flex;
@@ -269,5 +262,10 @@ import PageBanner from "@/components/PageBanner.vue";
 .chat__header img {
   width: 64px;
   height: 64px;
+}
+.chat__flexer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 </style>
