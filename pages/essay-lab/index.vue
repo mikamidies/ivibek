@@ -16,7 +16,6 @@ const pagination = ref({
   total: 0,
 });
 
-// Загружаем эссе при монтировании
 onMounted(async () => {
   await loadEssays();
 });
@@ -29,9 +28,9 @@ const loadEssays = async (page = 0) => {
   loading.value = false;
 
   if (result.success) {
-    essays.value = result.data.content; // ✅ Берём content из ответа
+    essays.value = result.data.content;
     pagination.value = {
-      current: result.data.page.number + 1, // ✅ API возвращает 0-based
+      current: result.data.page.number + 1,
       pageSize: result.data.page.size,
       total: result.data.page.totalElements,
     };
@@ -40,12 +39,10 @@ const loadEssays = async (page = 0) => {
   }
 };
 
-// Обработка смены страницы
 const handlePageChange = (page) => {
-  loadEssays(page - 1); // ✅ API использует 0-based pagination
+  loadEssays(page - 1);
 };
 
-// Форматирование даты
 const formatDate = (date) => {
   if (!date) return "-";
   return new Date(date).toLocaleDateString("en-US", {
@@ -55,7 +52,6 @@ const formatDate = (date) => {
   });
 };
 
-// Статус эссе
 const getStatusLabel = (status) => {
   const statuses = {
     UNPAID: "Unpaid",
@@ -67,7 +63,6 @@ const getStatusLabel = (status) => {
   return statuses[status] || status;
 };
 
-// Обрезаем длинный текст
 const truncateText = (text, maxLength = 60) => {
   if (!text) return "-";
   return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;

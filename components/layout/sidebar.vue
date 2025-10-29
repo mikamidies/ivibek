@@ -28,6 +28,11 @@ const links = [
     link: "/universities",
     icon: "lucide:building",
   },
+  {
+    name: "AI Essays",
+    link: "/ai-essays",
+    icon: "lucide:bot",
+  },
 ];
 </script>
 
