@@ -194,17 +194,8 @@ const openMentorOptions = () => {
               <p class="feedback__date">
                 {{ formatDate(essay.feedback.createdAt) }}
               </p>
-              <div v-if="essay.feedback.comment" class="feedback__comment">
-                {{ essay.feedback.comment }}
-              </div>
-              <div v-if="essay.feedback.link">
-                <a
-                  :href="essay.feedback.link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  View Feedback Document
-                </a>
+              <div class="feedback__comment">
+                {{ essay.feedback.feedbackUrl }}
               </div>
             </div>
           </div>
@@ -318,7 +309,7 @@ const openMentorOptions = () => {
   display: flex;
   align-items: center;
 }
-.feedback__item a {
+.feedback__comment {
   font-size: 14px;
   line-height: 20px;
   color: var(--blue);
