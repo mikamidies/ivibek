@@ -23,11 +23,11 @@ const links = [
   { name: "Booking", link: "/booking", icon: "lucide:calendar-days" },
   { name: "Essay Lab", link: "/essay-lab", icon: "lucide:test-tubes" },
   { name: "Teachers", link: "/teachers", icon: "lucide:user-round-pen" },
-  {
-    name: "Universities",
-    link: "/universities",
-    icon: "lucide:building",
-  },
+  // {
+  //   name: "Universities",
+  //   link: "/universities",
+  //   icon: "lucide:building",
+  // },
   {
     name: "AI Essays",
     link: "/ai-essays",

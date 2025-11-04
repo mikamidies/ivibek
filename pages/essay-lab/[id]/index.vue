@@ -72,6 +72,7 @@ const getStatusLabel = (s) => {
     UNPAID: "Unpaid",
     PENDING: "Pending",
     IN_PROGRESS: "In Progress",
+    PAID: "Paid",
     COMPLETED: "Completed",
   };
   return map[s] || s || "-";
@@ -100,7 +101,11 @@ const openMentorOptions = () => {
           <NuxtLink
             :to="`/essay-lab/${essay.id}/edit`"
             class="btn btn--primary essay__edit-btn"
-            v-if="!loading"
+            v-if="
+              !loading &&
+              essay.status !== 'PAID' &&
+              essay.status !== 'COMPLETED'
+            "
           >
             <Icon name="lucide:edit-2" class="icon" />
             Edit Essay

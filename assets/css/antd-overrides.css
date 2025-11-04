@@ -87,13 +87,13 @@
   padding: 10px 12px;
   font-size: 14px;
   line-height: 20px;
-  border: 1px solid var(--border) !important;
+  border: 1px solid var(--border-darker) !important;
 }
 .ant-select-selector,
 .ant-picker {
   border-radius: 8px !important;
   height: 42px !important;
-  border: 1px solid var(--border) !important;
+  border: 1px solid var(--border-darker) !important;
 }
 .ant-select-selection-search-input {
   font-size: 14px;
@@ -108,14 +108,14 @@
   grid-column: span 2;
 }
 .ant-collapse {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-darker);
   border-radius: 16px !important;
   overflow: hidden;
   border: none !important;
   background: white;
 }
 .ant-collapse-item {
-  border: 1px solid var(--border) !important;
+  border: 1px solid var(--border-darker) !important;
   border-radius: 16px !important;
   margin-bottom: 16px !important;
 }
@@ -140,7 +140,7 @@
 }
 .auth .login__input {
   border-radius: 8px !important;
-  border: 1px solid var(--border) !important;
+  border: 1px solid var(--border-darker) !important;
 }
 .auth .ant-select-selector {
   padding: 0 !important;
@@ -173,7 +173,7 @@
   border: 0 !important;
 }
 .auth .login__input {
-  border: 1px solid var(--border) !important;
+  border: 1px solid var(--border-darker) !important;
   border-radius: 8px !important;
   height: 48px !important;
 }
