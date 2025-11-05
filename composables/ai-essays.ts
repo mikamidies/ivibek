@@ -22,7 +22,12 @@ export const useAiEssays = () => {
 
   const createChat = async (message: string, title?: string) => {
     if (!accessToken.value) {
-      return { success: false, error: "Не авторизован", uuid: null };
+      return {
+        success: false,
+        error: "Не авторизован",
+        uuid: null,
+        requiresPayment: false,
+      };
     }
 
     try {
@@ -41,13 +46,19 @@ export const useAiEssays = () => {
         }
       );
 
-      return { success: true, data, uuid: data.uuid || data.id };
+      return {
+        success: true,
+        data,
+        uuid: data.uuid || data.id,
+        requiresPayment: true,
+      };
     } catch (error: any) {
       console.error("Error creating chat:", error);
       return {
         success: false,
         error: error.data?.message || error.message || "Ошибка создания чата",
         uuid: null,
+        requiresPayment: false,
       };
     }
   };
@@ -95,7 +106,6 @@ export const useAiEssays = () => {
         params: {
           page,
           size,
-          isPaid: true,
         },
       });
 

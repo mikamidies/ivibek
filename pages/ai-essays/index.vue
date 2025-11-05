@@ -1,9 +1,11 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
-import { ref, nextTick, onMounted, computed } from "vue";
+import { ref, nextTick, onMounted, computed, watch } from "vue";
 import { message } from "ant-design-vue";
 
 const { createChat, sendMessage, getChats, getChatById } = useAiEssays();
+const route = useRoute();
+const router = useRouter();
 
 const currentChatId = ref("");
 const essayText = ref("");
@@ -15,9 +17,21 @@ const isNewChat = ref(true);
 
 const savedChats = ref([]);
 const isLoadingChats = ref(false);
+const currentPage = ref(0);
+const totalPages = ref(0);
+const hasMoreChats = ref(true);
+const chatsPerPage = 10;
+
+const showPaymentButton = ref(false);
+const messageCount = ref(0);
 
 onMounted(async () => {
   await loadSavedChats();
+
+  const chatId = route.query.chat;
+  if (chatId) {
+    await loadChat(chatId);
+  }
 });
 
 const handleInput = (event) => {
@@ -60,13 +74,43 @@ const handleSend = async () => {
 
       currentChatId.value = createResult.uuid;
       isNewChat.value = false;
+      messageCount.value = 1;
+      showPaymentButton.value = true;
       console.log("Chat created with UUID:", currentChatId.value);
+
+      await router.push({
+        query: { chat: currentChatId.value },
+      });
+
+      messages.value.push({
+        messageFrom: "USER",
+        message: userMessage,
+        timestamp: new Date().toISOString(),
+      });
+
+      essayText.value = "";
+      nextTick(() => {
+        const textarea = document.querySelector(".chat__text-input");
+        if (textarea) {
+          textarea.style.height = "auto";
+        }
+        scrollToBottom();
+      });
+
+      isSending.value = false;
+      return;
     } catch (error) {
       console.error("Exception creating chat:", error);
       message.error("Произошла ошибка при создании чата");
       isSending.value = false;
       return;
     }
+  }
+
+  if (showPaymentButton.value) {
+    message.warning("Необходимо оплатить для продолжения диалога");
+    isSending.value = false;
+    return;
   }
 
   messages.value.push({
@@ -87,7 +131,6 @@ const handleSend = async () => {
 
   try {
     console.log("Sending message to UUID:", currentChatId.value);
-    console.log("Message content:", userMessage);
     const result = await sendMessage(currentChatId.value, userMessage);
     console.log("Send message result:", result);
 
@@ -98,10 +141,8 @@ const handleSend = async () => {
         timestamp: new Date().toISOString(),
       });
 
-      if (messages.value.length === 2) {
-        await loadSavedChats();
-      }
-
+      messageCount.value++;
+      await loadSavedChats();
       scrollToBottom();
     } else {
       message.error(result.error || "Ошибка отправки сообщения");
@@ -114,12 +155,28 @@ const handleSend = async () => {
   }
 };
 
-const loadSavedChats = async () => {
+const loadSavedChats = async (append = false) => {
+  if (isLoadingChats.value) return;
+  if (append && !hasMoreChats.value) return;
+
   isLoadingChats.value = true;
   try {
-    const result = await getChats(0, 50);
+    const page = append ? currentPage.value + 1 : 0;
+    const result = await getChats(page, chatsPerPage);
+
     if (result.success && result.data) {
-      savedChats.value = result.data.content || result.data || [];
+      const newChats = result.data.content || [];
+
+      if (append) {
+        savedChats.value = [...savedChats.value, ...newChats];
+      } else {
+        savedChats.value = newChats;
+      }
+
+      currentPage.value = page;
+      totalPages.value = result.data.totalPages || 0;
+
+      hasMoreChats.value = page + 1 < totalPages.value;
     }
   } catch (error) {
     console.error("Ошибка загрузки чатов:", error);
@@ -146,6 +203,21 @@ const loadChat = async (uuid) => {
       isSuggestionHidden.value = messages.value.length > 0;
       isNewChat.value = false;
 
+      const chatStatus = result.data.status;
+      const userMessagesCount = messages.value.filter(
+        (m) => m.messageFrom === "USER"
+      ).length;
+
+      if (chatStatus === "UNPAID" && userMessagesCount === 1) {
+        showPaymentButton.value = true;
+        messageCount.value = 1;
+      } else {
+        showPaymentButton.value = false;
+        messageCount.value = userMessagesCount;
+      }
+
+      await router.push({ query: { chat: uuid } });
+
       nextTick(() => {
         scrollToBottom();
       });
@@ -166,6 +238,10 @@ const createNewChat = () => {
   essayText.value = "";
   isSuggestionHidden.value = false;
   isNewChat.value = true;
+  showPaymentButton.value = false;
+  messageCount.value = 0;
+
+  router.push({ query: {} });
 };
 
 const scrollToBottom = () => {
@@ -185,6 +261,27 @@ const shouldShowSuggestions = computed(() => {
   if (hasMessages.value) return false;
   return true;
 });
+
+const handleChatsScroll = (event) => {
+  if (!hasMoreChats.value || isLoadingChats.value) return;
+
+  const container = event.target;
+  const scrollTop = container.scrollTop;
+  const scrollHeight = container.scrollHeight;
+  const clientHeight = container.clientHeight;
+
+  if (scrollTop + clientHeight >= scrollHeight * 0.8) {
+    loadSavedChats(true);
+  }
+};
+
+const getStatusLabel = (status) => {
+  const statuses = {
+    UNPAID: "Unpaid",
+    PAID: "Paid",
+  };
+  return statuses[status] || status;
+};
 </script>
 
 <template>
@@ -214,31 +311,57 @@ const shouldShowSuggestions = computed(() => {
               </button>
             </div>
 
-            <div class="saved-chats">
-              <div v-if="isLoadingChats" class="loading">Loading...</div>
+            <div class="saved-chats" @scroll="handleChatsScroll">
+              <div
+                v-if="isLoadingChats && savedChats.length === 0"
+                class="loading"
+              >
+                Loading...
+              </div>
               <div v-else-if="savedChats.length === 0" class="empty-state">
                 <p>No saved chats yet</p>
               </div>
-              <div
-                v-else
-                v-for="chat in savedChats"
-                :key="chat.uuid"
-                class="chat-item"
-                :class="{ active: currentChatId === chat.uuid }"
-                @click="loadChat(chat.uuid)"
-              >
-                <div class="chat-item-icon">
-                  <Icon name="lucide:message-square" />
+              <template v-else>
+                <div
+                  v-for="chat in savedChats"
+                  :key="chat.uuid"
+                  class="chat-item"
+                  :class="{ active: currentChatId === chat.uuid }"
+                  @click="loadChat(chat.uuid)"
+                >
+                  <div class="chat-item-icon">
+                    <Icon name="lucide:message-square" />
+                  </div>
+                  <div class="chat-item-content">
+                    <h5 class="chat-item-title">
+                      {{ chat.title || "Untitled Chat" }}
+                    </h5>
+                    <div class="chat-item-info">
+                      <p class="chat-item-date">
+                        {{ new Date(chat.createdAt).toLocaleDateString() }}
+                      </p>
+                      <p
+                        class="chat-item-status"
+                        :class="`status--${chat.status?.toLowerCase()}`"
+                      >
+                        {{ getStatusLabel(chat.status) }}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div class="chat-item-content">
-                  <h5 class="chat-item-title">
-                    {{ chat.title || "Untitled Chat" }}
-                  </h5>
-                  <p class="chat-item-date">
-                    {{ new Date(chat.createdAt).toLocaleDateString() }}
-                  </p>
+
+                <div v-if="isLoadingChats" class="loading-more">
+                  <Icon name="lucide:loader-2" class="spinning" />
+                  Loading more...
                 </div>
-              </div>
+
+                <div
+                  v-else-if="!hasMoreChats && savedChats.length > 0"
+                  class="no-more"
+                >
+                  No more chats
+                </div>
+              </template>
             </div>
           </div>
 
@@ -274,6 +397,35 @@ const shouldShowSuggestions = computed(() => {
                     </div>
                     <div class="message-content">
                       <p>{{ msg.message || msg.content }}</p>
+                    </div>
+                  </div>
+
+                  <div
+                    class="payment-prompt"
+                    v-if="showPaymentButton && messageCount === 1"
+                  >
+                    <div class="payment-card">
+                      <div class="payment-blur">
+                        <h4>Unlock Answer</h4>
+                        <p>
+                          Lorem, ipsum dolor sit amet consectetur adipisicing
+                          elit. At, dolore, voluptas ducimus eum laboriosam
+                          suscipit vitae vel nobis rem natus dignissimos quia
+                          nihil ea iste eos reiciendis consequatur modi enim
+                          facilis. Repellendus explicabo veniam, rerum ullam
+                          magnam dicta eum cupiditate quasi omnis rem voluptate
+                          soluta optio, asperiores facere? Omnis accusantium
+                          reprehenderit harum optio numquam eos id alias earum
+                          ab
+                        </p>
+                      </div>
+
+                      <button
+                        class="payment-btn"
+                        @click="showPaymentButton = false"
+                      >
+                        Unlock Answer
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -381,8 +533,6 @@ const shouldShowSuggestions = computed(() => {
 }
 .left {
   height: 100%;
-  overflow: auto;
-  border-radius: 16px;
 }
 .left::-webkit-scrollbar {
   display: none;
@@ -432,6 +582,8 @@ const shouldShowSuggestions = computed(() => {
   flex-direction: column;
   gap: 8px;
   max-height: 70vh;
+  overflow-y: auto;
+  border-radius: 16px;
 }
 .saved-chats::-webkit-scrollbar {
   width: 6px;
@@ -450,7 +602,7 @@ const shouldShowSuggestions = computed(() => {
   padding: 12px 16px;
   background: white;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -556,7 +708,7 @@ const shouldShowSuggestions = computed(() => {
   flex-direction: column;
   gap: 16px;
   z-index: 2;
-  padding: 24px 16px;
+  padding: 24px 0;
   height: calc(100vh - 440px);
   overflow-y: auto;
   scroll-behavior: smooth;
@@ -768,5 +920,107 @@ const shouldShowSuggestions = computed(() => {
   to {
     transform: rotate(360deg);
   }
+}
+
+.payment-prompt {
+  display: flex;
+  justify-content: flex-start;
+  padding: 16px 0;
+}
+
+.payment-card {
+  border: 3px solid #ffffff66;
+  background: #ffffffa3;
+  backdrop-filter: blur(24px);
+  border-radius: 16px;
+  position: relative;
+  height: auto;
+  transition: all 0.3s;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #364153;
+}
+
+.payment-blur {
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.payment-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.payment-card h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.payment-card p {
+  font-size: 14px;
+  line-height: 24px;
+  opacity: 0.9;
+}
+
+.payment-btn {
+  padding: 12px 32px;
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.loading-more,
+.no-more {
+  padding: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-grey);
+}
+
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.no-more {
+  opacity: 0.6;
+}
+
+.status--unpaid {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.status--paid {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.chat-item-status {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 500;
+  display: inline-flex;
+}
+
+.chat-item-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>

@@ -55,6 +55,7 @@ const formatDate = (date) => {
 const getStatusLabel = (status) => {
   const statuses = {
     UNPAID: "Unpaid",
+    PAID: "Paid",
     PENDING: "Pending",
     IN_PROGRESS: "In Progress",
     COMPLETED: "Completed",
