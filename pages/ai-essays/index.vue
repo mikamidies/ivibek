@@ -70,8 +70,8 @@ const handleSend = async () => {
   }
 
   messages.value.push({
-    role: "user",
-    content: userMessage,
+    messageFrom: "USER",
+    message: userMessage,
     timestamp: new Date().toISOString(),
   });
 
@@ -82,6 +82,7 @@ const handleSend = async () => {
     if (textarea) {
       textarea.style.height = "auto";
     }
+    scrollToBottom();
   });
 
   try {
@@ -92,8 +93,8 @@ const handleSend = async () => {
 
     if (result.success && result.data) {
       messages.value.push({
-        role: "assistant",
-        content: result.data.response || result.data.message || "Ответ получен",
+        messageFrom: "ASSISTANT",
+        message: result.data.response || result.data.message || "Ответ получен",
         timestamp: new Date().toISOString(),
       });
 
@@ -131,12 +132,17 @@ const loadChat = async (uuid) => {
   isLoading.value = true;
   try {
     const result = await getChatById(uuid);
-    console.log("Load chat result:", result); // Добавляем логирование
     if (result.success && result.data) {
       currentChatId.value = uuid;
-      // Проверяем структуру данных
-      messages.value = result.data.messages || result.data.content || [];
-      console.log("Loaded messages:", messages.value); // Логируем загруженные сообщения
+      const loadedMessages =
+        result.data.messages?.content ||
+        result.data.content?.content ||
+        result.data.messages ||
+        result.data.content ||
+        [];
+      messages.value = Array.isArray(loadedMessages)
+        ? [...loadedMessages].reverse()
+        : [];
       isSuggestionHidden.value = messages.value.length > 0;
       isNewChat.value = false;
 
@@ -171,14 +177,13 @@ const scrollToBottom = () => {
   });
 };
 
-const hasMessages = computed(() => messages.value);
+const hasMessages = computed(() => messages.value && messages.value.length > 0);
 
-const shouldHideSuggestions = computed(() => {
-  return (
-    isSuggestionHidden.value ||
-    essayText.value.trim().length > 0 ||
-    !isNewChat.value
-  );
+const shouldShowSuggestions = computed(() => {
+  if (essayText.value.trim().length > 0) return false;
+  if (!isNewChat.value) return false;
+  if (hasMessages.value) return false;
+  return true;
 });
 </script>
 
@@ -240,8 +245,8 @@ const shouldHideSuggestions = computed(() => {
           <div class="right">
             <div class="chat">
               <img src="/images/chat-bg.png" class="chat__bg" alt="" />
-              <div class="chat__scroller">
-                <div class="chat__header">
+              <div class="chat__scroller" :class="{ extend: hasMessages }">
+                <div class="chat__header" v-if="!hasMessages">
                   <img src="/images/chat.png" alt="" />
                   <h4 class="chat__title">
                     You can check your essay with our <br />
@@ -252,8 +257,8 @@ const shouldHideSuggestions = computed(() => {
 
                 <div v-if="hasMessages" class="chat__messages">
                   <div
-                    v-for="(msg, index) in messages.content"
-                    :key="index"
+                    v-for="(msg, index) in messages"
+                    :key="msg.id || index"
                     class="message"
                     :class="{
                       user: msg.messageFrom === 'USER',
@@ -274,10 +279,7 @@ const shouldHideSuggestions = computed(() => {
                 </div>
 
                 <div class="chat__flexer">
-                  <div
-                    class="chat__suggests"
-                    :class="{ hidden: shouldHideSuggestions }"
-                  >
+                  <div v-if="shouldShowSuggestions" class="chat__suggests">
                     <h4>Chat Suggestions for Your Essay</h4>
                     <div class="suggest__items">
                       <div
@@ -355,20 +357,37 @@ const shouldHideSuggestions = computed(() => {
 
 <style scoped>
 .ai-essays-page {
-  gap: 24px;
   padding: 24px 24px 120px 24px;
   background: var(--border);
   height: 100vh;
-  overflow: auto;
+  overflow: hidden;
+}
+.content-section {
+  height: calc(100vh - 240px);
+  overflow: hidden;
+}
+.container {
+  height: 100%;
+  padding-bottom: 24px;
+  overflow: hidden;
+  border-radius: 16px;
 }
 .grid {
   display: grid;
   grid-template-columns: 384px 1fr;
   margin-top: 24px;
   gap: 16px;
+  height: 100%;
 }
-
-/* Левая панель с чатами */
+.left {
+  height: 100%;
+  overflow: auto;
+  border-radius: 16px;
+}
+.left::-webkit-scrollbar {
+  display: none;
+  scrollbar-width: none;
+}
 .chat-list-header {
   display: flex;
   justify-content: space-between;
@@ -379,14 +398,12 @@ const shouldHideSuggestions = computed(() => {
   border-radius: 16px;
   border: 1px solid var(--border);
 }
-
 .chat-list-header .title {
   font-size: 18px;
   font-weight: 600;
   color: var(--text-dark);
   margin: 0;
 }
-
 .new-chat-btn {
   display: flex;
   align-items: center;
@@ -406,32 +423,26 @@ const shouldHideSuggestions = computed(() => {
   font-weight: 500;
   transition: all 0.3s;
 }
-
 .new-chat-btn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
 }
-
 .saved-chats {
   display: flex;
   flex-direction: column;
   gap: 8px;
   max-height: 70vh;
 }
-
 .saved-chats::-webkit-scrollbar {
   width: 6px;
 }
-
 .saved-chats::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .saved-chats::-webkit-scrollbar-thumb {
   background: #d1d5db;
   border-radius: 4px;
 }
-
 .chat-item {
   display: flex;
   align-items: center;
@@ -443,17 +454,14 @@ const shouldHideSuggestions = computed(() => {
   cursor: pointer;
   transition: all 0.3s;
 }
-
 .chat-item:hover {
   background: var(--light-blue);
   border-color: var(--blue);
 }
-
 .chat-item.active {
   background: linear-gradient(to right, #9bbdfd22, #febef222);
   border-color: var(--blue);
 }
-
 .chat-item-icon {
   width: 40px;
   height: 40px;
@@ -465,12 +473,10 @@ const shouldHideSuggestions = computed(() => {
   font-size: 20px;
   color: var(--blue);
 }
-
 .chat-item-content {
   flex: 1;
   overflow: hidden;
 }
-
 .chat-item-title {
   font-size: 14px;
   font-weight: 500;
@@ -480,13 +486,11 @@ const shouldHideSuggestions = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .chat-item-date {
   font-size: 12px;
   color: var(--text-grey);
   margin: 0;
 }
-
 .loading,
 .empty-state {
   padding: 24px;
@@ -496,31 +500,33 @@ const shouldHideSuggestions = computed(() => {
   border-radius: 12px;
   border: 1px solid var(--border);
 }
-
-/* Правая панель с чатом */
 .chat {
   padding: 24px;
   border-radius: 16px;
   background: white;
   border: 1px solid var(--border);
-  min-height: 70vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 24px;
   position: relative;
   overflow: hidden;
+  height: 100%;
 }
 .chat__bg {
   position: absolute;
-  top: 100px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 95%;
+  transform: translate(-50%, -50%) scale(1.6) rotate(180deg);
+  width: 100%;
   height: 100%;
   object-fit: contain;
   z-index: 1;
-  opacity: 0.7;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.right {
+  height: 100%;
 }
 .chat__header {
   display: flex;
@@ -530,6 +536,7 @@ const shouldHideSuggestions = computed(() => {
   gap: 16px;
   position: relative;
   z-index: 2;
+  margin-bottom: 48px;
 }
 .chat__title {
   font-size: 24px;
@@ -544,46 +551,34 @@ const shouldHideSuggestions = computed(() => {
   line-height: 20px;
   color: var(--text-grey);
 }
-
-/* Сообщения */
 .chat__messages {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: 400px;
-  overflow-y: auto;
-  padding: 16px;
-  position: relative;
   z-index: 2;
-  background: #ffffffa3;
-  backdrop-filter: blur(24px);
-  border-radius: 16px;
-  border: 3px solid #ffffff66;
+  padding: 24px 16px;
+  height: calc(100vh - 440px);
+  overflow-y: auto;
+  scroll-behavior: smooth;
 }
-
 .chat__messages::-webkit-scrollbar {
   width: 6px;
 }
-
 .chat__messages::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .chat__messages::-webkit-scrollbar-thumb {
   background: #888888b0;
   border-radius: 4px;
 }
-
 .message {
   display: flex;
   gap: 12px;
   align-items: flex-start;
 }
-
 .message.user {
   flex-direction: row-reverse;
 }
-
 .message-avatar {
   width: 36px;
   height: 36px;
@@ -594,30 +589,28 @@ const shouldHideSuggestions = computed(() => {
   font-size: 18px;
   flex-shrink: 0;
 }
-
 .message.user .message-avatar {
-  background: linear-gradient(89.61deg, #e60076 9.01%, #9810fa 81.21%);
-  color: white;
+  background: var(--light-blue);
+  color: var(--blue);
 }
-
 .message.assistant .message-avatar {
   background: var(--light-blue);
   color: var(--blue);
 }
-
 .message-content {
   max-width: 70%;
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 3px solid #ffffff66;
+  background: #ffffffa3;
+  backdrop-filter: blur(24px);
+  border-radius: 16px;
+  position: relative;
+  height: auto;
+  transition: all 0.3s;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #364153;
 }
-
-.message.user .message-content {
-  background: linear-gradient(89.61deg, #e60076 9.01%, #9810fa 81.21%);
-  color: white;
-}
-
 .message-content p {
   margin: 0;
   font-size: 14px;
@@ -625,8 +618,6 @@ const shouldHideSuggestions = computed(() => {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
-
-/* Подсказки и ввод */
 .chat__suggests {
   padding: 16px;
   border: 3px solid #ffffff66;
@@ -753,16 +744,23 @@ const shouldHideSuggestions = computed(() => {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  justify-content: center;
   position: relative;
   z-index: 2;
   height: 100%;
 }
-
+.chat__scroller.extend {
+  justify-content: space-between;
+}
+.chat__scroller.extend .chat__input {
+  position: absolute;
+  bottom: 24px;
+  left: 0px;
+  width: 100%;
+}
 .spinning {
   animation: spin 1s linear infinite;
 }
-
 @keyframes spin {
   from {
     transform: rotate(0deg);
