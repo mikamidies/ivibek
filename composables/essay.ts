@@ -171,11 +171,71 @@ export const useEssay = () => {
     }
   };
 
+  const fetchWordLimits = async () => {
+    if (!accessToken.value) {
+      return { success: false, error: "Не авторизован", data: [] };
+    }
+
+    try {
+      const response = await $fetch(
+        `${API_BASE}/api/v1/student/essay-orders/wordLimits`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+
+      const wordLimits = response?.content || [];
+
+      return { success: true, data: wordLimits };
+    } catch (error: any) {
+      console.error("Fetch word limits error:", error);
+      return {
+        success: false,
+        error: error.data?.message || "Ошибка загрузки лимитов слов",
+        data: [],
+      };
+    }
+  };
+
+  const fetchDeadlines = async () => {
+    if (!accessToken.value) {
+      return { success: false, error: "Не авторизован", data: [] };
+    }
+
+    try {
+      const response = await $fetch(
+        `${API_BASE}/api/v1/student/essay-orders/deadlines`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+
+      const deadlines = response?.content || [];
+
+      return { success: true, data: deadlines };
+    } catch (error: any) {
+      console.error("Fetch deadlines error:", error);
+      return {
+        success: false,
+        error: error.data?.message || "Ошибка загрузки дедлайнов",
+        data: [],
+      };
+    }
+  };
+
   return {
     calculatePrice,
     createEssay,
     fetchEssays,
     fetchEssayById,
     editEssay,
+    fetchWordLimits,
+    fetchDeadlines,
   };
 };

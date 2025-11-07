@@ -8,25 +8,31 @@ definePageMeta({
 const route = useRoute();
 const router = useRouter();
 
-const { fetchEssayById, editEssay, calculatePrice } = useEssay();
+const {
+  fetchEssayById,
+  editEssay,
+  calculatePrice,
+  fetchDeadlines,
+  fetchWordLimits,
+} = useEssay();
 const { fetchMentors } = useMentors();
 
 const loading = ref(true);
 const saving = ref(false);
 const priceLoading = ref(false);
 const mentors = ref([]);
+const deadlines = ref([]);
+const wordLimits = ref([]);
 const calculatedPrice = ref(null);
 
 const form = ref({
   mentorId: null,
-  deadlineId: 1,
+  deadlineId: null,
   essayType: null,
-  wordLimitId: 1,
+  wordLimitId: null,
   title: "",
   body: "",
 });
-
-const deadlines = [{ id: 1, label: "Standard (7 days)" }];
 
 const selectedMentor = computed(() => {
   return mentors.value.find((m) => m.id === form.value.mentorId);
@@ -37,7 +43,15 @@ const selectedEssayType = computed(() => {
 });
 
 const selectedDeadline = computed(() => {
-  return deadlines.find((d) => d.id === form.value.deadlineId);
+  return deadlines.value.find((d) => d.id === form.value.deadlineId);
+});
+
+const selectedWordLimit = computed(() => {
+  return wordLimits.value.find((w) => w.id === form.value.wordLimitId);
+});
+
+const showWordLimit = computed(() => {
+  return form.value.essayType === "SUPPLEMENTAL";
 });
 
 const essayTypes = [
@@ -54,9 +68,28 @@ onMounted(async () => {
   }
 
   try {
-    mentors.value = await fetchMentors();
+    const [mentorsResult, deadlinesResult, wordLimitsResult] =
+      await Promise.all([fetchMentors(), fetchDeadlines(), fetchWordLimits()]);
+
+    if (mentorsResult) {
+      mentors.value = mentorsResult;
+    }
+
+    if (deadlinesResult.success) {
+      deadlines.value = deadlinesResult.data;
+    } else {
+      message.error(deadlinesResult.error || "Не удалось загрузить дедлайны");
+    }
+
+    if (wordLimitsResult.success) {
+      wordLimits.value = wordLimitsResult.data;
+    } else {
+      message.error(
+        wordLimitsResult.error || "Не удалось загрузить лимиты слов"
+      );
+    }
   } catch (error) {
-    console.error("Error loading mentors:", error);
+    console.error("Error loading data:", error);
   }
 
   const result = await fetchEssayById(id);
@@ -66,9 +99,11 @@ onMounted(async () => {
 
     form.value = {
       mentorId: data.mentor?.id || null,
-      deadlineId: data.content?.deadline?.id || 1,
+      deadlineId:
+        data.content?.deadline?.id ||
+        (deadlines.value.length > 0 ? deadlines.value[0].id : null),
       essayType: data.content?.type || null,
-      wordLimitId: data.content?.wordLimit?.id || 1,
+      wordLimitId: data.content?.wordLimit?.id || null,
       title: data.content?.title || "",
       body: data.content?.body || "",
     };
@@ -82,7 +117,30 @@ onMounted(async () => {
   loading.value = false;
 });
 
+watch(
+  () => form.value.essayType,
+  (newType) => {
+    if (newType === "PERSONAL") {
+      form.value.wordLimitId = null;
+    } else if (
+      newType === "SUPPLEMENTAL" &&
+      wordLimits.value.length > 0 &&
+      !form.value.wordLimitId
+    ) {
+      form.value.wordLimitId = wordLimits.value[0].id;
+    }
+  }
+);
+
 const handleCalculatePrice = async () => {
+  if (form.value.essayType === "SUPPLEMENTAL" && !form.value.wordLimitId) {
+    return;
+  }
+
+  if (!form.value.deadlineId) {
+    return;
+  }
+
   priceLoading.value = true;
 
   const result = await calculatePrice({
@@ -201,9 +259,14 @@ const handleSave = async () => {
                 id="time-limit"
                 v-model:value="form.deadlineId"
                 placeholder="Select Time Limit"
-                disabled
               >
-                <a-select-option :value="1">Standard (7 days)</a-select-option>
+                <a-select-option
+                  v-for="deadline in deadlines"
+                  :key="deadline.id"
+                  :value="deadline.id"
+                >
+                  {{ deadline.name }}
+                </a-select-option>
               </a-select>
             </div>
             <div class="essay__select-item">
@@ -214,6 +277,22 @@ const handleSave = async () => {
                 placeholder="Select Type"
                 :options="essayTypes"
               />
+            </div>
+            <div v-if="showWordLimit" class="essay__select-item">
+              <label for="word-limit">Word Limit *</label>
+              <a-select
+                id="word-limit"
+                v-model:value="form.wordLimitId"
+                placeholder="Select Word Limit"
+              >
+                <a-select-option
+                  v-for="wordLimit in wordLimits"
+                  :key="wordLimit.id"
+                  :value="wordLimit.id"
+                >
+                  {{ wordLimit.name }}
+                </a-select-option>
+              </a-select>
             </div>
           </div>
           <div class="essay__inputs">
@@ -267,7 +346,11 @@ const handleSave = async () => {
             </div>
             <div class="pricelist__item">
               <p>Deadline</p>
-              <p>{{ selectedDeadline?.label || "-" }}</p>
+              <p>{{ selectedDeadline?.name || "-" }}</p>
+            </div>
+            <div v-if="showWordLimit" class="pricelist__item">
+              <p>Word Limit</p>
+              <p>{{ selectedWordLimit?.name || "-" }}</p>
             </div>
             <div class="pricelist__total">
               <p>Total</p>

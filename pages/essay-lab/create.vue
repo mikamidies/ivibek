@@ -5,19 +5,22 @@ definePageMeta({
   layoutTitle: "Create Essay",
 });
 
-const { createEssay, calculatePrice } = useEssay();
+const { createEssay, calculatePrice, fetchDeadlines, fetchWordLimits } =
+  useEssay();
 const { fetchMentors } = useMentors();
 
 const loading = ref(false);
 const priceLoading = ref(false);
 const mentors = ref([]);
+const deadlines = ref([]);
+const wordLimits = ref([]);
 const calculatedPrice = ref(null);
 
 const form = ref({
   mentorId: null,
-  deadlineId: 1,
+  deadlineId: null,
   essayType: null,
-  wordLimitId: 1,
+  wordLimitId: null,
   title: "",
   body: "",
 });
@@ -29,8 +32,6 @@ const essayTypes = [
   { value: "SUPPLEMENTAL", label: "Supplemental" },
 ];
 
-const deadlines = [{ id: 1, label: "Standard (7 days)" }];
-
 const selectedMentor = computed(() => {
   return mentors.value.find((m) => m.id === form.value.mentorId);
 });
@@ -40,21 +41,72 @@ const selectedEssayType = computed(() => {
 });
 
 const selectedDeadline = computed(() => {
-  return deadlines.find((d) => d.id === form.value.deadlineId);
+  return deadlines.value.find((d) => d.id === form.value.deadlineId);
+});
+
+const selectedWordLimit = computed(() => {
+  return wordLimits.value.find((w) => w.id === form.value.wordLimitId);
+});
+
+const showWordLimit = computed(() => {
+  return form.value.essayType === "SUPPLEMENTAL";
 });
 
 onMounted(async () => {
   try {
-    mentors.value = await fetchMentors();
+    const [mentorsResult, deadlinesResult, wordLimitsResult] =
+      await Promise.all([fetchMentors(), fetchDeadlines(), fetchWordLimits()]);
+
+    if (mentorsResult) {
+      mentors.value = mentorsResult;
+    }
+
+    if (deadlinesResult.success) {
+      deadlines.value = deadlinesResult.data;
+
+      if (deadlines.value.length > 0) {
+        form.value.deadlineId = deadlines.value[0].id;
+      }
+    } else {
+      message.error(deadlinesResult.error || "Не удалось загрузить дедлайны");
+    }
+
+    if (wordLimitsResult.success) {
+      wordLimits.value = wordLimitsResult.data;
+    } else {
+      message.error(
+        wordLimitsResult.error || "Не удалось загрузить лимиты слов"
+      );
+    }
 
     await handleCalculatePrice();
   } catch (error) {
-    console.error("Error loading mentors:", error);
-    message.error("Не удалось загрузить список менторов");
+    message.error("Не удалось загрузить данные");
   }
 });
 
+// Сбрасываем wordLimitId при смене типа эссе
+watch(
+  () => form.value.essayType,
+  (newType) => {
+    if (newType === "PERSONAL") {
+      form.value.wordLimitId = null;
+    } else if (newType === "SUPPLEMENTAL" && wordLimits.value.length > 0) {
+      form.value.wordLimitId = wordLimits.value[0].id;
+    }
+  }
+);
+
 const handleCalculatePrice = async () => {
+  // Для SUPPLEMENTAL требуется wordLimitId
+  if (form.value.essayType === "SUPPLEMENTAL" && !form.value.wordLimitId) {
+    return;
+  }
+
+  if (!form.value.deadlineId) {
+    return;
+  }
+
   priceLoading.value = true;
 
   const result = await calculatePrice({
@@ -173,14 +225,13 @@ const handleCreate = async () => {
                 id="time-limit"
                 v-model:value="form.deadlineId"
                 placeholder="Select Time Limit"
-                disabled
               >
                 <a-select-option
                   v-for="deadline in deadlines"
                   :key="deadline.id"
                   :value="deadline.id"
                 >
-                  {{ deadline.label }}
+                  {{ deadline.name }}
                 </a-select-option>
               </a-select>
             </div>
@@ -192,6 +243,22 @@ const handleCreate = async () => {
                 placeholder="Select Type"
                 :options="essayTypes"
               />
+            </div>
+            <div v-if="showWordLimit" class="essay__select-item">
+              <label for="word-limit">Word Limit *</label>
+              <a-select
+                id="word-limit"
+                v-model:value="form.wordLimitId"
+                placeholder="Select Word Limit"
+              >
+                <a-select-option
+                  v-for="wordLimit in wordLimits"
+                  :key="wordLimit.id"
+                  :value="wordLimit.id"
+                >
+                  {{ wordLimit.name }}
+                </a-select-option>
+              </a-select>
             </div>
           </div>
           <div class="essay__inputs">
@@ -248,7 +315,11 @@ const handleCreate = async () => {
             </div>
             <div class="pricelist__item">
               <p>Deadline</p>
-              <p>{{ selectedDeadline?.label || "-" }}</p>
+              <p>{{ selectedDeadline?.name || "-" }}</p>
+            </div>
+            <div v-if="showWordLimit" class="pricelist__item">
+              <p>Word Limit</p>
+              <p>{{ selectedWordLimit?.name || "-" }}</p>
             </div>
             <div class="pricelist__total">
               <p>Total</p>

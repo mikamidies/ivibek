@@ -10,7 +10,7 @@ const mentor = await fetchMentorById(Number(mentorId));
   <div class="teacher-page">
     <div class="teacher__top teacher__card">
       <div class="teacher__top-top">
-        <NuxtLink to="/teachers">
+        <NuxtLink to="/teachers" class="teacher__back">
           <Icon name="lucide:arrow-left" class="icon" />
           Back
         </NuxtLink>
@@ -148,6 +148,19 @@ const mentor = await fetchMentorById(Number(mentorId));
 </template>
 
 <style scoped>
+.teacher__back {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  display: inline-flex;
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--text);
+}
 .teacher-page {
   padding: 24px 24px 120px 24px;
   background: var(--border);
@@ -170,15 +183,6 @@ const mentor = await fetchMentorById(Number(mentorId));
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-.teacher__top a {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 24px;
 }
 .teacher__top-flexer {
   display: flex;
