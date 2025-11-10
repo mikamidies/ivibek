@@ -14,6 +14,7 @@ const isSuggestionHidden = ref(false);
 const isLoading = ref(false);
 const isSending = ref(false);
 const isNewChat = ref(true);
+const isTyping = ref(false);
 
 const savedChats = ref([]);
 const isLoadingChats = ref(false);
@@ -129,10 +130,15 @@ const handleSend = async () => {
     scrollToBottom();
   });
 
+  isTyping.value = true;
+  scrollToBottom();
+
   try {
     console.log("Sending message to UUID:", currentChatId.value);
     const result = await sendMessage(currentChatId.value, userMessage);
     console.log("Send message result:", result);
+
+    isTyping.value = false;
 
     if (result.success && result.data) {
       messages.value.push({
@@ -150,6 +156,7 @@ const handleSend = async () => {
   } catch (error) {
     console.error("Exception sending message:", error);
     message.error("Произошла ошибка при отправке");
+    isTyping.value = false;
   } finally {
     isSending.value = false;
   }
@@ -397,6 +404,22 @@ const getStatusLabel = (status) => {
                     </div>
                     <div class="message-content">
                       <p>{{ msg.message || msg.content }}</p>
+                    </div>
+                  </div>
+
+                  <div
+                    v-if="isTyping"
+                    class="message assistant typing-indicator"
+                  >
+                    <div class="message-avatar">
+                      <Icon name="lucide:bot" />
+                    </div>
+                    <div class="message-content typing-content">
+                      <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </div>
                     </div>
                   </div>
 
@@ -1022,5 +1045,48 @@ const getStatusLabel = (status) => {
   gap: 8px;
   align-items: center;
   justify-content: space-between;
+}
+
+.typing-indicator .typing-content {
+  padding: 12px 20px;
+}
+
+.typing-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.typing-dots span {
+  width: 8px;
+  height: 8px;
+  background: var(--blue);
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+
+.typing-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 </style>

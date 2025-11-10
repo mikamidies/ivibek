@@ -39,6 +39,9 @@ export const useAuth = () => {
   const API_BASE = "https://api.ivybek.com";
 
   const logout = () => {
+    console.log("LOGGING OUT...");
+    console.trace("Logout called from:");
+
     accessToken.value = null;
     refreshToken.value = null;
     user.value = null;
@@ -75,7 +78,7 @@ export const useAuth = () => {
     } catch (error: any) {
       return {
         success: false,
-        error: error.data?.message || "Неверный логин или пароль",
+        error: error.data?.message || "Invalid username or password",
       };
     }
   };
@@ -112,13 +115,18 @@ export const useAuth = () => {
     } catch (error: any) {
       return {
         success: false,
-        error: error.data?.message || "Ошибка регистрации",
+        error: error.data?.message || "Registration error",
       };
     }
   };
 
   const refresh = async () => {
-    if (!refreshToken.value) return false;
+    if (!refreshToken.value) {
+      console.warn("⚠️ No refreshToken available for refresh");
+      return false;
+    }
+
+    console.log("REFRESHING TOKENS...");
 
     try {
       const data: AuthResponse = await $fetch(
@@ -136,9 +144,22 @@ export const useAuth = () => {
         user.value = data.user;
       }
 
+      console.log("TOKENS SUCCESSFULLY REFRESHED");
       return true;
-    } catch {
-      logout();
+    } catch (error: any) {
+      console.error("ERROR REFRESHING TOKENS:", error);
+      console.error("STATUS:", error.status || "undefined");
+      console.error("MESSAGE:", error.message || "no message");
+      console.error("DATA:", error.data || "no data");
+
+      if (error.status === 401 || error.status === 403) {
+        console.error("RefreshToken invalid - logging out");
+        logout();
+        return false;
+      }
+
+      console.warn("Temporary network error - tokens NOT reset");
+      console.warn("ERROR TYPE:", error.constructor.name);
       return false;
     }
   };
@@ -158,11 +179,14 @@ export const useAuth = () => {
       });
 
       user.value = data as User;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch user:", error);
-      const refreshed = await refresh();
-      if (!refreshed) {
-        logout();
+
+      if (error.status === 401) {
+        const refreshed = await refresh();
+        if (!refreshed) {
+          console.warn("Failed to refresh token while loading profile");
+        }
       }
     }
   };
@@ -176,7 +200,7 @@ export const useAuth = () => {
     timezone?: string;
   }) => {
     if (!accessToken.value) {
-      return { success: false, error: "Не авторизован" };
+      return { success: false, error: "Not authorized" };
     }
 
     try {
@@ -196,7 +220,7 @@ export const useAuth = () => {
       console.error("Composable error:", error);
       return {
         success: false,
-        error: error.data?.message || "Ошибка обновления профиля",
+        error: error.data?.message || "Error updating profile",
       };
     }
   };
@@ -226,7 +250,7 @@ export const useAuth = () => {
       console.log("Image path:", imagePath);
 
       if (!imagePath) {
-        throw new Error("Не удалось получить путь к изображению");
+        throw new Error("Failed to get image path");
       }
 
       await $fetch(`${API_BASE}/api/v1/student/profile/updateImage`, {
@@ -247,14 +271,14 @@ export const useAuth = () => {
       console.error("Image upload error:", error);
       return {
         success: false,
-        error: error.message || "Ошибка загрузки фото",
+        error: error.message || "Error uploading photo",
       };
     }
   };
 
   const updateAbout = async (about: string) => {
     if (!accessToken.value) {
-      return { success: false, error: "Не авторизован" };
+      return { success: false, error: "Not authorized" };
     }
 
     try {
@@ -273,7 +297,7 @@ export const useAuth = () => {
     } catch (error: any) {
       return {
         success: false,
-        error: error.data?.message || "Ошибка обновления описания",
+        error: error.data?.message || "Error updating description",
       };
     }
   };
@@ -295,14 +319,47 @@ export const useAuth = () => {
         success: false,
         error:
           error.data?.message ||
-          "Ошибка сброса пароля. Проверьте имя пользователя",
+          "Password reset error. Please check the username",
       };
+    }
+  };
+
+  const safeFetch = async (url: string, options: any = {}) => {
+    if (!accessToken.value) {
+      const refreshed = await refresh();
+      if (!refreshed) {
+        throw new Error("Not authenticated");
+      }
+    }
+
+    const headers = {
+      ...options.headers,
+      Authorization: `Bearer ${accessToken.value}`,
+    };
+
+    try {
+      return await $fetch(url, { ...options, headers });
+    } catch (error: any) {
+      if (error.status === 401) {
+        console.log("401 в safeFetch, refreshing token...");
+        const refreshed = await refresh();
+
+        if (refreshed && accessToken.value) {
+          const newHeaders = {
+            ...options.headers,
+            Authorization: `Bearer ${accessToken.value}`,
+          };
+          return await $fetch(url, { ...options, headers: newHeaders });
+        }
+      }
+      throw error;
     }
   };
 
   return {
     user,
     accessToken,
+    refreshToken,
     login,
     register,
     refresh,
@@ -312,5 +369,6 @@ export const useAuth = () => {
     updateAbout,
     resetPassword,
     logout,
+    safeFetch,
   };
 };

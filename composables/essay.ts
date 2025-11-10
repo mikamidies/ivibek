@@ -11,6 +11,17 @@ interface EssayOrder {
   createdAt?: string;
 }
 
+interface PaginatedResponse<T> {
+  content: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 interface CreateEssayPayload {
   mentorId: number;
   deadlineId: number;
@@ -177,7 +188,7 @@ export const useEssay = () => {
     }
 
     try {
-      const response = await $fetch(
+      const response = await $fetch<PaginatedResponse<any>>(
         `${API_BASE}/api/v1/student/essay-orders/wordLimits`,
         {
           method: "GET",
@@ -206,7 +217,7 @@ export const useEssay = () => {
     }
 
     try {
-      const response = await $fetch(
+      const response = await $fetch<PaginatedResponse<any>>(
         `${API_BASE}/api/v1/student/essay-orders/deadlines`,
         {
           method: "GET",
