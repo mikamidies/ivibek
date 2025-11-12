@@ -162,3 +162,29 @@ tr td:last-child {
 .text-muted {
   color: var(--essay-txt);
 }
+
+.status {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.status--pending {
+  background: #fef3cd;
+  color: #856404;
+}
+
+.status--in_progress {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status--completed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status--overdue {
+  background: #f8d7da;
+  color: #721c24;
+}

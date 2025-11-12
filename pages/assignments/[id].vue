@@ -23,7 +23,7 @@ onMounted(() => {
 });
 
 const formatDate = (date) => {
-  return date ? dayjs(date).format("MMM DD, YYYY HH:mm") : "-";
+  return date ? dayjs(date).format("MMM DD, YYYY") : "-";
 };
 
 const getStatusLabel = (status) => {
@@ -39,33 +39,65 @@ const getStatusLabel = (status) => {
 
 <template>
   <div class="assignment-detail-page">
+    <PageBanner
+      titleProps="Assignments"
+      backgroundProps="#00A155"
+      iconProps="/page-icons/tasks.png"
+    />
+
     <a-spin :spinning="loading">
-      <div v-if="assignment" class="assignment-detail">
-        <div class="assignment-detail__header">
-          <h1>{{ assignment.title }}</h1>
-          <span
-            class="status"
-            :class="`status--${assignment.status?.toLowerCase()}`"
-          >
-            {{ getStatusLabel(assignment.status) }}
-          </span>
-        </div>
-
-        <div class="assignment-detail__info">
-          <div class="info-item">
-            <strong>Course:</strong> {{ assignment.course?.name || "-" }}
+      <div class="assignment__grid">
+        <div v-if="assignment" class="assignment__body">
+          <div class="assignment__head">
+            <div class="assignment__from">
+              <Icon name="lucide:calendar" />
+              {{ formatDate(assignment?.startDate) }}
+            </div>
+            <div class="assignment__to">
+              <Icon name="lucide:calendar" />
+              {{ formatDate(assignment?.endDate) }}
+            </div>
           </div>
-          <div class="info-item">
-            <strong>Due Date:</strong> {{ formatDate(assignment.dueDate) }}
-          </div>
-          <div class="info-item">
-            <strong>Created:</strong> {{ formatDate(assignment.createdAt) }}
+          <div class="assignment__content">
+            <h2 class="assignment__title">{{ assignment?.title || "-" }}</h2>
+            <div class="assignment__description">
+              <p>{{ assignment?.description || "-" }}</p>
+            </div>
           </div>
         </div>
-
-        <div class="assignment-detail__description">
-          <h3>Description</h3>
-          <p>{{ assignment.description || "No description provided" }}</p>
+        <div class="assignment__teacher">
+          <h4 class="assignment__teacher-title">Teacher</h4>
+          <div class="assignment__teacher-person">
+            <div class="assignment__teacher-img">
+              <img
+                :src="assignment?.mentor?.image || '/default-person.jpg'"
+                alt="Teacher Avatar"
+              />
+            </div>
+            <div class="assignment__teacher-info">
+              <p class="assignment__teacher-name">
+                {{ assignment?.mentor?.fullName || "No data" }}
+              </p>
+              <p class="assignment__teacher-university">
+                {{ assignment?.mentor?.university.name || "No data" }}
+              </p>
+              <p class="assignment__teacher-university">
+                {{ assignment?.mentor?.faculty.name || "No data" }}
+              </p>
+            </div>
+          </div>
+          <div class="assignment__teacher-response">
+            <form>
+              <a-input
+                type="text"
+                placeholder="Write a response..."
+                class="assignment__teacher-input"
+              />
+              <a-button type="primary" class="assignment__teacher-submit">
+                Submit
+              </a-button>
+            </form>
+          </div>
         </div>
       </div>
     </a-spin>
@@ -74,56 +106,95 @@ const getStatusLabel = (status) => {
 
 <style scoped>
 .assignment-detail-page {
+  padding: 24px 24px 120px 24px;
+  background: var(--border);
+  min-height: 100vh;
+  overflow: auto;
+}
+.assignment__body {
+  padding: 24px;
+  background: white;
+  border-radius: 16px;
+  height: fit-content;
+}
+.assignment__head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  gap: 32px;
+  border-bottom: 1px solid var(--border);
+}
+.assignment__from,
+.assignment__to {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--essay-txt);
+}
+.assignment__from span {
+  color: var(--green);
+  font-size: 18px;
+}
+.assignment__to span {
+  color: var(--blue);
+  font-size: 18px;
+}
+.assignment__title {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.assignment__description {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--essay-txt);
+}
+.assignment__grid {
+  display: grid;
+  grid-template-columns: 1fr 384px;
+  gap: 24px;
+  margin-top: 24px;
+}
+.assignment__teacher {
+  background: white;
+  border-radius: 16px;
   padding: 24px;
 }
-
-.assignment-detail__header {
-  display: flex;
-  justify-content: space-between;
+.assignment__teacher-title {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+.assignment__teacher-person {
+  display: grid;
+  grid-template-columns: 70px 1fr;
   align-items: center;
-  margin-bottom: 24px;
+  gap: 16px;
 }
-
-.assignment-detail__info {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 24px;
+.assignment__teacher-img img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
 }
-
-.info-item {
-  margin-bottom: 12px;
+.assignment__teacher-name {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
 }
-
-.assignment-detail__description {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.status {
-  padding: 4px 12px;
-  border-radius: 4px;
+.assignment__teacher-university {
   font-size: 14px;
+  line-height: 20px;
+  color: var(--text-grey);
 }
-
-.status--pending {
-  background: #fef3cd;
-  color: #856404;
-}
-
-.status--in_progress {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-
-.status--completed {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status--overdue {
-  background: #f8d7da;
-  color: #721c24;
+.assignment__teacher-response form {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr 70px;
+  gap: 8px;
 }
 </style>
