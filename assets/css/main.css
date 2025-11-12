@@ -188,3 +188,18 @@ tr td:last-child {
   background: #f8d7da;
   color: #721c24;
 }
+
+.status--assigned {
+  background: #e2e3e5;
+  color: #6c757d;
+}
+
+.status--pending_review {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status--graded {
+  background: #d4edda;
+  color: #155724;
+}

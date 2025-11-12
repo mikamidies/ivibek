@@ -1,11 +1,14 @@
 <script setup>
 import dayjs from "dayjs";
+import { message } from "ant-design-vue";
 
 const route = useRoute();
-const { fetchAssignmentById } = useAssignments();
+const { fetchAssignmentById, submitAssignmentSolution } = useAssignments();
 
 const assignment = ref(null);
 const loading = ref(false);
+const submitting = ref(false);
+const submissionUrl = ref("");
 
 const loadAssignment = async () => {
   loading.value = true;
@@ -28,12 +31,30 @@ const formatDate = (date) => {
 
 const getStatusLabel = (status) => {
   const labels = {
-    PENDING: "Pending",
-    IN_PROGRESS: "In Progress",
+    ASSIGNED: "Assigned",
     COMPLETED: "Completed",
-    OVERDUE: "Overdue",
   };
   return labels[status] || status;
+};
+
+const handleSubmit = async () => {
+  if (!submissionUrl.value.trim()) {
+    message.error("Please enter a submission URL");
+    return;
+  }
+
+  submitting.value = true;
+  try {
+    await submitAssignmentSolution(route.params.id, submissionUrl.value);
+    message.success("Solution submitted successfully!");
+    submissionUrl.value = "";
+    await loadAssignment();
+  } catch (error) {
+    console.error("Failed to submit solution:", error);
+    message.error("Failed to submit solution");
+  } finally {
+    submitting.value = false;
+  }
 };
 </script>
 
@@ -49,6 +70,12 @@ const getStatusLabel = (status) => {
       <div class="assignment__grid">
         <div v-if="assignment" class="assignment__body">
           <div class="assignment__head">
+            <div class="assignment__back">
+              <NuxtLink :to="`/assignments`">
+                <Icon name="lucide:arrow-left" />
+                Back
+              </NuxtLink>
+            </div>
             <div class="assignment__from">
               <Icon name="lucide:calendar" />
               {{ formatDate(assignment?.startDate) }}
@@ -86,17 +113,50 @@ const getStatusLabel = (status) => {
               </p>
             </div>
           </div>
-          <div class="assignment__teacher-response">
-            <form>
+
+          <div
+            class="assignment__teacher-response"
+            v-if="!assignment?.submission?.submissionUrl"
+          >
+            <form @submit.prevent="handleSubmit">
               <a-input
+                v-model:value="submissionUrl"
                 type="text"
-                placeholder="Write a response..."
+                placeholder="Enter submission URL..."
                 class="assignment__teacher-input"
+                :disabled="submitting"
               />
-              <a-button type="primary" class="assignment__teacher-submit">
+              <a-button
+                type="primary"
+                html-type="submit"
+                class="assignment__teacher-submit"
+                :loading="submitting"
+              >
                 Submit
               </a-button>
             </form>
+          </div>
+          <div class="assignment__response" v-else>
+            <h4>Students response:</h4>
+            <a
+              target="_blank"
+              :href="`${assignment?.submission?.submissionUrl}`"
+            >
+              {{ assignment?.submission?.submissionUrl }}
+            </a>
+          </div>
+          <div class="assignment__grade" v-if="assignment?.grade">
+            <h4>Grade:</h4>
+            <p
+              class="status"
+              :class="`status--${assignment?.status?.toLowerCase()}`"
+            >
+              {{
+                assignment?.grade?.grade
+                  ? assignment.grade.grade + "%"
+                  : "Not graded yet"
+              }}
+            </p>
           </div>
         </div>
       </div>
@@ -162,6 +222,7 @@ const getStatusLabel = (status) => {
   background: white;
   border-radius: 16px;
   padding: 24px;
+  height: fit-content;
 }
 .assignment__teacher-title {
   font-size: 20px;
@@ -196,5 +257,38 @@ const getStatusLabel = (status) => {
   display: grid;
   grid-template-columns: 1fr 70px;
   gap: 8px;
+}
+.assignment__grade h4,
+.assignment__response h4 {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.assignment__response {
+  margin: 16px 0 0 0;
+  padding: 16px 0 0 0;
+  border-top: 1px solid var(--border);
+}
+.assignment__response a {
+  color: var(--blue);
+  font-weight: 500;
+  text-decoration: underline;
+}
+.assignment__grade {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.assignment__back a {
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--essay-txt);
 }
 </style>
