@@ -159,3 +159,6 @@ tr td:last-child {
   border-radius: 8px;
   transition: all 0.3s ease;
 }
+.text-muted {
+  color: var(--essay-txt);
+}

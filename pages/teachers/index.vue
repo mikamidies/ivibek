@@ -137,7 +137,6 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
 }
 .teachers__top-right {
   position: relative;
-  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0;
 }
@@ -162,7 +161,7 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
   gap: 20px;
 }
 .teachers__item {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-darker);
   border-radius: 16px;
   padding: 24px;
 }
@@ -178,6 +177,9 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
+}
+.teachers__item-img img {
+  object-fit: cover;
 }
 .teachers__item-info {
   flex-grow: 1;

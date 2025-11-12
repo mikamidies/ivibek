@@ -1,9 +1,16 @@
 <script setup>
+import dayjs from "dayjs";
+
 const route = useRoute();
 const { fetchMentorById } = useMentors();
 
 const mentorId = route.params.id;
 const mentor = await fetchMentorById(Number(mentorId));
+
+const genderFormat = (gender) => {
+  if (!gender) return "Not set";
+  return gender === "MALE" ? "Male" : "Female";
+};
 </script>
 
 <template>
@@ -19,27 +26,29 @@ const mentor = await fetchMentorById(Number(mentorId));
         <div class="teacher__top-left">
           <div class="teacher__top-img">
             <NuxtImg
-              src="/images/person.jpg"
+              :src="mentor.image || '/images/person.jpg'"
               alt="Teacher"
               width="96"
               height="96"
             />
           </div>
           <div class="teacher__top-info">
-            <h4 class="teacher__top-name">Yu Jimin</h4>
-            <span class="teacher__top-sub"> Computer Science </span>
+            <h4 class="teacher__top-name">{{ mentor?.info?.fullName }}</h4>
+            <span class="teacher__top-sub">
+              {{ mentor?.info?.faculty?.name || "No faculty info" }}
+            </span>
           </div>
         </div>
         <div class="teacher__top-right">
           <div class="modal__price">
             <div class="modal__price-hourly">
-              <p>$50</p>
+              <p>${{ mentor?.pricing?.meetingHourPrice || "N/A" }}</p>
               <span>Hourly Rate</span>
             </div>
-            <div class="modal__price-essay">
+            <!-- <div class="modal__price-essay">
               <p>$24</p>
               <span>Essay Rate</span>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -57,26 +66,18 @@ const mentor = await fetchMentorById(Number(mentorId));
               />
             </div>
             <div class="teacher__university-info">
-              <h5 class="teacher__university-name">University of Cambridge</h5>
-              <span class="teacher__university-sub"> United Kingdom </span>
+              <h5 class="teacher__university-name">
+                {{ mentor?.info?.university?.name || "No university info" }}
+              </h5>
+              <span class="teacher__university-sub">
+                {{ mentor?.info?.country?.name || "No country info" }}
+              </span>
             </div>
           </div>
           <div class="teacher__university-bottom">
             <div class="teacher__university-item">
               <Icon name="lucide:book-open" class="icon" />
-              <p>Bachelor's Degree in Computer Science</p>
-            </div>
-            <div class="teacher__university-item">
-              <Icon name="lucide:book-open" class="icon" />
-              <p>Bachelor's Degree in Computer Science</p>
-            </div>
-            <div class="teacher__university-item">
-              <Icon name="lucide:book-open" class="icon" />
-              <p>Bachelor's Degree in Computer Science</p>
-            </div>
-            <div class="teacher__university-item">
-              <Icon name="lucide:book-open" class="icon" />
-              <p>Bachelor's Degree in Computer Science</p>
+              <p>{{ mentor?.info?.faculty?.name || "No faculty info" }}</p>
             </div>
           </div>
         </div>
@@ -87,32 +88,39 @@ const mentor = await fetchMentorById(Number(mentorId));
             <div class="modal__details-items">
               <div class="modal__details-item">
                 <Icon name="lucide:mail" />
-                <p>yujimin@naever.com</p>
-              </div>
-              <div class="modal__details-item">
-                <Icon name="lucide:phone" />
-                <p>+1 234 567 8901</p>
+                <p>{{ mentor?.info?.email || "No email info" }}</p>
               </div>
               <div class="modal__details-item">
                 <Icon name="lucide:map-pin" />
-                <p>Seoul, South Korea</p>
+                <p>{{ mentor?.info?.country?.name || "No country info" }}</p>
               </div>
               <div class="modal__details-item">
                 <Icon name="lucide:calendar" />
-                <p>Feb 2, 2000</p>
+                <p>
+                  {{
+                    dayjs(mentor?.info?.dateOfBirth).format("MMM DD, YYYY") ||
+                    "No birth date info"
+                  }}
+                </p>
               </div>
               <div class="modal__details-item">
+                <Icon name="lucide:user" />
+                <p>
+                  {{ genderFormat(mentor?.info?.gender) || "No gender info" }}
+                </p>
+              </div>
+              <!-- <div class="modal__details-item">
                 <Icon name="lucide:languages" />
                 <p>English, Korean</p>
-              </div>
-              <div class="modal__details-item">
+              </div> -->
+              <!-- <div class="modal__details-item">
                 <Icon name="lucide:clock" />
                 <p>Available: Mon - Fri, 9 AM - 5 PM</p>
-              </div>
-              <div class="modal__details-item">
+              </div> -->
+              <!-- <div class="modal__details-item">
                 <Icon name="lucide:globe" />
                 <p>Asia, South Korea</p>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -121,26 +129,11 @@ const mentor = await fetchMentorById(Number(mentorId));
         <div class="teacher__desc teacher__card">
           <h4 class="section__title">About teacher</h4>
           <p>
-            Yu Jimin is a dedicated Computer Science teacher with over 10 years
-            of experience in both academic and industry settings. She holds a
-            Bachelor's Degree in Computer Science from the University of
-            Cambridge and has worked as a Software Engineer at leading tech
-            companies. Her teaching philosophy centers around making complex
-            concepts accessible and engaging for students of all levels. Yujimin
-            specializes in software development, algorithms, and data
-            structures, and is passionate about helping students achieve their
-            academic and career goals. academic and career goals. She is
-            committed to fostering a supportive learning environment and
-            encourages students to pursue research, internships, and real-world
-            projects. Yu Jimin regularly mentors students for coding
-            competitions and guides them in preparing for university admissions
-            and tech careers. Her approachable teaching style and dedication to
-            student success have made her a respected mentor among her peers and
-            students alike.
+            {{ mentor?.about || "This teacher has not provided a bio yet." }}
           </p>
         </div>
         <div class="teacher__calendar teacher__card">
-          <h4 class="section__title">Calenndar</h4>
+          <h4 class="section__title">Calendar</h4>
         </div>
       </div>
     </div>
@@ -216,8 +209,6 @@ const mentor = await fetchMentorById(Number(mentorId));
   color: var(--light-grey);
 }
 .modal__price {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 .modal__price-hourly,

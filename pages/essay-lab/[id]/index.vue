@@ -227,6 +227,7 @@ const openMentorOptions = () => {
   padding: 24px;
   border-radius: 16px;
   margin-top: 16px;
+  height: fit-content;
 }
 .essay__title {
   font-size: 20px;

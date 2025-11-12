@@ -7,6 +7,7 @@ const links = [
   { name: "Dashboard", link: "/", icon: "lucide:layout-dashboard" },
   { name: "Academics", link: "/academics", icon: "lucide:graduation-cap" },
   { name: "Tasks", link: "/tasks", icon: "lucide:file-check" },
+  { name: "Assignments", link: "/assignments", icon: "lucide:check" },
   // { name: "Testing", link: "/testing", icon: "lucide:file-pen" },
   { name: "Activities", link: "/activities", icon: "lucide:folder-pen" },
   { name: "Honors", link: "/honors", icon: "lucide:medal" },
