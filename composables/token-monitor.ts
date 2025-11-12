@@ -19,8 +19,6 @@ export const useTokenMonitor = () => {
     if (tokenHistory.value.length > 50) {
       tokenHistory.value.shift();
     }
-
-    console.log(`TOKEN EVENT: ${event}`, details || "");
   };
 
   const isTokenValid = computed(() => {

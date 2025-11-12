@@ -90,11 +90,11 @@ const handleOk = async () => {
     });
 
     await fetchUser();
-    message.success("Профиль обновлен!");
+    message.success("Profile updated successfully!");
     visible.value = false;
   } catch (error) {
     console.error(error);
-    message.error("Ошибка");
+    message.error("Error updating profile");
   }
 
   loading.value = false;
@@ -116,10 +116,10 @@ const handleOkDesc = async () => {
   loading.value = false;
 
   if (result.success) {
-    message.success("Описание обновлено!");
+    message.success("Description updated!");
     visibleDesc.value = false;
   } else {
-    message.error(result.error || "Ошибка обновления");
+    message.error(result.error || "Error updating description");
   }
 };
 
@@ -132,7 +132,7 @@ const customRequest = async ({ file, onSuccess, onError }) => {
 
   if (result.success) {
     onSuccess("ok");
-    message.success("Фото профиля обновлено!");
+    message.success("Profile photo updated!");
   } else {
     onError(new Error(result.error));
     message.error(result.error);
@@ -142,11 +142,11 @@ const customRequest = async ({ file, onSuccess, onError }) => {
 const beforeUpload = (file) => {
   const isImage = file.type.startsWith("image/");
   if (!isImage) {
-    message.error("Можно загружать только изображения!");
+    message.error("Only images are allowed!");
   }
   const isLt5M = file.size / 1024 / 1024 < 5;
   if (!isLt5M) {
-    message.error("Изображение должно быть меньше 5MB!");
+    message.error("Image must be smaller than 5MB!");
   }
   return isImage && isLt5M;
 };
@@ -155,6 +155,11 @@ const genderOptions = [
   { value: "MALE", label: "Male" },
   { value: "FEMALE", label: "Female" },
 ];
+
+const genderFormat = (gender) => {
+  if (!gender) return "Not set";
+  return gender === "MALE" ? "Male" : "Female";
+};
 
 const timezones = [
   { value: "UTC", label: "UTC" },
@@ -225,7 +230,7 @@ const timezones = [
           <div class="profile__item">
             <Icon name="lucide:user-2" />
             <p class="profile__item-text">
-              {{ user.info?.gender || "Not set" }}
+              {{ genderFormat(user.info?.gender) }}
             </p>
           </div>
           <div class="profile__item">

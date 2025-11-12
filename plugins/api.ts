@@ -1,13 +1,17 @@
 export default defineNuxtPlugin(() => {
-  const { logout, refresh } = useAuth();
+  const { refresh } = useAuth();
+
+  let isRefreshing = false;
 
   globalThis.$fetch = $fetch.create({
     async onResponseError({ response }) {
-      if (response.status === 401) {
-        console.log("REFRESHING TOKEN DUE TO 401...");
-        const refreshed = await refresh();
-        if (!refreshed) {
-          console.warn("UNABLE TO REFRESH TOKEN 401");
+      if (response.status === 401 && !isRefreshing) {
+        isRefreshing = true;
+
+        try {
+          await refresh();
+        } finally {
+          isRefreshing = false;
         }
       }
     },

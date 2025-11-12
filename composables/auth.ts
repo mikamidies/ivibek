@@ -27,27 +27,31 @@ interface AuthResponse {
   user?: User;
 }
 
+let refreshPromise: Promise<boolean> | null = null;
+
 export const useAuth = () => {
   const user = useState<User | null>("user", () => null);
+
   const accessToken = useCookie("access_token", {
-    maxAge: 60 * 15,
+    maxAge: 60 * 60 * 24 * 7,
+    sameSite: "lax",
   });
+
   const refreshToken = useCookie("refresh_token", {
     maxAge: 60 * 60 * 24 * 30,
+    sameSite: "lax",
   });
 
   const API_BASE = "https://api.ivybek.com";
 
-  const logout = () => {
-    console.log("LOGGING OUT...");
-    console.trace("Logout called from:");
-
+  const logout = async () => {
     accessToken.value = null;
     refreshToken.value = null;
     user.value = null;
+    refreshPromise = null;
 
     if (import.meta.client) {
-      window.location.href = "/auth/login";
+      await navigateTo("/auth/login", { replace: true });
     }
   };
 
@@ -120,54 +124,58 @@ export const useAuth = () => {
     }
   };
 
-  const refresh = async () => {
+  const refresh = async (): Promise<boolean> => {
+    if (refreshPromise) {
+      return refreshPromise;
+    }
+
     if (!refreshToken.value) {
-      console.warn("⚠️ No refreshToken available for refresh");
       return false;
     }
 
-    console.log("REFRESHING TOKENS...");
+    if (isTokenExpired(refreshToken.value)) {
+      await logout();
+      return false;
+    }
 
-    try {
-      const data: AuthResponse = await $fetch(
-        `${API_BASE}/api/v1/student/auth/refresh`,
-        {
-          method: "POST",
-          body: { refreshToken: refreshToken.value },
+    refreshPromise = (async () => {
+      try {
+        const data: AuthResponse = await $fetch(
+          `${API_BASE}/api/v1/common/auth/refresh`,
+          {
+            method: "POST",
+            body: { refreshToken: refreshToken.value },
+          }
+        );
+
+        accessToken.value = data.accessToken;
+        refreshToken.value = data.refreshToken;
+
+        if (data.user) {
+          user.value = data.user;
         }
-      );
 
-      accessToken.value = data.accessToken;
-      refreshToken.value = data.refreshToken;
-
-      if (data.user) {
-        user.value = data.user;
-      }
-
-      console.log("TOKENS SUCCESSFULLY REFRESHED");
-      return true;
-    } catch (error: any) {
-      console.error("ERROR REFRESHING TOKENS:", error);
-      console.error("STATUS:", error.status || "undefined");
-      console.error("MESSAGE:", error.message || "no message");
-      console.error("DATA:", error.data || "no data");
-
-      if (error.status === 401 || error.status === 403) {
-        console.error("RefreshToken invalid - logging out");
-        logout();
+        return true;
+      } catch (error: any) {
+        if (error.status === 401 || error.status === 403) {
+          await logout();
+          return false;
+        }
         return false;
+      } finally {
+        refreshPromise = null;
       }
+    })();
 
-      console.warn("Temporary network error - tokens NOT reset");
-      console.warn("ERROR TYPE:", error.constructor.name);
-      return false;
-    }
+    return refreshPromise;
   };
 
   const fetchUser = async () => {
-    if (!accessToken.value) {
-      await refresh();
-      if (!accessToken.value) return;
+    if (!accessToken.value || isTokenExpired(accessToken.value)) {
+      const refreshed = await refresh();
+      if (!refreshed || !accessToken.value) {
+        return;
+      }
     }
 
     try {
@@ -180,13 +188,8 @@ export const useAuth = () => {
 
       user.value = data as User;
     } catch (error: any) {
-      console.error("Failed to fetch user:", error);
-
       if (error.status === 401) {
-        const refreshed = await refresh();
-        if (!refreshed) {
-          console.warn("Failed to refresh token while loading profile");
-        }
+        console.warn("401 when fetching user - token may be invalid");
       }
     }
   };
@@ -227,7 +230,7 @@ export const useAuth = () => {
 
   const updateProfileImage = async (imageFile: File) => {
     if (!accessToken.value) {
-      return { success: false, error: "Не авторизован" };
+      return { success: false, error: "Unauthorized" };
     }
 
     try {
@@ -244,10 +247,8 @@ export const useAuth = () => {
       }
 
       const uploadResponse = await response.json();
-      console.log("Upload response:", uploadResponse);
 
       const imagePath = uploadResponse.filePath;
-      console.log("Image path:", imagePath);
 
       if (!imagePath) {
         throw new Error("Failed to get image path");
@@ -324,38 +325,6 @@ export const useAuth = () => {
     }
   };
 
-  const safeFetch = async (url: string, options: any = {}) => {
-    if (!accessToken.value) {
-      const refreshed = await refresh();
-      if (!refreshed) {
-        throw new Error("Not authenticated");
-      }
-    }
-
-    const headers = {
-      ...options.headers,
-      Authorization: `Bearer ${accessToken.value}`,
-    };
-
-    try {
-      return await $fetch(url, { ...options, headers });
-    } catch (error: any) {
-      if (error.status === 401) {
-        console.log("401 в safeFetch, refreshing token...");
-        const refreshed = await refresh();
-
-        if (refreshed && accessToken.value) {
-          const newHeaders = {
-            ...options.headers,
-            Authorization: `Bearer ${accessToken.value}`,
-          };
-          return await $fetch(url, { ...options, headers: newHeaders });
-        }
-      }
-      throw error;
-    }
-  };
-
   return {
     user,
     accessToken,
@@ -369,6 +338,5 @@ export const useAuth = () => {
     updateAbout,
     resetPassword,
     logout,
-    safeFetch,
   };
 };

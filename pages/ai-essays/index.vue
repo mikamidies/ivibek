@@ -63,12 +63,10 @@ const handleSend = async () => {
 
   if (isNewChat.value || !currentChatId.value) {
     try {
-      console.log("Creating new chat with message:", userMessage);
       const createResult = await createChat(userMessage);
-      console.log("Create chat result:", createResult);
 
       if (!createResult.success || !createResult.uuid) {
-        message.error(createResult.error || "Ошибка создания чата");
+        message.error(createResult.error || "Error creating chat");
         isSending.value = false;
         return;
       }
@@ -77,7 +75,6 @@ const handleSend = async () => {
       isNewChat.value = false;
       messageCount.value = 1;
       showPaymentButton.value = true;
-      console.log("Chat created with UUID:", currentChatId.value);
 
       await router.push({
         query: { chat: currentChatId.value },
@@ -134,9 +131,7 @@ const handleSend = async () => {
   scrollToBottom();
 
   try {
-    console.log("Sending message to UUID:", currentChatId.value);
     const result = await sendMessage(currentChatId.value, userMessage);
-    console.log("Send message result:", result);
 
     isTyping.value = false;
 
