@@ -1,7 +1,9 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
+import WeeklyCalendar from "@/components/booking/WeeklyCalendar.vue";
 
 import { ref } from "vue";
+
 const visible = ref(false);
 const showModal = () => {
   visible.value = true;
@@ -9,15 +11,66 @@ const showModal = () => {
 const handleOk = () => {
   visible.value = false;
 };
+
 const bookModalVisible = ref(false);
+const selectedMentor = ref(null);
+const selectedSlots = ref([]);
+
+const selectMentor = (mentor) => {
+  selectedMentor.value = mentor;
+  bookModalVisible.value = true;
+  visible.value = false;
+};
+
 const handleBookOk = () => {
+  if (selectedSlots.value.length === 0) {
+    // Показываем сообщение что нужно выбрать слоты
+    return;
+  }
   bookModalVisible.value = false;
   paymentModalVisible.value = true;
+};
+
+const handleSlotsConfirm = (slots) => {
+  selectedSlots.value = slots;
+  handleBookOk();
 };
 
 const paymentModalVisible = ref(false);
 const handlePaymentOk = () => {
   paymentModalVisible.value = false;
+  // Здесь будет запрос к API для бронирования
+  console.log("Booking confirmed:", {
+    mentor: selectedMentor.value,
+    slots: selectedSlots.value,
+  });
+};
+
+// Mock данные для доступных слотов (когда API будет готов - заменить на реальные)
+const mockAvailableSlots = ref([
+  "2024-11-13T10:00",
+  "2024-11-13T11:00",
+  "2024-11-13T14:00",
+  "2024-11-13T15:00",
+  "2024-11-14T10:00",
+  "2024-11-14T11:00",
+  "2024-11-14T12:00",
+  "2024-11-15T13:00",
+  "2024-11-15T14:00",
+  "2024-11-15T16:00",
+]);
+
+// Вычисление общей стоимости
+const calculateTotalPrice = () => {
+  const hourlyRate = selectedMentor.value?.hourlyRate || 24;
+  return selectedSlots.value.length * hourlyRate;
+};
+
+// Форматирование слота для отображения
+const formatSlotForDisplay = (slot) => {
+  // slot format: '2024-11-13_10:00'
+  const [date, time] = slot.split("_");
+  return `${date} at ${time}`;
 };
 </script>
 
@@ -109,7 +162,14 @@ const handlePaymentOk = () => {
       <div class="modal__mid">
         <div
           class="modal__item"
-          @click="(bookModalVisible = true), (visible = false)"
+          @click="
+            selectMentor({
+              id: 1,
+              name: 'Yu Jimin',
+              hourlyRate: 50,
+              essayRate: 24,
+            })
+          "
         >
           <div class="modal__item-img">
             <NuxtImg
@@ -249,7 +309,13 @@ const handlePaymentOk = () => {
         <span>Essay Rate</span>
       </div>
     </div>
-    <div class="modal__calendar"></div>
+    <div class="modal__calendar">
+      <WeeklyCalendar
+        :mentor-id="selectedMentor?.id"
+        :available-slots="mockAvailableSlots"
+        @confirm="handleSlotsConfirm"
+      />
+    </div>
   </a-modal>
 
   <a-modal
@@ -274,19 +340,27 @@ const handlePaymentOk = () => {
       <div class="modal__prices">
         <div class="modal__price-item">
           <p>Teacher price (per hour)</p>
-          <span>$24</span>
+          <span>${{ selectedMentor?.hourlyRate || 24 }}</span>
         </div>
         <div class="modal__price-item">
-          <p>Selected date</p>
-          <span>19.10.2025</span>
+          <p>Selected slots</p>
+          <span
+            >{{ selectedSlots.length }} hour{{
+              selectedSlots.length > 1 ? "s" : ""
+            }}</span
+          >
         </div>
-        <div class="modal__price-item">
-          <p>Selected time</p>
-          <span>10:00 - 11:00</span>
+        <div class="modal__price-item" v-if="selectedSlots.length > 0">
+          <p>Dates & Times</p>
+          <span class="slots-list">
+            <span v-for="slot in selectedSlots" :key="slot" class="slot-item">
+              {{ formatSlotForDisplay(slot) }}
+            </span>
+          </span>
         </div>
         <div class="modal__price-total-item">
           <p>Total price</p>
-          <span>$24</span>
+          <span>${{ calculateTotalPrice() }}</span>
         </div>
       </div>
     </div>
@@ -586,5 +660,16 @@ tr td:last-child {
   background: white;
   position: relative;
   z-index: 2;
+}
+.slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.slot-item {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
 }
 </style>

@@ -20,6 +20,21 @@
   height: 93%;
   overflow: auto;
 }
+.ant-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ant-modal-body::-webkit-scrollbar-track {
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  height: 50%;
+}
+
+.ant-modal-body::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  background: var(--border-darker);
+}
 .ant-modal .ant-modal-header {
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
