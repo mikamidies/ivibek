@@ -2,10 +2,10 @@
   <div class="ai-banner">
     <div class="content">
       <p class="title">Find the right university for you through AI</p>
-      <p class="link">
+      <NuxtLink to="/ai-essays" class="link">
         Try for free
         <Icon name="lucide:arrow-right" />
-      </p>
+      </NuxtLink>
     </div>
 
     <div class="images">
