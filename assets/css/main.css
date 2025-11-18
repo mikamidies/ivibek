@@ -203,3 +203,7 @@ tr td:last-child {
   background: #d4edda;
   color: #155724;
 }
+
+textarea {
+  resize: none;
+}

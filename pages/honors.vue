@@ -1,17 +1,114 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
 import GeneralCard from "@/components/cards/GeneralCard.vue";
+import { ref, onMounted } from "vue";
+import { message } from "ant-design-vue";
 
-import { ref } from "vue";
-const value = ref(2);
+const { fetchHonors, createHonor, updateHonor } = useHonors();
 
+// Список honors
+const honors = ref([]);
+const loading = ref(false);
+
+// Модальные окна
 const visible = ref(false);
+const editVisible = ref(false);
+
+// Форма для создания
+const createForm = ref({
+  name: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
+
+// Форма для редактирования
+const editForm = ref({
+  id: null,
+  name: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
+
+// Загрузка списка honors
+const loadHonors = async () => {
+  loading.value = true;
+  try {
+    honors.value = await fetchHonors();
+  } catch (error) {
+    message.error("Failed to load honors");
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Открытие модального окна для создания
 const showModal = () => {
+  createForm.value = {
+    name: "",
+    description: "",
+    startDate: "",
+    endDate: "",
+  };
   visible.value = true;
 };
-const handleOk = (e) => {
-  visible.value = false;
+
+// Создание нового honor
+const handleOk = async () => {
+  try {
+    await createHonor(createForm.value);
+    message.success("Honor added successfully");
+    visible.value = false;
+    await loadHonors();
+  } catch (error) {
+    message.error("Failed to add honor");
+  }
 };
+
+// Открытие модального окна для редактирования
+const showEditModal = (honor) => {
+  editForm.value = {
+    id: honor.id,
+    name: honor.name,
+    description: honor.description,
+    startDate: honor.startDate,
+    endDate: honor.endDate,
+  };
+  editVisible.value = true;
+};
+
+// Обновление honor
+const handleVisibleOk = async () => {
+  try {
+    await updateHonor(editForm.value.id, {
+      name: editForm.value.name,
+      description: editForm.value.description,
+      startDate: editForm.value.startDate,
+      endDate: editForm.value.endDate,
+    });
+    message.success("Honor updated successfully");
+    editVisible.value = false;
+    await loadHonors();
+  } catch (error) {
+    message.error("Failed to update honor");
+  }
+};
+
+// Форматирование даты
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+  });
+};
+
+// Загрузка данных при монтировании
+onMounted(() => {
+  loadHonors();
+});
 </script>
 
 <template>
@@ -33,90 +130,136 @@ const handleOk = (e) => {
           </a-button>
         </div>
         <div class="honors__items">
-          <div class="honors__item">
-            <div class="honors__item-header">
-              <div>
-                <h5 class="honors__item-name">
-                  The Influence of Language Clubs on Cultural Awareness
-                </h5>
-                <span class="honors__item-sub"> Comnputing </span>
+          <a-spin :spinning="loading">
+            <div
+              v-if="honors.length === 0 && !loading"
+              style="text-align: center; padding: 40px; color: #999"
+            >
+              No honors added yet
+            </div>
+            <div v-for="honor in honors" :key="honor.id" class="honors__item">
+              <div class="honors__item-header">
+                <div>
+                  <h5 class="honors__item-name">
+                    {{ honor.name }}
+                  </h5>
+                  <span class="honors__item-sub"> Honor & Award </span>
+                </div>
+                <button @click="showEditModal(honor)" class="honors__item-edit">
+                  <Icon name="lucide:pencil" class="icon" />
+                </button>
               </div>
-              <button class="honors__item-edit">
-                <Icon name="lucide:ellipsis-vertical" class="icon" />
-              </button>
-            </div>
-            <div class="honors__item-mid">
-              <p class="honors__item-date">June 2020 - August 2020</p>
-
-              <div class="programmes__rating">
-                <span>Impact factor</span>
-                <a-tooltip>
-                  <template #title>Info</template>
-                  <Icon name="lucide:info" style="width: 16px; height: 16px" />
-                </a-tooltip>
-                <a-rate v-model:value="value" />
+              <div class="honors__item-mid">
+                <p class="honors__item-date">
+                  {{ formatDate(honor.startDate) }} -
+                  {{ formatDate(honor.endDate) }}
+                </p>
               </div>
-            </div>
-            <div class="honors__item-bottom">
-              <p class="honors__item-question">Description:</p>
-              <p class="honors__item-answer">
-                This research explores how participation in language clubs
-                enhances cultural awareness among students.
-              </p>
-            </div>
-          </div>
-          <div class="honors__item">
-            <div class="honors__item-header">
-              <div>
-                <h5 class="honors__item-name">
-                  The Influence of Language Clubs on Cultural Awareness
-                </h5>
-                <span class="honors__item-sub"> Comnputing </span>
-              </div>
-              <button class="honors__item-edit">
-                <Icon name="lucide:ellipsis-vertical" class="icon" />
-              </button>
-            </div>
-            <div class="honors__item-mid">
-              <p class="honors__item-date">June 2020 - August 2020</p>
-
-              <div class="programmes__rating">
-                <span>Impact factor</span>
-                <ATooltip>
-                  <template #title>Info</template>
-                  <Icon name="lucide:info" style="width: 16px; height: 16px" />
-                </ATooltip>
-                <!-- explicit binding + change handler -->
-                <ARate
-                  :value="value"
-                  @change="onRateChange"
-                  :key="'rate-' + value"
-                />
+              <div class="honors__item-bottom">
+                <p class="honors__item-question">Description:</p>
+                <p class="honors__item-answer">
+                  {{ honor.description }}
+                </p>
               </div>
             </div>
-            <div class="honors__item-bottom">
-              <p class="honors__item-question">Description:</p>
-              <p class="honors__item-answer">
-                This research explores how participation in language clubs
-                enhances cultural awareness among students.
-              </p>
-            </div>
-          </div>
+          </a-spin>
         </div>
       </div>
     </div>
     <GeneralCard />
   </div>
 
-  <a-modal v-model:visible="visible" @ok="handleOk">
-    <p>Some contents...</p>
-    <p>Some contents...</p>
-    <p>Some contents...</p>
-    <p>Some contents...</p>
+  <a-modal
+    v-model:visible="visible"
+    title="Add Honor/Award"
+    @ok="handleOk"
+    :okText="'Add'"
+    :cancelText="'Cancel'"
+  >
+    <a-form layout="vertical">
+      <a-form-item class="columner" label="Name" required>
+        <a-input
+          v-model:value="createForm.name"
+          placeholder="Enter honor/award name"
+        />
+      </a-form-item>
+
+      <a-form-item label="Start Date" required>
+        <a-date-picker
+          v-model:value="createForm.startDate"
+          style="width: 100%"
+          format="YYYY-MM-DD"
+          value-format="YYYY-MM-DD"
+        />
+      </a-form-item>
+
+      <a-form-item label="End Date" required>
+        <a-date-picker
+          v-model:value="createForm.endDate"
+          style="width: 100%"
+          format="YYYY-MM-DD"
+          value-format="YYYY-MM-DD"
+        />
+      </a-form-item>
+
+      <a-form-item class="columner" label="Description" required>
+        <a-textarea
+          v-model:value="createForm.description"
+          placeholder="Enter description"
+          :rows="4"
+        />
+      </a-form-item>
+    </a-form>
+  </a-modal>
+
+  <a-modal
+    v-model:visible="editVisible"
+    title="Edit Honor/Award"
+    @ok="handleVisibleOk"
+    :okText="'Update'"
+    :cancelText="'Cancel'"
+  >
+    <a-form layout="vertical">
+      <a-form-item class="columner" label="Name" required>
+        <a-input
+          v-model:value="editForm.name"
+          placeholder="Enter honor/award name"
+        />
+      </a-form-item>
+
+      <a-form-item label="Start Date" required>
+        <a-date-picker
+          v-model:value="editForm.startDate"
+          style="width: 100%"
+          format="YYYY-MM-DD"
+          value-format="YYYY-MM-DD"
+        />
+      </a-form-item>
+
+      <a-form-item label="End Date" required>
+        <a-date-picker
+          v-model:value="editForm.endDate"
+          style="width: 100%"
+          format="YYYY-MM-DD"
+          value-format="YYYY-MM-DD"
+        />
+      </a-form-item>
+
+      <a-form-item class="columner" label="Description" required>
+        <a-textarea
+          v-model:value="editForm.description"
+          placeholder="Enter description"
+          :rows="4"
+        />
+      </a-form-item>
+    </a-form>
   </a-modal>
 </template>
 
 <style scoped>
+.columner {
+  grid-column: 1/3;
+}
 .honors-page {
   display: grid;
   gap: 24px;
@@ -147,6 +290,10 @@ const handleOk = (e) => {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px;
+  margin-bottom: 16px;
+}
+.honors__item:last-child {
+  margin-bottom: 0;
 }
 .honors__item-header {
   display: flex;

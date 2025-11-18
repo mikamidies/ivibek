@@ -16,10 +16,10 @@
   height: 99%;
   padding: 24px;
 }
-.ant-modal-body {
-  height: 93%;
+/* .ant-modal-body {
+  height: 100%;
   overflow: auto;
-}
+} */
 .ant-modal-body::-webkit-scrollbar {
   width: 6px;
 }
@@ -191,4 +191,7 @@
   border: 1px solid var(--border-darker) !important;
   border-radius: 8px !important;
   height: 48px !important;
+}
+.ant-form {
+  overflow: visible;
 }
