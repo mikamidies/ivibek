@@ -153,7 +153,7 @@ const handleSubmit = async () => {
             >
               {{
                 assignment?.grade?.grade
-                  ? assignment.grade.grade + "%"
+                  ? assignment.grade.grade + " / 100"
                   : "Not graded yet"
               }}
             </p>

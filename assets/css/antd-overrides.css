@@ -16,10 +16,10 @@
   height: 99%;
   padding: 24px;
 }
-/* .ant-modal-body {
-  height: 100%;
+.ant-modal-body {
+  height: 93%;
   overflow: auto;
-} */
+}
 .ant-modal-body::-webkit-scrollbar {
   width: 6px;
 }

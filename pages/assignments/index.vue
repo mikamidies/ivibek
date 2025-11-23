@@ -33,7 +33,7 @@ const formatDate = (date) => {
 const getStatusLabel = (status) => {
   const labels = {
     ASSIGNED: "Assigned",
-    COMPLETED: "Completed",
+    GRADED: "Graded",
   };
   return labels[status] || status;
 };
@@ -65,7 +65,7 @@ const getStatusLabel = (status) => {
             </thead>
             <tbody>
               <tr v-for="assignment in assignments.content" :key="assignment">
-                <td>{{ assignment?.mentor.university || "No data" }}</td>
+                <td>{{ assignment?.mentor.university.name || "No data" }}</td>
                 <td>{{ assignment?.mentor.fullName || "No data" }}</td>
                 <td>{{ assignment?.title || "No data" }}</td>
                 <td>

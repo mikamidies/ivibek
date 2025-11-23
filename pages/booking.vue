@@ -4,6 +4,37 @@ import WeeklyCalendar from "@/components/booking/WeeklyCalendar.vue";
 
 import { ref } from "vue";
 
+const { fetchMentors } = useMentors();
+const { fetchUniversities, fetchFaculties } = useCommon();
+
+onMounted(async () => {
+  mentors.value = await fetchMentors();
+});
+const universities = await fetchUniversities();
+const faculties = await fetchFaculties();
+const selectedUniversity = ref(null);
+const selectedFaculty = ref(null);
+const searchQuery = ref("");
+const mentors = ref([]);
+
+const debouncedSearch = ref(searchQuery.value);
+let searchTimeout;
+
+watch(searchQuery, (newValue) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    debouncedSearch.value = newValue;
+  }, 500);
+});
+
+watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
+  mentors.value = await fetchMentors(
+    selectedUniversity.value,
+    selectedFaculty.value,
+    debouncedSearch.value
+  );
+});
+
 const visible = ref(false);
 const showModal = () => {
   visible.value = true;
@@ -24,7 +55,6 @@ const selectMentor = (mentor) => {
 
 const handleBookOk = () => {
   if (selectedSlots.value.length === 0) {
-    // Показываем сообщение что нужно выбрать слоты
     return;
   }
   bookModalVisible.value = false;
@@ -39,14 +69,12 @@ const handleSlotsConfirm = (slots) => {
 const paymentModalVisible = ref(false);
 const handlePaymentOk = () => {
   paymentModalVisible.value = false;
-  // Здесь будет запрос к API для бронирования
   console.log("Booking confirmed:", {
     mentor: selectedMentor.value,
     slots: selectedSlots.value,
   });
 };
 
-// Mock данные для доступных слотов (когда API будет готов - заменить на реальные)
 const mockAvailableSlots = ref([
   "2024-11-13T10:00",
   "2024-11-13T11:00",
@@ -60,15 +88,12 @@ const mockAvailableSlots = ref([
   "2024-11-15T16:00",
 ]);
 
-// Вычисление общей стоимости
 const calculateTotalPrice = () => {
   const hourlyRate = selectedMentor.value?.hourlyRate || 24;
   return selectedSlots.value.length * hourlyRate;
 };
 
-// Форматирование слота для отображения
 const formatSlotForDisplay = (slot) => {
-  // slot format: '2024-11-13_10:00'
   const [date, time] = slot.split("_");
   return `${date} at ${time}`;
 };
@@ -162,10 +187,12 @@ const formatSlotForDisplay = (slot) => {
       <div class="modal__mid">
         <div
           class="modal__item"
+          v-for="item in mentors"
+          :key="item.id"
           @click="
             selectMentor({
-              id: 1,
-              name: 'Yu Jimin',
+              id: item.id,
+              name: item.fullName,
               hourlyRate: 50,
               essayRate: 24,
             })
@@ -173,56 +200,14 @@ const formatSlotForDisplay = (slot) => {
         >
           <div class="modal__item-img">
             <NuxtImg
-              src="/images/person.jpg"
+              :src="item.image"
               alt="Harvard University"
               width="56px"
               height="56px"
             />
           </div>
           <div class="modal__item-content">
-            <h3 class="modal__item-title">Yu Jimin</h3>
-            <p class="modal__item-desc">
-              <Icon name="lucide:graduation-cap" />
-              Massachusetts Institute of Technology (MIT)
-            </p>
-            <p class="modal__item-desc">
-              <Icon name="lucide:briefcase" />
-              Software Engineering Specialist
-            </p>
-          </div>
-        </div>
-        <div class="modal__item">
-          <div class="modal__item-img">
-            <NuxtImg
-              src="/images/person.jpg"
-              alt="Harvard University"
-              width="56px"
-              height="56px"
-            />
-          </div>
-          <div class="modal__item-content">
-            <h3 class="modal__item-title">Yu Jimin</h3>
-            <p class="modal__item-desc">
-              <Icon name="lucide:graduation-cap" />
-              Massachusetts Institute of Technology (MIT)
-            </p>
-            <p class="modal__item-desc">
-              <Icon name="lucide:briefcase" />
-              Software Engineering Specialist
-            </p>
-          </div>
-        </div>
-        <div class="modal__item">
-          <div class="modal__item-img">
-            <NuxtImg
-              src="/images/person.jpg"
-              alt="Harvard University"
-              width="56px"
-              height="56px"
-            />
-          </div>
-          <div class="modal__item-content">
-            <h3 class="modal__item-title">Yu Jimin</h3>
+            <h3 class="modal__item-title">{{ item.fullName }}</h3>
             <p class="modal__item-desc">
               <Icon name="lucide:graduation-cap" />
               Massachusetts Institute of Technology (MIT)
@@ -586,7 +571,6 @@ tr td:last-child {
 .modal__body {
   display: flex;
   flex-direction: column;
-  gap: 24px;
 }
 .modal__description .modal__label {
   font-size: 14px;
