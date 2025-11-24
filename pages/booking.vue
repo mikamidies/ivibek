@@ -124,7 +124,6 @@ const loadTimeslots = async (mentorId, dateFrom, dateTo) => {
     }
 
     availableSlots.value = slots;
-    console.log("Available slots:", slots);
   } catch (error) {
     console.error("Failed to load timeslots:", error);
     availableSlots.value = [];
@@ -152,13 +151,9 @@ const handlePaymentOk = async () => {
 
   bookingLoading.value = true;
   try {
-    // Берем выбранный слот
     const selectedSlot = selectedSlots.value[0];
-    console.log("Selected slot:", selectedSlot);
     const [date, time] = selectedSlot.split("_");
-    console.log("Parsed date:", date, "time:", time);
 
-    // Вычисляем timeFrom и timeTo (1 час)
     const timeFrom = time;
     const timeHour = parseInt(time.split(":")[0]);
     const timeTo = `${(timeHour + 1).toString().padStart(2, "0")}:00`;
@@ -171,12 +166,9 @@ const handlePaymentOk = async () => {
       description: meetingDescription.value || "",
     };
 
-    console.log("Creating meeting with payload:", payload);
     await createMeeting(payload);
-    console.log("Meeting created successfully");
     message.success("Meeting booked successfully!");
 
-    // Закрываем модалы и очищаем данные
     paymentModalVisible.value = false;
     bookModalVisible.value = false;
     meetingDescription.value = "";
@@ -184,10 +176,8 @@ const handlePaymentOk = async () => {
     selectedMentor.value = null;
     availableSlots.value = [];
 
-    // Перезагружаем список встреч
     await loadMeetings();
   } catch (error) {
-    console.error("Error creating meeting:", error);
     message.error(
       "Failed to book meeting: " + (error?.message || "Unknown error")
     );

@@ -97,7 +97,6 @@ export const useBooking = () => {
       // });
 
       // Mock ответ для тестирования
-      console.log("Creating booking with:", request);
 
       const mockResponse: BookingResponse = {
         id: Math.floor(Math.random() * 1000),
@@ -110,7 +109,6 @@ export const useBooking = () => {
 
       return mockResponse;
     } catch (error) {
-      console.error("Failed to create booking:", error);
       return null;
     }
   };
@@ -158,7 +156,6 @@ export const useBooking = () => {
       //   },
       // });
 
-      console.log("Canceling booking:", bookingId);
       return true;
     } catch (error) {
       console.error("Failed to cancel booking:", error);

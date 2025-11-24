@@ -276,7 +276,7 @@ onMounted(() => {
   height: 16px;
 }
 .index {
-  padding: 24px;
+  padding: 24px 24px 120px 24px;
   background: var(--border);
   height: 100vh;
   overflow: auto;

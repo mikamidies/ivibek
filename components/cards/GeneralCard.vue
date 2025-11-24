@@ -1,94 +1,180 @@
-<script setup></script>
+<script setup>
+import { ref, onMounted, computed } from "vue";
+
+const { fetchSidebarData } = useSidebar();
+
+const sidebarData = ref(null);
+const isLoading = ref(true);
+
+const formatTimeObject = (timeObj) => {
+  if (!timeObj) return "00:00";
+
+  if (typeof timeObj === "string") return timeObj;
+
+  if (timeObj.hour !== undefined && timeObj.minute !== undefined) {
+    const hour = String(timeObj.hour).padStart(2, "0");
+    const minute = String(timeObj.minute).padStart(2, "0");
+    return `${hour}:${minute}`;
+  }
+
+  return "00:00";
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const month = date.toLocaleString("en-US", { month: "short" });
+  const day = date.getDate();
+  return `${month}. ${day}`;
+};
+
+const getEssayStatusText = (status) => {
+  const statusMap = {
+    UNPAID: "Unpaid",
+    PAID: "Sent",
+    CANCELLED: "Cancelled",
+    COMPLETED: "Completed",
+  };
+  return statusMap[status] || status;
+};
+
+const getEssayStatusClass = (status) => {
+  if (status === "PAID" || status === "COMPLETED") return "green";
+  if (status === "CANCELLED") return "red";
+  return "yellow";
+};
+
+const extracurricularsCount = computed(() => {
+  return sidebarData.value?.activeSessionsCount || 0;
+});
+
+const sentEssaysCount = computed(() => {
+  return sidebarData.value?.sentEssaysCount || 0;
+});
+
+const activeSessions = computed(() => {
+  if (!sidebarData.value?.activeSessions) return [];
+  return sidebarData.value.activeSessions.map((session) => ({
+    id: session.id,
+    name: session.mentor.fullName,
+    description: session.mentor.university?.name || "University",
+    platform: "Zoom",
+    date: formatDate(session.date),
+    time: session.timeFrom ? formatTimeObject(session.timeFrom) : "00:00",
+    status: session.status,
+  }));
+});
+
+const sentEssays = computed(() => {
+  if (!sidebarData.value?.sentEssays) return [];
+  return sidebarData.value.sentEssays.map((essay) => ({
+    id: essay.id,
+    name: essay.mentor.fullName,
+    status: getEssayStatusText(essay.status),
+    statusClass: getEssayStatusClass(essay.status),
+    image: "/images/person.jpg",
+  }));
+});
+
+// Load sidebar data
+const loadSidebarData = async () => {
+  try {
+    isLoading.value = true;
+    const data = await fetchSidebarData();
+    sidebarData.value = data;
+  } catch (error) {
+    console.error("Failed to load sidebar data:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadSidebarData();
+});
+</script>
 
 <template>
   <div class="general-card">
-    <div class="general__info">
-      <p class="section__title">General information</p>
-      <div class="profile__overview-items">
-        <div class="profile__overview-item">
-          <p class="profile__overview-name">Extracurriculars</p>
-          <div class="profile__overview-flex">
-            <div class="profile__overview-icon blue">
-              <Icon name="lucide:pen-tool" style="transform: rotate(225deg)" />
+    <div v-if="isLoading" class="loading-state">Loading...</div>
+    <template v-else>
+      <div class="general__info">
+        <p class="section__title">General information</p>
+        <div class="profile__overview-items">
+          <div class="profile__overview-item">
+            <p class="profile__overview-name">Active Sessions</p>
+            <div class="profile__overview-flex">
+              <div class="profile__overview-icon blue">
+                <Icon
+                  name="lucide:pen-tool"
+                  style="transform: rotate(225deg)"
+                />
+              </div>
+              <p class="profile__overview-number">
+                {{ extracurricularsCount }}
+              </p>
             </div>
-            <p class="profile__overview-number">12</p>
           </div>
-        </div>
-        <div class="profile__overview-item">
-          <p class="profile__overview-name">Summer Programs</p>
-          <div class="profile__overview-flex">
-            <div class="profile__overview-icon green">
-              <Icon name="lucide:backpack" />
+          <div class="profile__overview-item">
+            <p class="profile__overview-name">Sent Essays</p>
+            <div class="profile__overview-flex">
+              <div class="profile__overview-icon green">
+                <Icon name="lucide:backpack" />
+              </div>
+              <p class="profile__overview-number">{{ sentEssaysCount }}</p>
             </div>
-            <p class="profile__overview-number">8</p>
           </div>
         </div>
       </div>
-    </div>
-    <div class="active__sessions">
-      <p class="section__title">Active sessions</p>
-      <div class="active__sessions-items">
-        <div class="active__session-item">
-          <div>
-            <p class="active__session-name">Son Heoung Min</p>
-            <p class="active__session-desc">Ux/Ui desing course</p>
-            <p class="active__session-platform">
-              <span>Online</span><span>Zoom</span>
-            </p>
-          </div>
-          <div class="active__session-right">
-            <p class="active__session-date">Avg. 20</p>
-            <div class="active__session-time">19:00</div>
-          </div>
+      <div class="active__sessions">
+        <p class="section__title">Active sessions</p>
+        <div v-if="activeSessions.length === 0" class="empty-state">
+          No active sessions
         </div>
-        <div class="active__session-item">
-          <div>
-            <p class="active__session-name">Son Heoung Min</p>
-            <p class="active__session-desc">Ux/Ui desing course</p>
-            <p class="active__session-platform">
-              <span>Online</span><span>Zoom</span>
-            </p>
-          </div>
-          <div class="active__session-right">
-            <p class="active__session-date">Avg. 20</p>
-            <div class="active__session-time">19:00</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="essay__sent">
-      <p class="section__title">Essays sent</p>
-      <div class="essay__items">
-        <div class="essay__item">
-          <div class="essay__info">
-            <div class="essay__img">
-              <NuxtImg src="/images/person.jpg" alt="Person" />
-            </div>
+        <div v-else class="active__sessions-items">
+          <div
+            v-for="session in activeSessions"
+            :key="session.id"
+            class="active__session-item"
+          >
             <div>
-              <p class="essay__name">Yu Jimin</p>
-              <p class="essay__status green">Sent</p>
+              <p class="active__session-name">{{ session.name }}</p>
+              <p class="active__session-desc">{{ session.description }}</p>
+              <p class="active__session-platform">
+                <span>Online</span><span>{{ session.platform }}</span>
+              </p>
+            </div>
+            <div class="active__session-right">
+              <p class="active__session-date">{{ session.date }}</p>
+              <div class="active__session-time">{{ session.time }}</div>
             </div>
           </div>
-          <button>
-            <Icon name="lucide:ellipsis-vertical" />
-          </button>
-        </div>
-        <div class="essay__item">
-          <div class="essay__info">
-            <div class="essay__img">
-              <NuxtImg src="/images/person.jpg" alt="Person" />
-            </div>
-            <div>
-              <p class="essay__name">Yu Jimin</p>
-              <p class="essay__status red">Cancelled</p>
-            </div>
-          </div>
-          <button>
-            <Icon name="lucide:ellipsis-vertical" />
-          </button>
         </div>
       </div>
-    </div>
+      <div class="essay__sent">
+        <p class="section__title">Essays sent</p>
+        <div v-if="sentEssays.length === 0" class="empty-state">
+          No essays sent
+        </div>
+        <div v-else class="essay__items">
+          <div v-for="essay in sentEssays" :key="essay.id" class="essay__item">
+            <div class="essay__info">
+              <div class="essay__img">
+                <NuxtImg :src="essay.image" alt="Person" />
+              </div>
+              <div>
+                <p class="essay__name">{{ essay.name }}</p>
+                <p class="essay__status" :class="essay.statusClass">
+                  {{ essay.status }}
+                </p>
+              </div>
+            </div>
+            <button>
+              <Icon name="lucide:ellipsis-vertical" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -287,5 +373,12 @@
   border-radius: 1000px;
   text-align: center;
   display: inline-flex;
+}
+.loading-state,
+.empty-state {
+  padding: 16px;
+  text-align: center;
+  color: var(--light-grey);
+  font-size: 14px;
 }
 </style>
