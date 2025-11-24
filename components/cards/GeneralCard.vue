@@ -9,7 +9,15 @@ const isLoading = ref(true);
 const formatTimeObject = (timeObj) => {
   if (!timeObj) return "00:00";
 
-  if (typeof timeObj === "string") return timeObj;
+  if (typeof timeObj === "string") {
+    if (timeObj.includes(":")) {
+      const parts = timeObj.split(":");
+      if (parts.length === 3) {
+        return `${parts[0]}:${parts[1]}`;
+      }
+    }
+    return timeObj;
+  }
 
   if (timeObj.hour !== undefined && timeObj.minute !== undefined) {
     const hour = String(timeObj.hour).padStart(2, "0");
@@ -75,7 +83,6 @@ const sentEssays = computed(() => {
   }));
 });
 
-// Load sidebar data
 const loadSidebarData = async () => {
   try {
     isLoading.value = true;

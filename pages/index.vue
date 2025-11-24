@@ -1,5 +1,6 @@
 <script setup>
 import AiBanner from "~/components/AiBanner.vue";
+import GeneralCard from "~/components/cards/GeneralCard.vue";
 import { ref, onMounted } from "vue";
 const { user } = useAuth();
 const { fetchUpcomingMeetings } = useMeetings();
@@ -14,7 +15,6 @@ const tasks = ref([]);
 const isLoadingSessions = ref(true);
 const isLoadingTasks = ref(true);
 
-// Format time from "20:00:00" to "8:00 pm"
 const formatTime = (time) => {
   const [hours, minutes] = time.split(":");
   const hour = parseInt(hours);
@@ -23,7 +23,6 @@ const formatTime = (time) => {
   return `${displayHour}:${minutes} ${ampm}`;
 };
 
-// Format date from "2025-11-24" to "Nov 24"
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const month = date.toLocaleString("en-US", { month: "short" });
@@ -31,7 +30,6 @@ const formatDate = (dateString) => {
   return `${month} ${day}`;
 };
 
-// Load upcoming meetings
 const loadSessions = async () => {
   try {
     isLoadingSessions.value = true;
@@ -54,7 +52,6 @@ const loadSessions = async () => {
   }
 };
 
-// Load tasks
 const loadTasks = async () => {
   try {
     isLoadingTasks.value = true;
@@ -74,7 +71,6 @@ const loadTasks = async () => {
   }
 };
 
-// Handle task toggle
 const handleTaskToggle = async (taskId) => {
   try {
     await toggleTask(taskId);
@@ -179,7 +175,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="profile">
+      <!-- <div class="profile">
         <div class="profile__head">
           <p class="profile__title">My Profile</p>
           <NuxtLink to="/profile" class="profile__edit">
@@ -265,7 +261,9 @@ onMounted(() => {
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
+
+      <GeneralCard />
     </div>
   </div>
 </template>
