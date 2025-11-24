@@ -1,11 +1,64 @@
 <script setup>
 import dayjs from "dayjs";
+import WeeklyCalendar from "@/components/booking/WeeklyCalendar.vue";
 
 const route = useRoute();
-const { fetchMentorById } = useMentors();
+const { fetchMentorById, fetchMentorTimeslots } = useMentors();
 
 const mentorId = route.params.id;
 const mentor = await fetchMentorById(Number(mentorId));
+
+const availableSlots = ref([]);
+const selectedSlots = ref([]);
+
+const loadTimeslots = async (dateFrom, dateTo) => {
+  try {
+    const timeslotsData = await fetchMentorTimeslots(
+      Number(mentorId),
+      dateFrom,
+      dateTo
+    );
+
+    const slots = [];
+    if (Array.isArray(timeslotsData)) {
+      timeslotsData.forEach((item) => {
+        if (item.date && Array.isArray(item.times)) {
+          item.times.forEach((time) => {
+            const timeWithoutSeconds = time.substring(0, 5);
+            slots.push(`${item.date}T${timeWithoutSeconds}`);
+          });
+        }
+      });
+    }
+
+    availableSlots.value = slots;
+  } catch (error) {
+    console.error("Failed to load timeslots:", error);
+    availableSlots.value = [];
+  }
+};
+
+const handleWeekChange = async ({ dateFrom, dateTo }) => {
+  await loadTimeslots(dateFrom, dateTo);
+};
+
+// Загружаем слоты для текущей недели при монтировании
+onMounted(async () => {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diff);
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const dateFrom = monday.toISOString().split("T")[0];
+  const dateTo = sunday.toISOString().split("T")[0];
+
+  await loadTimeslots(dateFrom, dateTo);
+});
 
 const genderFormat = (gender) => {
   if (!gender) return "Not set";
@@ -133,7 +186,13 @@ const genderFormat = (gender) => {
           </p>
         </div>
         <div class="teacher__calendar teacher__card">
-          <h4 class="section__title">Calendar</h4>
+          <h4 class="section__title">Available Hours</h4>
+          <WeeklyCalendar
+            :mentor-id="Number(mentorId)"
+            :available-slots="availableSlots"
+            v-model:selectedSlots="selectedSlots"
+            @week-change="handleWeekChange"
+          />
         </div>
       </div>
     </div>
@@ -157,8 +216,8 @@ const genderFormat = (gender) => {
 .teacher-page {
   padding: 24px 24px 120px 24px;
   background: var(--border);
-  min-height: 100vh;
-  overflow: auto;
+  height: 100vh;
+  overflow: scroll;
 }
 .teacher__card {
   background: #ffffff;
