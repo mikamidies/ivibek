@@ -209,3 +209,16 @@ tr td:last-child {
 textarea {
   resize: none;
 }
+.empty__state {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.empty__state span {
+  font-size: 32px;
+}

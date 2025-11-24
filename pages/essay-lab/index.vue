@@ -93,8 +93,8 @@ const truncateText = (text, maxLength = 60) => {
           <a-spin size="large" />
         </div>
 
-        <div v-else-if="!essays.length" class="essay__empty">
-          <Icon name="lucide:file-text" class="empty-icon" />
+        <div v-else-if="!essays.length" class="empty__state">
+          <Icon name="lucide:file-text" />
           <p>No essays yet</p>
         </div>
 

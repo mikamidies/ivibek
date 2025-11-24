@@ -131,10 +131,8 @@ onMounted(() => {
         </div>
         <div class="honors__items">
           <a-spin :spinning="loading">
-            <div
-              v-if="honors.length === 0 && !loading"
-              style="text-align: center; padding: 40px; color: #999"
-            >
+            <div v-if="honors.length === 0 && !loading" class="empty__state">
+              <Icon name="lucide:file-text" />
               No honors added yet
             </div>
             <div v-for="honor in honors" :key="honor.id" class="honors__item">

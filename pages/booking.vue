@@ -255,7 +255,7 @@ const formatSlotForDisplay = (slot) => {
                   <Icon v-else name="lucide:user" />
                   {{ meeting.mentor.fullName || "N/A" }}
                 </td>
-                <td>{{ meeting.mentor.university || "N/A" }}</td>
+                <td>{{ meeting.mentor.university.name || "N/A" }}</td>
                 <td>{{ meeting.date }}</td>
                 <td>{{ meeting.timeFrom }} - {{ meeting.timeTo }}</td>
                 <td>

@@ -1,63 +1,92 @@
 <script setup>
 import AiBanner from "~/components/AiBanner.vue";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 const { user } = useAuth();
+const { fetchUpcomingMeetings } = useMeetings();
+const { fetchTasks, toggleTask } = useTasks();
 
 definePageMeta({
   layoutTitle: "Dashboard",
 });
 
-const sessions = [
-  {
-    date: "Aug 19",
-    items: [
-      {
-        name: "Yu Jimin",
-        time: "5:00 pm-6:00 pm",
-        title: "Abror and Muhammet: General Meeting Hannibal Lectus",
-        img: "/images/person.jpg",
-      },
-      {
-        name: "Yu Jimin",
-        time: "5:00 pm-6:00 pm",
-        title: "Abror and Muhammet: General Meeting",
-        img: "/images/person.jpg",
-      },
-    ],
-  },
-  {
-    date: "Aug 20",
-    items: [
-      {
-        name: "Yu Jimin",
-        time: "5:00 pm-6:00 pm",
-        title: "Abror and Muhammet: General Meeting",
-        img: "/images/person.jpg",
-      },
-    ],
-  },
-];
+const sessions = ref([]);
+const tasks = ref([]);
+const isLoadingSessions = ref(true);
+const isLoadingTasks = ref(true);
 
-const tasks = ref([
-  {
-    name: "Develop research methodology and data collection tools City of Stars",
-    desc: "The Influence of Language Clubs on Cultural Awareness",
-    date: "Sep 26, 2025",
-    checked: false,
-  },
-  {
-    name: "Develop research methodology and data collection tools",
-    desc: "The Influence of Language Clubs on Cultural Awareness",
-    date: "Sep 26, 2025",
-    checked: false,
-  },
-  {
-    name: "Develop research methodology and data collection tools",
-    desc: "The Influence of Language Clubs on Cultural Awareness",
-    date: "Sep 26, 2025",
-    checked: false,
-  },
-]);
+// Format time from "20:00:00" to "8:00 pm"
+const formatTime = (time) => {
+  const [hours, minutes] = time.split(":");
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? "pm" : "am";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minutes} ${ampm}`;
+};
+
+// Format date from "2025-11-24" to "Nov 24"
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const month = date.toLocaleString("en-US", { month: "short" });
+  const day = date.getDate();
+  return `${month} ${day}`;
+};
+
+// Load upcoming meetings
+const loadSessions = async () => {
+  try {
+    isLoadingSessions.value = true;
+    const data = await fetchUpcomingMeetings();
+
+    sessions.value = data.meetings.map((group) => ({
+      date: formatDate(group.date),
+      items: group.meetings.map((meeting) => ({
+        id: meeting.id,
+        name: meeting.meetingWith.fullName,
+        time: `${formatTime(meeting.timeFrom)}-${formatTime(meeting.timeTo)}`,
+        title: meeting.description,
+        img: meeting.meetingWith.image || "/images/person.jpg",
+      })),
+    }));
+  } catch (error) {
+    console.error("Failed to load sessions:", error);
+  } finally {
+    isLoadingSessions.value = false;
+  }
+};
+
+// Load tasks
+const loadTasks = async () => {
+  try {
+    isLoadingTasks.value = true;
+    const data = await fetchTasks();
+
+    tasks.value = data.map((task) => ({
+      id: task.id,
+      name: task.task,
+      desc: task.description,
+      date: formatDate(task.endDate),
+      checked: task.isDone,
+    }));
+  } catch (error) {
+    console.error("Failed to load tasks:", error);
+  } finally {
+    isLoadingTasks.value = false;
+  }
+};
+
+// Handle task toggle
+const handleTaskToggle = async (taskId) => {
+  try {
+    await toggleTask(taskId);
+  } catch (error) {
+    console.error("Failed to toggle task:", error);
+  }
+};
+
+onMounted(() => {
+  loadSessions();
+  loadTasks();
+});
 </script>
 
 <template>
@@ -69,10 +98,17 @@ const tasks = ref([
           <div class="sessions">
             <div class="sessions__head">
               <p class="sessions__title">Upcoming sessions</p>
-              <NuxtLink to="/">View</NuxtLink>
+              <NuxtLink to="/booking">View</NuxtLink>
             </div>
             <div class="sessions__items">
+              <div v-if="isLoadingSessions" class="sessions__loading">
+                Loading...
+              </div>
+              <div v-else-if="sessions.length === 0" class="sessions__empty">
+                No upcoming sessions
+              </div>
               <div
+                v-else
                 class="sessions__by-date"
                 v-for="(session, index) in sessions"
                 :key="index"
@@ -109,22 +145,28 @@ const tasks = ref([
               <NuxtLink to="/tasks">View</NuxtLink>
             </div>
             <div class="tasks__items">
+              <div v-if="isLoadingTasks" class="tasks__loading">Loading...</div>
+              <div v-else-if="tasks.length === 0" class="tasks__empty">
+                No tasks available
+              </div>
               <div
+                v-else
                 class="tasks__item"
-                v-for="(task, index) in tasks"
-                :key="index"
+                v-for="task in tasks"
+                :key="task.id"
                 :class="{ checked: task.checked }"
               >
                 <div class="check">
                   <input
                     type="checkbox"
-                    :id="'task' + index"
+                    :id="'task' + task.id"
                     v-model="task.checked"
+                    @change="handleTaskToggle(task.id)"
                   />
-                  <label :for="'task' + index"></label>
+                  <label :for="'task' + task.id"></label>
                 </div>
                 <div class="tasks__item-mid">
-                  <label :for="'task' + index" class="tasks__item-name">
+                  <label :for="'task' + task.id" class="tasks__item-name">
                     {{ task.name }}
                   </label>
                   <p class="tasks__item-desc">
@@ -506,5 +548,14 @@ const tasks = ref([
 .red {
   background: #ff3d001a;
   color: #ff3d00;
+}
+.sessions__loading,
+.sessions__empty,
+.tasks__loading,
+.tasks__empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--light-grey);
+  font-size: 14px;
 }
 </style>

@@ -254,10 +254,8 @@ onMounted(() => {
         </div> -->
 
         <a-spin :spinning="loading">
-          <div
-            v-if="activities.length === 0 && !loading"
-            style="text-align: center; padding: 40px; color: #999"
-          >
+          <div v-if="activities.length === 0 && !loading" class="empty__state">
+            <Icon name="lucide:file-text" class="empty-icon" />
             No activities added yet
           </div>
 
@@ -347,8 +345,9 @@ onMounted(() => {
         <a-spin :spinning="internshipsLoading">
           <div
             v-if="internships.length === 0 && !internshipsLoading"
-            style="text-align: center; padding: 40px; color: #999"
+            class="empty__state"
           >
+            <Icon name="lucide:file-text" class="empty-icon" />
             No internships added yet
           </div>
 

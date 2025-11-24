@@ -39,6 +39,28 @@ interface PaginatedMeetingsResponse {
   empty: boolean;
 }
 
+interface UpcomingMeeting {
+  id: number;
+  meetingWith: {
+    id: number;
+    fullName: string;
+    email: string;
+    image: string;
+  };
+  timeFrom: string;
+  timeTo: string;
+  description: string;
+}
+
+interface UpcomingMeetingsGroup {
+  date: string;
+  meetings: UpcomingMeeting[];
+}
+
+interface UpcomingMeetingsResponse {
+  meetings: UpcomingMeetingsGroup[];
+}
+
 export const useMeetings = () => {
   const { accessToken } = useAuth();
   const API_BASE = "https://api.ivybek.com";
@@ -85,8 +107,27 @@ export const useMeetings = () => {
     }
   };
 
+  const fetchUpcomingMeetings = async (): Promise<UpcomingMeetingsResponse> => {
+    try {
+      const data = await $fetch<UpcomingMeetingsResponse>(
+        `${API_BASE}/api/v1/student/meetings/upcoming`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch upcoming meetings:", error);
+      throw error;
+    }
+  };
+
   return {
     fetchMeetings,
     createMeeting,
+    fetchUpcomingMeetings,
   };
 };
