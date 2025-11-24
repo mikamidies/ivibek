@@ -34,6 +34,11 @@ const links = [
     link: "/ai-essays",
     icon: "lucide:bot",
   },
+  {
+    name: "Recommendation Letters",
+    link: "/rec-letter",
+    icon: "lucide:mail",
+  },
 ];
 </script>
 

@@ -155,8 +155,8 @@ const tasks = ref([
             />
           </div>
           <div>
-            <p class="profile__name">{{ user.info.fullName }}</p>
-            <p class="profile__email">{{ user.info.email }}</p>
+            <p class="profile__name">{{ user?.info.fullName }}</p>
+            <p class="profile__email">{{ user?.info.email }}</p>
           </div>
         </div>
         <div class="profile__items">
