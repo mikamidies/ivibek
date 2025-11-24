@@ -10,10 +10,10 @@ defineProps({
       <h1 class="title">{{ title }}</h1>
     </div>
     <div class="right">
-      <div class="search">
+      <!-- <div class="search">
         <input type="text" placeholder="Search" />
         <Icon name="lucide:search" class="icon" />
-      </div>
+      </div> -->
       <div class="buttons">
         <NuxtLink to="/">
           <Icon name="lucide:file-question-mark" class="icon" />

@@ -66,8 +66,33 @@ export const useMentors = () => {
     }
   };
 
+  const fetchMentorTimeslots = async (
+    mentorId: number,
+    dateFrom: string,
+    dateTo: string
+  ) => {
+    try {
+      const token = useCookie("access_token");
+
+      const data = await $fetch(
+        `${API_BASE}/api/v1/student/mentors/${mentorId}/timeslots?dateFrom=${dateFrom}&dateTo=${dateTo}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token.value}`,
+          },
+        }
+      );
+
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch mentor timeslots:", error);
+      return [];
+    }
+  };
+
   return {
     fetchMentors,
     fetchMentorById,
+    fetchMentorTimeslots,
   };
 };

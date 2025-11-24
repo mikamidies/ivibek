@@ -16,6 +16,7 @@ import {
 interface Props {
   mentorId?: number;
   availableSlots?: string[];
+  selectedSlots?: string[];
 }
 
 const props = defineProps<Props>();
@@ -23,10 +24,22 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: "update:selectedSlots", slots: string[]): void;
   (e: "confirm", slots: string[]): void;
+  (e: "weekChange", data: { dateFrom: string; dateTo: string }): void;
 }>();
 
 const currentDate = ref<Date>(getToday());
-const selectedSlots = ref<Set<string>>(new Set());
+const internalSelectedSlots = ref<Set<string>>(new Set());
+
+// Sync prop changes to internal Set
+watch(
+  () => props.selectedSlots,
+  (newSlots) => {
+    if (newSlots) {
+      internalSelectedSlots.value = new Set(newSlots);
+    }
+  },
+  { immediate: true }
+);
 
 const weekDays = computed(() => generateWeekDays(currentDate.value));
 const timeSlots = computed(() => generateTimeSlots());
@@ -37,8 +50,9 @@ const isSlotAvailable = (day: DayInfo, timeSlot: TimeSlot): boolean => {
     return false;
   }
 
+  // Если нет доступных слотов или массив пустой - все disabled
   if (!props.availableSlots || props.availableSlots.length === 0) {
-    return true;
+    return false;
   }
 
   const slotDateTime = `${day.dateString}T${timeSlot.time}`;
@@ -47,7 +61,7 @@ const isSlotAvailable = (day: DayInfo, timeSlot: TimeSlot): boolean => {
 
 const isSlotSelected = (day: DayInfo, timeSlot: TimeSlot): boolean => {
   const key = getSlotKey(day.dateString, timeSlot.time);
-  return selectedSlots.value.has(key);
+  return internalSelectedSlots.value.has(key);
 };
 
 const toggleSlot = (day: DayInfo, timeSlot: TimeSlot) => {
@@ -57,10 +71,13 @@ const toggleSlot = (day: DayInfo, timeSlot: TimeSlot) => {
 
   const key = getSlotKey(day.dateString, timeSlot.time);
 
-  if (selectedSlots.value.has(key)) {
-    selectedSlots.value.delete(key);
+  // Если слот уже выбран - снимаем выбор
+  if (internalSelectedSlots.value.has(key)) {
+    internalSelectedSlots.value.delete(key);
   } else {
-    selectedSlots.value.add(key);
+    // Иначе - очищаем все и выбираем только этот слот (single selection)
+    internalSelectedSlots.value.clear();
+    internalSelectedSlots.value.add(key);
   }
 
   emitSelectedSlots();
@@ -79,19 +96,22 @@ const goToToday = () => {
 };
 
 const emitSelectedSlots = () => {
-  const slots = Array.from(selectedSlots.value);
+  const slots = Array.from(internalSelectedSlots.value);
   emit("update:selectedSlots", slots);
 };
 
 watch(currentDate, () => {
-  selectedSlots.value.clear();
+  internalSelectedSlots.value.clear();
   emitSelectedSlots();
-});
 
-const confirmSelection = () => {
-  const slots = Array.from(selectedSlots.value);
-  emit("confirm", slots);
-};
+  // Emit week change для загрузки новых слотов
+  const days = generateWeekDays(currentDate.value);
+  if (days.length > 0) {
+    const dateFrom = days[0].dateString;
+    const dateTo = days[days.length - 1].dateString;
+    emit("weekChange", { dateFrom, dateTo });
+  }
+});
 </script>
 
 <template>
@@ -148,17 +168,6 @@ const confirmSelection = () => {
           </button>
         </div>
       </div>
-    </div>
-
-    <div class="calendar-footer" v-if="selectedSlots.size > 0">
-      <div class="selected-info">
-        Selected: {{ selectedSlots.size }} slot{{
-          selectedSlots.size > 1 ? "s" : ""
-        }}
-      </div>
-      <a-button type="primary" @click="confirmSelection" class="confirm-button">
-        Continue to Payment
-      </a-button>
     </div>
   </div>
 </template>
@@ -330,27 +339,6 @@ const confirmSelection = () => {
 .time-slot.is-today-column {
   border-left: 2px solid var(--blue);
   border-right: 2px solid var(--blue);
-}
-
-.calendar-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
-  border-top: 1px solid var(--border);
-}
-
-.selected-info {
-  font-size: 14px;
-  color: var(--dark);
-  font-weight: 500;
-}
-
-.confirm-button {
-  border-radius: 8px;
-  padding: 8px 24px;
-  height: auto;
-  font-weight: 500;
 }
 
 @media (max-width: 768px) {

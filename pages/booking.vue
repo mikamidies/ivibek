@@ -1,14 +1,33 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
 import WeeklyCalendar from "@/components/booking/WeeklyCalendar.vue";
+import { message } from "ant-design-vue";
 
 import { ref } from "vue";
 
-const { fetchMentors } = useMentors();
+const { fetchMentors, fetchMentorById, fetchMentorTimeslots } = useMentors();
 const { fetchUniversities, fetchFaculties } = useCommon();
+const { createMeeting, fetchMeetings } = useMeetings();
+
+const meetings = ref([]);
+const meetingsLoading = ref(false);
+
+const loadMeetings = async () => {
+  meetingsLoading.value = true;
+  try {
+    const response = await fetchMeetings(0, 100);
+    meetings.value = response.content;
+  } catch (error) {
+    console.error("Failed to load meetings:", error);
+    message.error("Failed to load meetings");
+  } finally {
+    meetingsLoading.value = false;
+  }
+};
 
 onMounted(async () => {
   mentors.value = await fetchMentors();
+  await loadMeetings();
 });
 const universities = await fetchUniversities();
 const faculties = await fetchFaculties();
@@ -16,6 +35,7 @@ const selectedUniversity = ref(null);
 const selectedFaculty = ref(null);
 const searchQuery = ref("");
 const mentors = ref([]);
+const availableSlots = ref([]);
 
 const debouncedSearch = ref(searchQuery.value);
 let searchTimeout;
@@ -46,50 +66,145 @@ const handleOk = () => {
 const bookModalVisible = ref(false);
 const selectedMentor = ref(null);
 const selectedSlots = ref([]);
+const mentorLoading = ref(false);
+const currentWeekRange = ref({ dateFrom: "", dateTo: "" });
 
-const selectMentor = (mentor) => {
-  selectedMentor.value = mentor;
-  bookModalVisible.value = true;
-  visible.value = false;
+const selectMentor = async (mentorId) => {
+  mentorLoading.value = true;
+  try {
+    const mentorData = await fetchMentorById(mentorId);
+    selectedMentor.value = mentorData;
+
+    // Получаем текущую неделю
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Понедельник
+
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diff);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const dateFrom = monday.toISOString().split("T")[0];
+    const dateTo = sunday.toISOString().split("T")[0];
+
+    currentWeekRange.value = { dateFrom, dateTo };
+
+    // Загружаем доступные слоты
+    await loadTimeslots(mentorId, dateFrom, dateTo);
+
+    bookModalVisible.value = true;
+    visible.value = false;
+  } catch (error) {
+    console.error("Failed to load mentor details:", error);
+  } finally {
+    mentorLoading.value = false;
+  }
+};
+
+const loadTimeslots = async (mentorId, dateFrom, dateTo) => {
+  try {
+    const timeslotsData = await fetchMentorTimeslots(
+      mentorId,
+      dateFrom,
+      dateTo
+    );
+
+    const slots = [];
+    if (Array.isArray(timeslotsData)) {
+      timeslotsData.forEach((item) => {
+        if (item.date && Array.isArray(item.times)) {
+          item.times.forEach((time) => {
+            const timeWithoutSeconds = time.substring(0, 5);
+            slots.push(`${item.date}T${timeWithoutSeconds}`);
+          });
+        }
+      });
+    }
+
+    availableSlots.value = slots;
+    console.log("Available slots:", slots);
+  } catch (error) {
+    console.error("Failed to load timeslots:", error);
+    availableSlots.value = [];
+  }
 };
 
 const handleBookOk = () => {
   if (selectedSlots.value.length === 0) {
+    message.warning("Please select at least one time slot");
     return;
   }
-  bookModalVisible.value = false;
   paymentModalVisible.value = true;
-};
-
-const handleSlotsConfirm = (slots) => {
-  selectedSlots.value = slots;
-  handleBookOk();
+  bookModalVisible.value = false;
 };
 
 const paymentModalVisible = ref(false);
-const handlePaymentOk = () => {
-  paymentModalVisible.value = false;
-  console.log("Booking confirmed:", {
-    mentor: selectedMentor.value,
-    slots: selectedSlots.value,
-  });
+const meetingDescription = ref("");
+const bookingLoading = ref(false);
+
+const handlePaymentOk = async () => {
+  if (selectedSlots.value.length === 0) {
+    message.error("Please select at least one time slot");
+    return;
+  }
+
+  bookingLoading.value = true;
+  try {
+    // Берем выбранный слот
+    const selectedSlot = selectedSlots.value[0];
+    console.log("Selected slot:", selectedSlot);
+    const [date, time] = selectedSlot.split("_");
+    console.log("Parsed date:", date, "time:", time);
+
+    // Вычисляем timeFrom и timeTo (1 час)
+    const timeFrom = time;
+    const timeHour = parseInt(time.split(":")[0]);
+    const timeTo = `${(timeHour + 1).toString().padStart(2, "0")}:00`;
+
+    const payload = {
+      mentorId: selectedMentor.value.id,
+      date: date,
+      timeFrom: timeFrom,
+      timeTo: timeTo,
+      description: meetingDescription.value || "",
+    };
+
+    console.log("Creating meeting with payload:", payload);
+    await createMeeting(payload);
+    console.log("Meeting created successfully");
+    message.success("Meeting booked successfully!");
+
+    // Закрываем модалы и очищаем данные
+    paymentModalVisible.value = false;
+    bookModalVisible.value = false;
+    meetingDescription.value = "";
+    selectedSlots.value = [];
+    selectedMentor.value = null;
+    availableSlots.value = [];
+
+    // Перезагружаем список встреч
+    await loadMeetings();
+  } catch (error) {
+    console.error("Error creating meeting:", error);
+    message.error(
+      "Failed to book meeting: " + (error?.message || "Unknown error")
+    );
+  } finally {
+    bookingLoading.value = false;
+  }
 };
 
-const mockAvailableSlots = ref([
-  "2024-11-13T10:00",
-  "2024-11-13T11:00",
-  "2024-11-13T14:00",
-  "2024-11-13T15:00",
-  "2024-11-14T10:00",
-  "2024-11-14T11:00",
-  "2024-11-14T12:00",
-  "2024-11-15T13:00",
-  "2024-11-15T14:00",
-  "2024-11-15T16:00",
-]);
+const handleWeekChange = async ({ dateFrom, dateTo }) => {
+  if (selectedMentor.value?.id) {
+    currentWeekRange.value = { dateFrom, dateTo };
+    await loadTimeslots(selectedMentor.value.id, dateFrom, dateTo);
+  }
+};
 
 const calculateTotalPrice = () => {
-  const hourlyRate = selectedMentor.value?.hourlyRate || 24;
+  const hourlyRate = selectedMentor.value?.pricing?.meetingHourPrice || 24;
   return selectedSlots.value.length * hourlyRate;
 };
 
@@ -116,52 +231,56 @@ const formatSlotForDisplay = (slot) => {
         </a-button>
       </div>
       <div class="booking__content">
-        <table>
-          <thead>
-            <tr>
-              <th>University</th>
-              <th>Teacher Name</th>
-              <th>Test Date</th>
-              <th>Description</th>
-              <th>Teacher's answer</th>
-              <th>Target Achieved?</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="university">
-                <NuxtImg
-                  src="/images/cumbridge.png"
-                  alt="Harvard University"
-                  width="24px"
-                  height="24px"
-                />
-                Harvard University
-              </td>
-              <td>John Doe</td>
-              <td>2023-10-15</td>
-              <td>Midterm Exam</td>
-              <td>Yes</td>
-              <td><span class="status"> Payment is pending </span></td>
-            </tr>
-            <tr>
-              <td class="university">
-                <NuxtImg
-                  src="/images/pic.avif"
-                  alt="Harvard University"
-                  width="24px"
-                  height="24px"
-                />
-                Stanford University
-              </td>
-              <td>Jane Smith</td>
-              <td>2023-11-20</td>
-              <td>Final Project</td>
-              <td>No</td>
-              <td><span class="status"> Achieved </span></td>
-            </tr>
-          </tbody>
-        </table>
+        <a-spin :spinning="meetingsLoading">
+          <table v-if="meetings.length > 0">
+            <thead>
+              <tr>
+                <th>Mentor</th>
+                <th>University</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="meeting in meetings" :key="meeting.id">
+                <td class="mentor">
+                  <NuxtImg
+                    v-if="meeting.mentor.image"
+                    :src="meeting.mentor.image"
+                    alt="Mentor"
+                    width="24px"
+                    height="24px"
+                  />
+                  <Icon v-else name="lucide:user" />
+                  {{ meeting.mentor.fullName || "N/A" }}
+                </td>
+                <td>{{ meeting.mentor.university || "N/A" }}</td>
+                <td>{{ meeting.date }}</td>
+                <td>{{ meeting.timeFrom }} - {{ meeting.timeTo }}</td>
+                <td>
+                  <span
+                    class="status"
+                    :class="{
+                      'status-pending': meeting.status === 'PENDING_PAYMENT',
+                      'status-confirmed': meeting.status === 'CONFIRMED',
+                      'status-completed': meeting.status === 'COMPLETED',
+                      'status-cancelled': meeting.status === 'CANCELLED',
+                    }"
+                  >
+                    {{
+                      meeting.status
+                        .replace("_", " ")
+                        .toLowerCase()
+                        .replace(/\b\w/g, (c) => c.toUpperCase())
+                    }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <a-empty v-else description="No meetings found" />
+        </a-spin>
       </div>
     </div>
   </div>
@@ -171,7 +290,7 @@ const formatSlotForDisplay = (slot) => {
       <h2 class="section__title">Add Booking</h2>
     </div>
     <div class="modal__body">
-      <div class="modal__top">
+      <!-- <div class="modal__top">
         <div class="modal__search">
           <a-input placeholder="Search by name or keywords" />
           <Icon name="lucide:search" />
@@ -183,20 +302,13 @@ const formatSlotForDisplay = (slot) => {
           >
           <a-select-option value="mit">MIT</a-select-option>
         </a-select>
-      </div>
+      </div> -->
       <div class="modal__mid">
         <div
           class="modal__item"
           v-for="item in mentors"
           :key="item.id"
-          @click="
-            selectMentor({
-              id: item.id,
-              name: item.fullName,
-              hourlyRate: 50,
-              essayRate: 24,
-            })
-          "
+          @click="selectMentor(item.id)"
         >
           <div class="modal__item-img">
             <NuxtImg
@@ -226,6 +338,9 @@ const formatSlotForDisplay = (slot) => {
     class="book-modal"
     v-model:visible="bookModalVisible"
     @ok="handleBookOk"
+    :okText="'Continue'"
+    :cancelText="'Cancel'"
+    :okButtonProps="{ disabled: selectedSlots.length === 0 }"
   >
     <div class="modal__header">
       <div class="modal__header-left">
@@ -235,19 +350,16 @@ const formatSlotForDisplay = (slot) => {
         >
           <Icon name="lucide:arrow-left" />
         </a-button>
-        <h2 class="section__title">Book a session with Yu Jimin</h2>
+        <h2 class="section__title">
+          Book a session with {{ selectedMentor?.info.fullName }}
+        </h2>
       </div>
     </div>
     <div class="modal__info">
       <div class="modal__desc">
         <h4>About teacher</h4>
         <p>
-          Yu Jimin is a seasoned software engineering specialist with over 10
-          years of experience in the tech industry. He has worked with leading
-          companies and has a deep understanding of software development
-          methodologies, programming languages, and project management. Yu is
-          passionate about mentoring and helping students achieve their career
-          goals in the field of software engineering.
+          {{ selectedMentor?.about }}
         </p>
       </div>
       <div class="modal__details">
@@ -255,50 +367,47 @@ const formatSlotForDisplay = (slot) => {
         <div class="modal__details-items">
           <div class="modal__details-item">
             <Icon name="lucide:mail" />
-            <p>yujimin@naever.com</p>
+            <p>{{ selectedMentor?.info.email }}</p>
           </div>
-          <div class="modal__details-item">
+          <!-- <div class="modal__details-item">
             <Icon name="lucide:phone" />
-            <p>+1 234 567 8901</p>
-          </div>
+            <p>{{ selectedMentor?.info.phone }}</p>
+          </div> -->
           <div class="modal__details-item">
             <Icon name="lucide:map-pin" />
-            <p>Seoul, South Korea</p>
+            <p>{{ selectedMentor?.info.country.name }}</p>
           </div>
           <div class="modal__details-item">
             <Icon name="lucide:calendar" />
-            <p>Feb 2, 2000</p>
+            <p>{{ selectedMentor?.info.dateOfBirth }}</p>
           </div>
           <div class="modal__details-item">
-            <Icon name="lucide:languages" />
-            <p>English, Korean</p>
+            <Icon name="lucide:building-2" />
+            <p>{{ selectedMentor?.info.university.name }}</p>
           </div>
           <div class="modal__details-item">
-            <Icon name="lucide:clock" />
-            <p>Available: Mon - Fri, 9 AM - 5 PM</p>
+            <Icon name="lucide:graduation-cap" />
+            <p>{{ selectedMentor?.info.faculty.name }}</p>
           </div>
           <div class="modal__details-item">
-            <Icon name="lucide:globe" />
-            <p>Asia, South Korea</p>
+            <Icon name="lucide:user" />
+            <p>{{ selectedMentor?.info.gender }}</p>
           </div>
         </div>
       </div>
     </div>
     <div class="modal__price">
       <div class="modal__price-hourly">
-        <p>$50</p>
+        <p>$ {{ selectedMentor?.pricing.meetingHourPrice }}</p>
         <span>Hourly Rate</span>
-      </div>
-      <div class="modal__price-essay">
-        <p>$24</p>
-        <span>Essay Rate</span>
       </div>
     </div>
     <div class="modal__calendar">
       <WeeklyCalendar
         :mentor-id="selectedMentor?.id"
-        :available-slots="mockAvailableSlots"
-        @confirm="handleSlotsConfirm"
+        :available-slots="availableSlots"
+        v-model:selectedSlots="selectedSlots"
+        @week-change="handleWeekChange"
       />
     </div>
   </a-modal>
@@ -306,21 +415,34 @@ const formatSlotForDisplay = (slot) => {
   <a-modal
     class="payment-modal"
     v-model:visible="paymentModalVisible"
+    :ok-button-props="{ loading: bookingLoading }"
     @ok="handlePaymentOk"
+    :okText="'Confirm Booking'"
+    :cancelText="'Cancel'"
   >
     <div class="modal__header-left">
       <a-button
         type="text"
-        @click="(paymentModalVisible = false), (bookModalVisible = true)"
+        @click="
+          (paymentModalVisible = false),
+            (bookModalVisible = true),
+            (meetingDescription = '')
+        "
       >
         <Icon name="lucide:arrow-left" />
       </a-button>
-      <h2 class="section__title">Book a session with Yu Jimin</h2>
+      <h2 class="section__title">
+        Book a session with {{ selectedMentor?.info.fullName }}
+      </h2>
     </div>
     <div class="modal__body">
       <div class="modal__description">
         <p class="modal__label">Description for teacher</p>
-        <a-textarea rows="4" placeholder="Description for teacher" />
+        <a-textarea
+          v-model:value="meetingDescription"
+          rows="4"
+          placeholder="Describe the purpose of the meeting or any specific topics you'd like to discuss"
+        />
       </div>
       <div class="modal__prices">
         <div class="modal__price-item">
@@ -374,13 +496,38 @@ const formatSlotForDisplay = (slot) => {
 tr td:last-child {
   text-align: left;
 }
-.university {
+.university,
+.mentor {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.university img {
+.university img,
+.mentor img {
   object-fit: contain;
+  border-radius: 50%;
+}
+.status {
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status-pending {
+  background: var(--light-yellow);
+  color: var(--yellow);
+}
+.status-confirmed {
+  background: var(--light-blue);
+  color: var(--blue);
+}
+.status-completed {
+  background: var(--light-green);
+  color: var(--green);
+}
+.status-cancelled {
+  background: #fee;
+  color: #c33;
 }
 .modal__header {
   display: flex;
@@ -571,6 +718,9 @@ tr td:last-child {
 .modal__body {
   display: flex;
   flex-direction: column;
+}
+.payment-modal .modal__body {
+  gap: 16px;
 }
 .modal__description .modal__label {
   font-size: 14px;
