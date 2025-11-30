@@ -99,14 +99,14 @@ const handleSend = async () => {
       return;
     } catch (error) {
       console.error("Exception creating chat:", error);
-      message.error("Произошла ошибка при создании чата");
+      message.error("Error creating chat");
       isSending.value = false;
       return;
     }
   }
 
   if (showPaymentButton.value) {
-    message.warning("Необходимо оплатить для продолжения диалога");
+    message.warning("Payment is required to continue the conversation");
     isSending.value = false;
     return;
   }
@@ -138,7 +138,8 @@ const handleSend = async () => {
     if (result.success && result.data) {
       messages.value.push({
         messageFrom: "ASSISTANT",
-        message: result.data.response || result.data.message || "Ответ получен",
+        message:
+          result.data.response || result.data.message || "Response received",
         timestamp: new Date().toISOString(),
       });
 
@@ -146,11 +147,11 @@ const handleSend = async () => {
       await loadSavedChats();
       scrollToBottom();
     } else {
-      message.error(result.error || "Ошибка отправки сообщения");
+      message.error(result.error || "Error sending message");
     }
   } catch (error) {
     console.error("Exception sending message:", error);
-    message.error("Произошла ошибка при отправке");
+    message.error("An error occurred while sending");
     isTyping.value = false;
   } finally {
     isSending.value = false;
@@ -181,7 +182,7 @@ const loadSavedChats = async (append = false) => {
       hasMoreChats.value = page + 1 < totalPages.value;
     }
   } catch (error) {
-    console.error("Ошибка загрузки чатов:", error);
+    console.error("Error loading chats:", error);
   } finally {
     isLoadingChats.value = false;
   }
@@ -224,11 +225,11 @@ const loadChat = async (uuid) => {
         scrollToBottom();
       });
     } else {
-      message.error(result.error || "Ошибка загрузки чата");
+      message.error(result.error || "Error loading chat");
     }
   } catch (error) {
     console.error("Exception loading chat:", error);
-    message.error("Произошла ошибка при загрузке");
+    message.error("An error occurred while loading");
   } finally {
     isLoading.value = false;
   }
@@ -290,14 +291,14 @@ const getStatusLabel = (status) => {
   <div class="ai-essays-page">
     <PageBanner
       titleProps="Recommendation Letter AI"
-      iconProps="/page-icons/tasks.png"
+      iconProps="/page-icons/booking.png"
       style="
         background: linear-gradient(
           to right,
-          #9c27b0,
-          #e91e63,
-          #673ab7,
-          #ff4081
+          #2a6f97,
+          #014f86,
+          #01497c,
+          #013a63
         );
       "
     />
@@ -369,10 +370,12 @@ const getStatusLabel = (status) => {
 
           <div class="right">
             <div class="chat">
-              <img src="/images/chat-bg.png" class="chat__bg" alt="" />
+              <img src="/images/rec-bg.png" class="chat__bg" alt="" />
               <div class="chat__scroller" :class="{ extend: hasMessages }">
                 <div class="chat__header" v-if="!hasMessages">
-                  <img src="/images/chat.png" alt="" />
+                  <div class="chat__ball">
+                    <img src="/images/chat.png" alt="" />
+                  </div>
                   <h4 class="chat__title">
                     Get AI assistance for your <br />
                     Recommendation Letter
@@ -595,9 +598,9 @@ const getStatusLabel = (status) => {
   padding: 8px 16px;
   background: linear-gradient(
     89.61deg,
-    #e60076 9.01%,
-    #9810fa 81.21%,
-    #7f22fe 153.42%
+    #2a6f97 9.01%,
+    #014f86 81.21%,
+    #01497c 153.42%
   );
   color: white;
   border: none;
@@ -728,7 +731,12 @@ const getStatusLabel = (status) => {
   font-size: 24px;
   line-height: 32px;
   font-weight: 600;
-  background: linear-gradient(to right, #ff3076, #4560cc);
+  background: linear-gradient(
+    89.61deg,
+    #2a6f97 9.01%,
+    #014f86 81.21%,
+    #01497c 153.42%
+  );
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -888,9 +896,9 @@ const getStatusLabel = (status) => {
   color: white;
   background: linear-gradient(
     89.61deg,
-    #e60076 9.01%,
-    #9810fa 81.21%,
-    #7f22fe 153.42%
+    #2a6f97 9.01%,
+    #014f86 81.21%,
+    #01497c 153.42%
   );
   border: none;
   border-radius: 400px;
@@ -1099,5 +1107,13 @@ const getStatusLabel = (status) => {
     opacity: 1;
     transform: scale(1.2);
   }
+}
+
+.chat__ball {
+  background: #2a6f97;
+  border-radius: 50%;
+}
+.chat__ball img {
+  mix-blend-mode: hard-light;
 }
 </style>

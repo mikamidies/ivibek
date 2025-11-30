@@ -99,14 +99,14 @@ const handleSend = async () => {
       return;
     } catch (error) {
       console.error("Exception creating chat:", error);
-      message.error("Произошла ошибка при создании чата");
+      message.error("Error creating chat");
       isSending.value = false;
       return;
     }
   }
 
   if (showPaymentButton.value) {
-    message.warning("Необходимо оплатить для продолжения диалога");
+    message.warning("Payment is required to continue the conversation");
     isSending.value = false;
     return;
   }
@@ -138,7 +138,8 @@ const handleSend = async () => {
     if (result.success && result.data) {
       messages.value.push({
         messageFrom: "ASSISTANT",
-        message: result.data.response || result.data.message || "Ответ получен",
+        message:
+          result.data.response || result.data.message || "Response received",
         timestamp: new Date().toISOString(),
       });
 
@@ -146,11 +147,11 @@ const handleSend = async () => {
       await loadSavedChats();
       scrollToBottom();
     } else {
-      message.error(result.error || "Ошибка отправки сообщения");
+      message.error(result.error || "Error sending message");
     }
   } catch (error) {
     console.error("Exception sending message:", error);
-    message.error("Произошла ошибка при отправке");
+    message.error("An error occurred while sending");
     isTyping.value = false;
   } finally {
     isSending.value = false;
@@ -181,7 +182,7 @@ const loadSavedChats = async (append = false) => {
       hasMoreChats.value = page + 1 < totalPages.value;
     }
   } catch (error) {
-    console.error("Ошибка загрузки чатов:", error);
+    console.error("Error loading chats:", error);
   } finally {
     isLoadingChats.value = false;
   }
@@ -224,11 +225,11 @@ const loadChat = async (uuid) => {
         scrollToBottom();
       });
     } else {
-      message.error(result.error || "Ошибка загрузки чата");
+      message.error(result.error || "Error loading chat");
     }
   } catch (error) {
     console.error("Exception loading chat:", error);
-    message.error("Произошла ошибка при загрузке");
+    message.error("An error occurred while loading");
   } finally {
     isLoading.value = false;
   }
