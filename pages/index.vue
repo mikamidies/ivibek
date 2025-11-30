@@ -3,8 +3,9 @@ import AiBanner from "~/components/AiBanner.vue";
 import GeneralCard from "~/components/cards/GeneralCard.vue";
 import { ref, onMounted } from "vue";
 const { user } = useAuth();
-const { fetchUpcomingMeetings } = useMeetings();
+const { fetchUpcomingMeetings, fetchMeetingById } = useMeetings();
 const { fetchTasks, toggleTask } = useTasks();
+import { message } from "ant-design-vue";
 
 definePageMeta({
   layoutTitle: "Dashboard",
@@ -83,6 +84,29 @@ onMounted(() => {
   loadSessions();
   loadTasks();
 });
+
+const sessionModalVisible = ref(false);
+const selectedMeeting = ref(null);
+const meetingDetailLoading = ref(false);
+
+const viewMeetingDetails = async (meetingId) => {
+  meetingDetailLoading.value = true;
+  try {
+    const meetingData = await fetchMeetingById(meetingId);
+    selectedMeeting.value = meetingData;
+    sessionModalVisible.value = true;
+  } catch (error) {
+    console.error("Failed to load meeting details:", error);
+    message.error("Failed to load meeting details");
+  } finally {
+    meetingDetailLoading.value = false;
+  }
+};
+
+const handleSessionOk = () => {
+  sessionModalVisible.value = false;
+  selectedMeeting.value = null;
+};
 </script>
 
 <template>
@@ -114,23 +138,22 @@ onMounted(() => {
                   class="sessions__item"
                   v-for="(item, itemIndex) in session.items"
                   :key="itemIndex"
+                  @click="viewMeetingDetails(item.id)"
                 >
-                  <NuxtLink to="/">
-                    <div class="sessions__item-top">
-                      <div class="sessions__item-person">
-                        <NuxtImg
-                          :src="item.img"
-                          alt=""
-                          class="sessions__item-pic"
-                        />
-                        <p class="sessions__item-name">{{ item.name }}</p>
-                      </div>
-                      <p class="sessions__item-time">{{ item.time }}</p>
+                  <div class="sessions__item-top">
+                    <div class="sessions__item-person">
+                      <NuxtImg
+                        :src="item.img"
+                        alt=""
+                        class="sessions__item-pic"
+                      />
+                      <p class="sessions__item-name">{{ item.name }}</p>
                     </div>
-                    <h4 class="sessions__item-title">
-                      {{ item.title }}
-                    </h4>
-                  </NuxtLink>
+                    <p class="sessions__item-time">{{ item.time }}</p>
+                  </div>
+                  <h4 class="sessions__item-title">
+                    {{ item.title }}
+                  </h4>
                 </div>
               </div>
             </div>
@@ -152,22 +175,24 @@ onMounted(() => {
                 :key="task.id"
                 :class="{ checked: task.checked }"
               >
-                <div class="check">
-                  <input
-                    type="checkbox"
-                    :id="'task' + task.id"
-                    v-model="task.checked"
-                    @change="handleTaskToggle(task.id)"
-                  />
-                  <label :for="'task' + task.id"></label>
-                </div>
-                <div class="tasks__item-mid">
-                  <label :for="'task' + task.id" class="tasks__item-name">
-                    {{ task.name }}
-                  </label>
-                  <p class="tasks__item-desc">
-                    {{ task.desc }}
-                  </p>
+                <div class="tasks__item-left">
+                  <div class="check">
+                    <input
+                      type="checkbox"
+                      :id="'task' + task.id"
+                      v-model="task.checked"
+                      @change="handleTaskToggle(task.id)"
+                    />
+                    <label :for="'task' + task.id"></label>
+                  </div>
+                  <div class="tasks__item-mid">
+                    <label :for="'task' + task.id" class="tasks__item-name">
+                      {{ task.name }}
+                    </label>
+                    <p class="tasks__item-desc">
+                      {{ task.desc }}
+                    </p>
+                  </div>
                 </div>
                 <p class="tasks__item-date">{{ task.date }}</p>
               </div>
@@ -264,11 +289,98 @@ onMounted(() => {
       </div> -->
 
       <GeneralCard />
+
+      <a-modal
+        class="session__modal"
+        v-model:visible="sessionModalVisible"
+        @ok="handleSessionOk"
+        :okText="'Close'"
+      >
+        <a-spin :spinning="meetingDetailLoading">
+          <div class="modal__header">
+            <h2 class="section__title">Session Details</h2>
+          </div>
+          <div class="modal__body" v-if="selectedMeeting">
+            <div class="meeting-modal__top">
+              <div class="modal__session-info">
+                <div class="modal__info-item">
+                  <span
+                    class="status"
+                    :class="{
+                      'status-pending':
+                        selectedMeeting.status === 'PENDING_PAYMENT',
+                      'status-confirmed':
+                        selectedMeeting.status === 'CONFIRMED',
+                      'status-completed':
+                        selectedMeeting.status === 'COMPLETED',
+                      'status-cancelled':
+                        selectedMeeting.status === 'CANCELLED',
+                    }"
+                  >
+                    {{
+                      selectedMeeting.status
+                        .replace("_", " ")
+                        .toLowerCase()
+                        .replace(/\b\w/g, (c) => c.toUpperCase())
+                    }}
+                  </span>
+                </div>
+                <div class="modal__info-item">
+                  <p>{{ selectedMeeting.date }}</p>
+                </div>
+                <div class="modal__info-item">
+                  <p>
+                    {{ selectedMeeting.timeFrom }} -
+                    {{ selectedMeeting.timeTo }}
+                  </p>
+                </div>
+              </div>
+              <div class="meeting-modal__teacher">
+                <div class="modal__item-img">
+                  <NuxtImg
+                    :src="
+                      selectedMeeting.mentor.image ||
+                      '/images/default-person.jpg'
+                    "
+                    :alt="selectedMeeting.mentor.fullName"
+                    width="56px"
+                    height="56px"
+                  />
+                </div>
+                <div class="modal__item-content">
+                  <h3 class="modal__item-title">
+                    {{ selectedMeeting.mentor.fullName }}
+                  </h3>
+                  <p class="modal__item-desc">
+                    <Icon name="lucide:graduation-cap" />
+                    {{ selectedMeeting.mentor.university.name }}
+                  </p>
+                  <p class="modal__item-desc no__margin">
+                    <Icon name="lucide:briefcase" />
+                    {{ selectedMeeting.mentor.faculty.name }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="modal__response" v-if="selectedMeeting.meetingLink">
+              <h4>Meeting Link</h4>
+              <a :href="selectedMeeting.meetingLink.link" target="_blank">{{
+                selectedMeeting.meetingLink.link
+              }}</a>
+            </div>
+          </div>
+        </a-spin>
+      </a-modal>
     </div>
   </div>
 </template>
 
 <style scoped>
+.tasks__item-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
 .profile__edit span {
   width: 16px;
   height: 16px;
@@ -350,9 +462,11 @@ onMounted(() => {
   border-radius: 12px;
   padding: 16px;
   transition: all 0.2s;
+  cursor: pointer;
 }
 .sessions__item:hover {
   background: var(--border);
+  transform: translateY(-2px);
 }
 .sessions__item:hover .sessions__item-time {
   background: white;
@@ -555,5 +669,142 @@ onMounted(() => {
   text-align: center;
   color: var(--light-grey);
   font-size: 14px;
+}
+
+.meeting-modal__top {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+.modal__session-info {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.meeting-modal__teacher {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.no__margin {
+  margin: 0 !important;
+}
+.modal__info-item h4 {
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 6px;
+}
+.modal__info-item p {
+  font-size: 12px;
+  line-height: 24px;
+  background: var(--border);
+  color: var(--essay-txt);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+.modal__info-item span {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+.modal__response {
+  padding: 0 12px;
+  margin-top: 24px;
+}
+.modal__response h4 {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--light-grey);
+  margin-bottom: 8px;
+}
+.modal__response a {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--blue);
+  word-break: break-all;
+  text-decoration: underline;
+}
+.session__modal .modal__info-item .status {
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.session__modal .status-pending {
+  background: var(--light-yellow);
+  color: var(--yellow);
+}
+.session__modal .status-confirmed {
+  background: var(--light-blue);
+  color: var(--blue);
+}
+.session__modal .status-completed {
+  background: var(--light-green);
+  color: var(--green);
+}
+.session__modal .status-cancelled {
+  background: #fee;
+  color: #c33;
+}
+.session__modal .meeting-modal__teacher {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.session__modal .modal__item-img {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.session__modal .modal__item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.session__modal .modal__item-title {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.session__modal .modal__item-desc {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--light-grey);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.session__modal .modal__item-desc.no__margin {
+  margin-bottom: 0;
+}
+.session__modal .modal__response {
+  border: 1px solid var(--border);
+  padding: 24px;
+  border-radius: 16px;
+}
+.session__modal .modal__response h4 {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: var(--light-grey);
+}
+.session__modal .modal__response a {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--blue);
+  text-decoration: none;
+  word-break: break-all;
+}
+.session__modal .modal__response a:hover {
+  text-decoration: underline;
 }
 </style>
