@@ -30,7 +30,6 @@ const emit = defineEmits<{
 const currentDate = ref<Date>(getToday());
 const internalSelectedSlots = ref<Set<string>>(new Set());
 
-// Sync prop changes to internal Set
 watch(
   () => props.selectedSlots,
   (newSlots) => {
@@ -50,7 +49,6 @@ const isSlotAvailable = (day: DayInfo, timeSlot: TimeSlot): boolean => {
     return false;
   }
 
-  // Если нет доступных слотов или массив пустой - все disabled
   if (!props.availableSlots || props.availableSlots.length === 0) {
     return false;
   }
@@ -70,14 +68,63 @@ const toggleSlot = (day: DayInfo, timeSlot: TimeSlot) => {
   }
 
   const key = getSlotKey(day.dateString, timeSlot.time);
+  const currentSlots = Array.from(internalSelectedSlots.value);
 
-  // Если слот уже выбран - снимаем выбор
   if (internalSelectedSlots.value.has(key)) {
     internalSelectedSlots.value.delete(key);
-  } else {
-    // Иначе - очищаем все и выбираем только этот слот (single selection)
+    emitSelectedSlots();
+    return;
+  }
+
+  if (currentSlots.length === 0) {
+    internalSelectedSlots.value.add(key);
+    emitSelectedSlots();
+    return;
+  }
+
+  const firstSlot = currentSlots[0];
+  const [firstDate] = firstSlot.split("_");
+
+  if (firstDate !== day.dateString) {
     internalSelectedSlots.value.clear();
     internalSelectedSlots.value.add(key);
+    emitSelectedSlots();
+    return;
+  }
+
+  const selectedTimes = currentSlots
+    .map((slot) => {
+      const [, time] = slot.split("_");
+      const [hour] = time.split(":");
+      return parseInt(hour);
+    })
+    .sort((a, b) => a - b);
+
+  const [clickedHour] = timeSlot.time.split(":");
+  const clickedHourNum = parseInt(clickedHour);
+
+  const minHour = selectedTimes[0];
+  const maxHour = selectedTimes[selectedTimes.length - 1];
+
+  if (clickedHourNum === minHour - 1 || clickedHourNum === maxHour + 1) {
+    const newMin = Math.min(minHour, clickedHourNum);
+    const newMax = Math.max(maxHour, clickedHourNum);
+
+    let allSlotsAvailable = true;
+    for (let hour = newMin; hour <= newMax; hour++) {
+      const hourStr = hour.toString().padStart(2, "0") + ":00";
+      const slotKey = getSlotKey(day.dateString, hourStr);
+      const slotDateTime = `${day.dateString}T${hourStr}`;
+
+      if (!props.availableSlots?.includes(slotDateTime)) {
+        allSlotsAvailable = false;
+        break;
+      }
+    }
+
+    if (allSlotsAvailable) {
+      internalSelectedSlots.value.add(key);
+    }
   }
 
   emitSelectedSlots();
@@ -104,7 +151,6 @@ watch(currentDate, () => {
   internalSelectedSlots.value.clear();
   emitSelectedSlots();
 
-  // Emit week change для загрузки новых слотов
   const days = generateWeekDays(currentDate.value);
   if (days.length > 0) {
     const dateFrom = days[0].dateString;
@@ -329,6 +375,7 @@ watch(currentDate, () => {
   background: var(--blue);
   color: white;
   font-weight: 600;
+  position: relative;
 }
 
 .time-slot.is-disabled {

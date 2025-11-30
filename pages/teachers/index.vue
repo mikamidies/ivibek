@@ -104,13 +104,13 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
               <div class="teachers__item-info">
                 <h5 class="teachers__item-name">{{ item.fullName }}</h5>
                 <span class="teachers__item-sub">
-                  British Management university
+                  {{ item.university.name }}
                 </span>
               </div>
             </div>
             <div class="teachers__item-bottom">
               <p class="teachers__item-status">
-                Software Engineering Specialist
+                {{ item.faculty.name }}
               </p>
             </div>
           </NuxtLink>

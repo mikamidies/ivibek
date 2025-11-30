@@ -149,12 +149,16 @@ const handlePaymentOk = async () => {
 
   bookingLoading.value = true;
   try {
-    const selectedSlot = selectedSlots.value[0];
-    const [date, time] = selectedSlot.split("_");
+    const sortedSlots = [...selectedSlots.value].sort();
+    const firstSlot = sortedSlots[0];
+    const lastSlot = sortedSlots[sortedSlots.length - 1];
 
-    const timeFrom = time;
-    const timeHour = parseInt(time.split(":")[0]);
-    const timeTo = `${(timeHour + 1).toString().padStart(2, "0")}:00`;
+    const [date, firstTime] = firstSlot.split("_");
+    const [, lastTime] = lastSlot.split("_");
+
+    const timeFrom = firstTime;
+    const lastHour = parseInt(lastTime.split(":")[0]);
+    const timeTo = `${(lastHour + 1).toString().padStart(2, "0")}:00`;
 
     const payload = {
       mentorId: selectedMentor.value.id,
@@ -199,6 +203,22 @@ const calculateTotalPrice = () => {
 const formatSlotForDisplay = (slot) => {
   const [date, time] = slot.split("_");
   return `${date} at ${time}`;
+};
+
+const formatTimeRange = () => {
+  if (selectedSlots.value.length === 0) return "";
+
+  const sortedSlots = [...selectedSlots.value].sort();
+  const firstSlot = sortedSlots[0];
+  const lastSlot = sortedSlots[sortedSlots.length - 1];
+
+  const [date, firstTime] = firstSlot.split("_");
+  const [, lastTime] = lastSlot.split("_");
+
+  const lastHour = parseInt(lastTime.split(":")[0]);
+  const endTime = `${(lastHour + 1).toString().padStart(2, "0")}:00`;
+
+  return `${date} from ${firstTime} to ${endTime}`;
 };
 
 const sessionModalVisible = ref(false);
@@ -504,12 +524,8 @@ const handleSessionOk = () => {
           >
         </div>
         <div class="modal__price-item" v-if="selectedSlots.length > 0">
-          <p>Dates & Times</p>
-          <span class="slots-list">
-            <span v-for="slot in selectedSlots" :key="slot" class="slot-item">
-              {{ formatSlotForDisplay(slot) }}
-            </span>
-          </span>
+          <p>Date & Time</p>
+          <span>{{ formatTimeRange() }}</span>
         </div>
         <div class="modal__price-total-item">
           <p>Total price</p>
