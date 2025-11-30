@@ -81,7 +81,16 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
         </div>
       </div>
       <div class="teachers__items">
-        <div class="teachers__item" v-for="item in mentors" :key="item.id">
+        <div v-if="!mentors.length" class="empty__state">
+          <Icon name="lucide:file-text" />
+          <p>No teachers found</p>
+        </div>
+        <div
+          v-else
+          class="teachers__item"
+          v-for="item in mentors"
+          :key="item.id"
+        >
           <NuxtLink :to="`/teachers/${item.id}`">
             <div class="teachers__item-top">
               <div class="teachers__item-img">
@@ -112,6 +121,9 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
 </template>
 
 <style scoped>
+.empty__state {
+  grid-column: 1/4;
+}
 .booking-page {
   padding: 24px 24px 120px 24px;
   background: var(--border);

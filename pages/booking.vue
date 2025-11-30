@@ -309,21 +309,48 @@ const handleSessionOk = () => {
       <h2 class="section__title">Add Booking</h2>
     </div>
     <div class="modal__body">
-      <!-- <div class="modal__top">
+      <div class="modal__top">
         <div class="modal__search">
-          <a-input placeholder="Search by name or keywords" />
+          <a-input
+            v-model:value="searchQuery"
+            placeholder="Search by name or keywords"
+          />
           <Icon name="lucide:search" />
         </div>
-        <a-select placeholder="Filter by university">
-          <a-select-option value="harvard">Harvard University</a-select-option>
-          <a-select-option value="stanford"
-            >Stanford University</a-select-option
+        <a-select
+          v-model:value="selectedUniversity"
+          placeholder="Filter by university"
+        >
+          <a-select-option :value="null">All Universities</a-select-option>
+          <a-select-option
+            v-for="university in universities"
+            :key="university.id"
+            :value="university.id"
           >
-          <a-select-option value="mit">MIT</a-select-option>
+            {{ university.name }}
+          </a-select-option>
         </a-select>
-      </div> -->
+        <a-select
+          v-model:value="selectedFaculty"
+          placeholder="Filter by faculty"
+        >
+          <a-select-option :value="null">All Faculties</a-select-option>
+          <a-select-option
+            v-for="faculty in faculties"
+            :key="faculty.id"
+            :value="faculty.id"
+          >
+            {{ faculty.name }}
+          </a-select-option>
+        </a-select>
+      </div>
       <div class="modal__mid">
+        <div v-if="!mentors.length" class="empty__state">
+          <Icon name="lucide:file-text" />
+          <p>No teachers found</p>
+        </div>
         <div
+          v-else
           class="modal__item"
           v-for="item in mentors"
           :key="item.id"
@@ -341,11 +368,11 @@ const handleSessionOk = () => {
             <h3 class="modal__item-title">{{ item.fullName }}</h3>
             <p class="modal__item-desc">
               <Icon name="lucide:graduation-cap" />
-              Massachusetts Institute of Technology (MIT)
+              {{ item.university.name }}
             </p>
             <p class="modal__item-desc">
               <Icon name="lucide:briefcase" />
-              Software Engineering Specialist
+              {{ item.faculty.name }}
             </p>
           </div>
         </div>
@@ -375,7 +402,7 @@ const handleSessionOk = () => {
       </div>
     </div>
     <div class="modal__info">
-      <div class="modal__desc">
+      <div class="modal__desc" v-if="selectedMentor?.about">
         <h4>About teacher</h4>
         <p>
           {{ selectedMentor?.about }}

@@ -25,7 +25,7 @@ export const useMentors = () => {
     try {
       const token = useCookie("access_token");
 
-      let url = `${API_BASE}/api/v1/student/mentors/choice-list?`;
+      let url = `${API_BASE}/api/v1/student/mentors?`;
 
       const params = [];
       if (universityId) params.push(`universityId=${universityId}`);
