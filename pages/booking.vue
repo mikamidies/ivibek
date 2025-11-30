@@ -7,7 +7,7 @@ import { ref } from "vue";
 
 const { fetchMentors, fetchMentorById, fetchMentorTimeslots } = useMentors();
 const { fetchUniversities, fetchFaculties } = useCommon();
-const { createMeeting, fetchMeetings } = useMeetings();
+const { createMeeting, fetchMeetings, fetchMeetingById } = useMeetings();
 
 const meetings = ref([]);
 const meetingsLoading = ref(false);
@@ -75,10 +75,9 @@ const selectMentor = async (mentorId) => {
     const mentorData = await fetchMentorById(mentorId);
     selectedMentor.value = mentorData;
 
-    // Получаем текущую неделю
     const today = new Date();
     const dayOfWeek = today.getDay();
-    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Понедельник
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
 
     const monday = new Date(today);
     monday.setDate(today.getDate() + diff);
@@ -91,7 +90,6 @@ const selectMentor = async (mentorId) => {
 
     currentWeekRange.value = { dateFrom, dateTo };
 
-    // Загружаем доступные слоты
     await loadTimeslots(mentorId, dateFrom, dateTo);
 
     bookModalVisible.value = true;
@@ -202,6 +200,29 @@ const formatSlotForDisplay = (slot) => {
   const [date, time] = slot.split("_");
   return `${date} at ${time}`;
 };
+
+const sessionModalVisible = ref(false);
+const selectedMeeting = ref(null);
+const meetingDetailLoading = ref(false);
+
+const viewMeetingDetails = async (meetingId) => {
+  meetingDetailLoading.value = true;
+  try {
+    const meetingData = await fetchMeetingById(meetingId);
+    selectedMeeting.value = meetingData;
+    sessionModalVisible.value = true;
+  } catch (error) {
+    console.error("Failed to load meeting details:", error);
+    message.error("Failed to load meeting details");
+  } finally {
+    meetingDetailLoading.value = false;
+  }
+};
+
+const handleSessionOk = () => {
+  sessionModalVisible.value = false;
+  selectedMeeting.value = null;
+};
 </script>
 
 <template>
@@ -230,19 +251,18 @@ const formatSlotForDisplay = (slot) => {
                 <th>Date</th>
                 <th>Time</th>
                 <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="meeting in meetings" :key="meeting.id">
                 <td class="mentor">
                   <NuxtImg
-                    v-if="meeting.mentor.image"
-                    :src="meeting.mentor.image"
+                    :src="meeting.mentor.image || '/images/default-person.jpg'"
                     alt="Mentor"
                     width="24px"
                     height="24px"
                   />
-                  <Icon v-else name="lucide:user" />
                   {{ meeting.mentor.fullName || "N/A" }}
                 </td>
                 <td>{{ meeting.mentor.university.name || "N/A" }}</td>
@@ -265,6 +285,15 @@ const formatSlotForDisplay = (slot) => {
                         .replace(/\b\w/g, (c) => c.toUpperCase())
                     }}
                   </span>
+                </td>
+                <td class="ender">
+                  <button
+                    class="view__btn"
+                    @click="viewMeetingDetails(meeting.id)"
+                    :disabled="meetingDetailLoading"
+                  >
+                    <Icon name="lucide:eye" />
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -302,7 +331,7 @@ const formatSlotForDisplay = (slot) => {
         >
           <div class="modal__item-img">
             <NuxtImg
-              :src="item.image"
+              :src="item?.image || '/images/default-person.jpg'"
               alt="Harvard University"
               width="56px"
               height="56px"
@@ -462,9 +491,140 @@ const formatSlotForDisplay = (slot) => {
       </div>
     </div>
   </a-modal>
+
+  <a-modal
+    class="session__modal"
+    v-model:visible="sessionModalVisible"
+    @ok="handleSessionOk"
+    :okText="'Close'"
+  >
+    <a-spin :spinning="meetingDetailLoading">
+      <div class="modal__header">
+        <h2 class="section__title">Session Details</h2>
+      </div>
+      <div class="modal__body" v-if="selectedMeeting">
+        <div class="meeting-modal__top">
+          <div class="modal__session-info">
+            <div class="modal__info-item">
+              <span
+                class="status"
+                :class="{
+                  'status-pending':
+                    selectedMeeting.status === 'PENDING_PAYMENT',
+                  'status-confirmed': selectedMeeting.status === 'CONFIRMED',
+                  'status-completed': selectedMeeting.status === 'COMPLETED',
+                  'status-cancelled': selectedMeeting.status === 'CANCELLED',
+                }"
+              >
+                {{
+                  selectedMeeting.status
+                    .replace("_", " ")
+                    .toLowerCase()
+                    .replace(/\b\w/g, (c) => c.toUpperCase())
+                }}
+              </span>
+            </div>
+            <div class="modal__info-item">
+              <p>{{ selectedMeeting.date }}</p>
+            </div>
+            <div class="modal__info-item">
+              <p>
+                {{ selectedMeeting.timeFrom }} - {{ selectedMeeting.timeTo }}
+              </p>
+            </div>
+          </div>
+          <div class="meeting-modal__teacher">
+            <div class="modal__item-img">
+              <NuxtImg
+                :src="
+                  selectedMeeting.mentor.image || '/images/default-person.jpg'
+                "
+                :alt="selectedMeeting.mentor.fullName"
+                width="56px"
+                height="56px"
+              />
+            </div>
+            <div class="modal__item-content">
+              <h3 class="modal__item-title">
+                {{ selectedMeeting.mentor.fullName }}
+              </h3>
+              <p class="modal__item-desc">
+                <Icon name="lucide:graduation-cap" />
+                {{ selectedMeeting.mentor.university.name }}
+              </p>
+              <p class="modal__item-desc no__margin">
+                <Icon name="lucide:briefcase" />
+                {{ selectedMeeting.mentor.faculty.name }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal__response" v-if="selectedMeeting.meetingLink">
+          <h4>Meeting Link</h4>
+          <a :href="selectedMeeting.meetingLink.link" target="_blank">{{
+            selectedMeeting.meetingLink.link
+          }}</a>
+        </div>
+      </div>
+    </a-spin>
+  </a-modal>
 </template>
 
 <style scoped>
+.meeting-modal__top {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+.modal__session-info {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.meeting-modal__teacher {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.no__margin {
+  margin: 0 !important;
+}
+.modal__info-item h4 {
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 6px;
+}
+.modal__info-item p {
+  font-size: 12px;
+  line-height: 24px;
+  background: var(--border);
+  color: var(--essay-txt);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+.modal__info-item span {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+.modal__response {
+  padding: 0 12px;
+  margin-top: 24px;
+}
+.modal__response h4 {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--light-grey);
+  margin-bottom: 8px;
+}
+.modal__response a {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--blue);
+  word-break: break-all;
+  text-decoration: underline;
+}
 .booking-page {
   padding: 24px 24px 120px 24px;
   background: var(--border);

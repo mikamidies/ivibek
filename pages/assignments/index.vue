@@ -76,10 +76,10 @@ const getStatusLabel = (status) => {
                     {{ getStatusLabel(assignment.status) }}
                   </span>
                 </td>
-                <td>
+                <td class="ender">
                   <NuxtLink
                     :to="`/assignments/${assignment.id}`"
-                    class="assignments__view-btn"
+                    class="assignments__view-btn view__btn"
                   >
                     <Icon name="lucide:eye" />
                   </NuxtLink>

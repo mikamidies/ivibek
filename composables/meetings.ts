@@ -22,6 +22,42 @@ interface Meeting {
   timeTo: string;
 }
 
+interface MeetingDetail {
+  id: number;
+  mentor: {
+    id: number;
+    fullName: string;
+    email: string;
+    image: string;
+    university: {
+      id: number;
+      name: string;
+    };
+    faculty: {
+      id: number;
+      name: string;
+    };
+  };
+  status: string;
+  date: string;
+  timeFrom: {
+    hour: number;
+    minute: number;
+    second: number;
+    nano: number;
+  };
+  timeTo: {
+    hour: number;
+    minute: number;
+    second: number;
+    nano: number;
+  };
+  meetingLink: {
+    id: number;
+    link: string;
+  };
+}
+
 interface PaginatedMeetingsResponse {
   content: Meeting[];
   pageable: {
@@ -90,6 +126,24 @@ export const useMeetings = () => {
     }
   };
 
+  const fetchMeetingById = async (id: number): Promise<MeetingDetail> => {
+    try {
+      const data = await $fetch<MeetingDetail>(
+        `${API_BASE}/api/v1/student/meetings/${id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        }
+      );
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch meeting by id:", error);
+      throw error;
+    }
+  };
+
   const createMeeting = async (payload: CreateMeetingPayload) => {
     try {
       const data = await $fetch(`${API_BASE}/api/v1/student/meetings`, {
@@ -127,6 +181,7 @@ export const useMeetings = () => {
 
   return {
     fetchMeetings,
+    fetchMeetingById,
     createMeeting,
     fetchUpcomingMeetings,
   };

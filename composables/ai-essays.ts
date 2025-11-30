@@ -56,7 +56,7 @@ export const useAiEssays = () => {
       console.error("Error creating chat:", error);
       return {
         success: false,
-        error: error.data?.message || error.message || "Ошибка создания чата",
+        error: error.data?.message || error.message || "Error creating chat",
         uuid: null,
         requiresPayment: false,
       };
@@ -86,15 +86,14 @@ export const useAiEssays = () => {
       console.error("Error sending message:", error);
       return {
         success: false,
-        error:
-          error.data?.message || error.message || "Ошибка отправки сообщения",
+        error: error.data?.message || error.message || "Error sending message",
       };
     }
   };
 
   const getChats = async (page = 0, size = 20) => {
     if (!accessToken.value) {
-      return { success: false, error: "Не авторизован", data: null };
+      return { success: false, error: "Not authorized", data: null };
     }
 
     try {
@@ -113,7 +112,7 @@ export const useAiEssays = () => {
     } catch (error: any) {
       return {
         success: false,
-        error: error.data?.message || "Ошибка загрузки чатов",
+        error: error.data?.message || "Error loading chats",
         data: null,
       };
     }
@@ -121,7 +120,7 @@ export const useAiEssays = () => {
 
   const getChatById = async (uuid: string) => {
     if (!accessToken.value) {
-      return { success: false, error: "Не авторизован", data: null };
+      return { success: false, error: "Not authorized", data: null };
     }
 
     try {
@@ -139,7 +138,7 @@ export const useAiEssays = () => {
     } catch (error: any) {
       return {
         success: false,
-        error: error.data?.message || "Ошибка загрузки чата",
+        error: error.data?.message || "Error loading chat",
         data: null,
       };
     }

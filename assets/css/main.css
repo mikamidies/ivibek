@@ -222,3 +222,22 @@ textarea {
 .empty__state span {
   font-size: 32px;
 }
+.ender {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.view__btn {
+  background: var(--border);
+  color: var(--essay-txt);
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s ease;
+}
+.view__btn:hover {
+  color: var(--blue);
+}
