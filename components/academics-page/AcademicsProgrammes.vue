@@ -1,4 +1,6 @@
 <script setup>
+import { message } from "ant-design-vue";
+
 defineProps({
   school__options: {
     type: Array,
@@ -10,16 +12,109 @@ defineProps({
   },
 });
 
-const activeKey = ref(["1"]);
+const { fetchPrograms, createProgram, updateProgram } = usePrograms();
 
-watch(activeKey, (val) => {});
-
+const activeKey = ref([]);
 const visible = ref(false);
+const editMode = ref(false);
+const programs = ref([]);
+const currentProgram = ref(null);
+const loading = ref(false);
+
+const formData = ref({
+  name: "",
+  university: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+  category: "",
+  isOnline: false,
+});
+
+const loadPrograms = async () => {
+  loading.value = true;
+  try {
+    programs.value = await fetchPrograms();
+    console.log("Programs loaded:", programs.value);
+  } catch (error) {
+    console.error("Load programs error:", error);
+    message.error(`Failed to load programs: ${error.message || error}`);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadPrograms();
+});
+
 const showModal = () => {
+  editMode.value = false;
+  formData.value = {
+    name: "",
+    university: "",
+    description: "",
+    startDate: "",
+    endDate: "",
+    category: "",
+    isOnline: false,
+  };
   visible.value = true;
 };
-const handleOk = (e) => {
-  visible.value = false;
+
+const showEditModal = (program) => {
+  editMode.value = true;
+  currentProgram.value = program;
+  formData.value = {
+    name: program.name,
+    university: program.university,
+    description: program.description,
+    startDate: program.startDate,
+    endDate: program.endDate,
+    category: program.category,
+    isOnline: program.isOnline,
+  };
+  visible.value = true;
+};
+
+const handleOk = async () => {
+  loading.value = true;
+  try {
+    const payload = {
+      ...formData.value,
+      startDate:
+        typeof formData.value.startDate === "string"
+          ? formData.value.startDate
+          : formData.value.startDate?.format?.("YYYY-MM-DD") || "",
+      endDate:
+        typeof formData.value.endDate === "string"
+          ? formData.value.endDate
+          : formData.value.endDate?.format?.("YYYY-MM-DD") || "",
+    };
+
+    if (editMode.value && currentProgram.value) {
+      await updateProgram(currentProgram.value.id, payload);
+      message.success("Program updated successfully");
+    } else {
+      await createProgram(payload);
+      message.success("Program created successfully");
+    }
+    await loadPrograms();
+    visible.value = false;
+  } catch (error) {
+    message.error(`Failed to save program: ${error.message || error}`);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const formatDate = (date) => {
+  if (!date) return "";
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 };
 </script>
 
@@ -32,178 +127,162 @@ const handleOk = (e) => {
       </button>
     </div>
     <div class="programmes__items">
-      <div class="programmes__item">
-        <div class="programmes__item-head">
-          <div class="programmes__item-left">
-            <div class="programmes__item-img">
-              <NuxtImg src="/images/pic.avif" alt="Stanford University" />
-            </div>
-            <div>
-              <h3 class="programmes__item-title">Stanford University</h3>
-              <p class="programmes__item-description">
-                Stanford University offers a variety of summer programs
-              </p>
-            </div>
-          </div>
-          <div class="programmes__item-right">
-            <div class="programmes__item-date">
-              <span>June 15, 2023 - August 15, 2023</span>
-            </div>
-            <div class="programmes__item-order">
-              <a-select
-                v-model:value="value__one"
-                :options="school__options"
-                placeholder="Order by"
-              ></a-select>
-            </div>
-            <button class="programmes__item-edit">
-              <Icon name="lucide:ellipsis-vertical" />
-            </button>
-          </div>
+      <a-spin :spinning="loading">
+        <div v-if="programs.length === 0" class="empty__state">
+          <Icon
+            name="lucide:file"
+            style="width: 48px; height: 48px; margin-bottom: 16px"
+          />
+          <p>No programs yet</p>
         </div>
-        <div class="programmes__item-body">
-          <a-collapse accordion v-model:activeKey="activeKey">
-            <a-collapse-panel key="1" :show-arrow="false">
-              <template #header>
-                <div class="panel-header">
-                  <p>Collapse</p>
-                  <Icon name="lucide:chevron-down" />
-                </div>
-              </template>
-              <div class="panel-content">
-                <div class="panel__content-items">
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Categories</h4>
-                    <p class="panel__content-text">Engeenering</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Session</h4>
-                    <p class="panel__content-text">Aug 21 - Sep 15</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">For credit?</h4>
-                    <p class="panel__content-text">Credit</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Application Outcome</h4>
-                    <p class="panel__content-text">Admitted but undecided</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Learning format</h4>
-                    <p class="panel__content-text">Online</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Application Deadline</h4>
-                    <p class="panel__content-text">RD. Dec 11</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Application Status</h4>
-                    <p class="panel__content-text">Considering (short list)</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Description</h4>
-                    <p class="panel__content-text">
-                      Now summarize what you wrote above: describe the activity,
-                      including what you accomplished and any recognition you
-                      received, etc.
-                    </p>
-                  </div>
-                </div>
+        <div
+          v-for="program in programs"
+          :key="program.id"
+          class="programmes__item"
+        >
+          <div class="programmes__item-head">
+            <div class="programmes__item-left">
+              <div class="programmes__item-img">
+                <NuxtImg src="/images/pic.avif" :alt="program.university" />
               </div>
-            </a-collapse-panel>
-          </a-collapse>
-        </div>
-      </div>
-      <div class="programmes__item">
-        <div class="programmes__item-head">
-          <div class="programmes__item-left">
-            <div class="programmes__item-img">
-              <NuxtImg src="/images/pic.avif" alt="Stanford University" />
-            </div>
-            <div>
-              <h3 class="programmes__item-title">Stanford University</h3>
-              <p class="programmes__item-description">
-                Stanford University offers a variety of summer programs
-              </p>
-            </div>
-          </div>
-          <div class="programmes__item-right">
-            <div class="programmes__item-date">
-              <span>June 15, 2023 - August 15, 2023</span>
-            </div>
-            <div class="programmes__item-order">
-              <a-select
-                v-model:value="value__one"
-                :options="school__options"
-                placeholder="Order by"
-              ></a-select>
-            </div>
-            <button class="programmes__item-edit">
-              <Icon name="lucide:ellipsis-vertical" />
-            </button>
-          </div>
-        </div>
-        <div class="programmes__item-body">
-          <a-collapse accordion>
-            <a-collapse-panel key="2" :show-arrow="false">
-              <template #header>
-                <div class="panel-header">
-                  <p>Collapse</p>
-                  <Icon name="lucide:chevron-down" />
-                </div>
-              </template>
-              <div class="panel-content">
-                <div class="panel__content-items">
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Categories</h4>
-                    <p class="panel__content-text">Engeenering</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Session</h4>
-                    <p class="panel__content-text">Aug 21 - Sep 15</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">For credit?</h4>
-                    <p class="panel__content-text">Credit</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Application Outcome</h4>
-                    <p class="panel__content-text">Admitted but undecided</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Learning format</h4>
-                    <p class="panel__content-text">Online</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Application Deadline</h4>
-                    <p class="panel__content-text">RD. Dec 11</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Application Status</h4>
-                    <p class="panel__content-text">Considering (short list)</p>
-                  </div>
-                  <div class="panel__content-item">
-                    <h4 class="panel__content-title">Description</h4>
-                    <p class="panel__content-text">
-                      Now summarize what you wrote above: describe the activity,
-                      including what you accomplished and any recognition you
-                      received, etc.
-                    </p>
-                  </div>
-                </div>
+              <div>
+                <h3 class="programmes__item-title">{{ program.university }}</h3>
+                <p class="programmes__item-description">
+                  {{ program.name }}
+                </p>
               </div>
-            </a-collapse-panel>
-          </a-collapse>
+            </div>
+            <div class="programmes__item-right">
+              <div class="programmes__item-date">
+                <span
+                  >{{ formatDate(program.startDate) }} -
+                  {{ formatDate(program.endDate) }}</span
+                >
+              </div>
+              <button @click="showEditModal(program)" class="edit__btn">
+                <Icon name="lucide:edit" style="width: 16px; height: 16px" />
+              </button>
+            </div>
+          </div>
+          <div class="programmes__item-body">
+            <a-collapse accordion v-model:activeKey="activeKey">
+              <a-collapse-panel
+                :key="program.id.toString()"
+                :show-arrow="false"
+              >
+                <template #header>
+                  <div class="panel-header">
+                    <p>Details</p>
+                    <Icon name="lucide:chevron-down" />
+                  </div>
+                </template>
+                <div class="panel-content">
+                  <div class="panel__content-items">
+                    <div class="panel__content-item">
+                      <h4 class="panel__content-title">Category</h4>
+                      <p class="panel__content-text">{{ program.category }}</p>
+                    </div>
+                    <div class="panel__content-item">
+                      <h4 class="panel__content-title">Session</h4>
+                      <p class="panel__content-text">
+                        {{ formatDate(program.startDate) }} -
+                        {{ formatDate(program.endDate) }}
+                      </p>
+                    </div>
+                    <div class="panel__content-item">
+                      <h4 class="panel__content-title">Learning Format</h4>
+                      <p class="panel__content-text">
+                        {{ program.isOnline ? "Online" : "In-person" }}
+                      </p>
+                    </div>
+                    <div class="panel__content-item">
+                      <h4 class="panel__content-title">University</h4>
+                      <p class="panel__content-text">
+                        {{ program.university }}
+                      </p>
+                    </div>
+                    <div class="panel__content-item">
+                      <h4 class="panel__content-title">Description</h4>
+                      <p class="panel__content-text">
+                        {{ program.description }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </a-collapse-panel>
+            </a-collapse>
+          </div>
         </div>
-      </div>
+      </a-spin>
     </div>
   </div>
 
-  <a-modal v-model:visible="visible" @ok="handleOk">
-    <p>Some contents...</p>
-    <p>Some contents...</p>
-    <p>Some contents...</p>
-    <p>Some contents...</p>
+  <a-modal
+    v-model:visible="visible"
+    :title="editMode ? 'Edit Program' : 'Add New Program'"
+    @ok="handleOk"
+    :confirm-loading="loading"
+    width="600px"
+  >
+    <a-form layout="vertical">
+      <a-form-item label="Program Name" required>
+        <a-input
+          v-model:value="formData.name"
+          placeholder="Enter program name"
+        />
+      </a-form-item>
+
+      <a-form-item label="University" required>
+        <a-input
+          v-model:value="formData.university"
+          placeholder="Enter university name"
+        />
+      </a-form-item>
+
+      <a-form-item label="Category">
+        <a-input
+          v-model:value="formData.category"
+          placeholder="e.g., Engineering, Science, Arts"
+        />
+      </a-form-item>
+
+      <a-row :gutter="16">
+        <a-col :span="12">
+          <a-form-item label="Start Date" required>
+            <a-date-picker
+              v-model:value="formData.startDate"
+              style="width: 100%"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+            />
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label="End Date" required>
+            <a-date-picker
+              v-model:value="formData.endDate"
+              style="width: 100%"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
+
+      <a-form-item label="Description">
+        <a-textarea
+          v-model:value="formData.description"
+          :rows="4"
+          placeholder="Enter program description"
+        />
+      </a-form-item>
+
+      <a-form-item>
+        <a-checkbox v-model:checked="formData.isOnline">
+          Online Program
+        </a-checkbox>
+      </a-form-item>
+    </a-form>
   </a-modal>
 </template>
 
@@ -332,5 +411,26 @@ const handleOk = (e) => {
   font-weight: 500;
   font-size: 14px;
   line-height: 20px;
+}
+.edit__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--light-grey);
+  transition: all 0.3s;
+}
+.edit__btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--light-grey);
+  font-size: 14px;
 }
 </style>

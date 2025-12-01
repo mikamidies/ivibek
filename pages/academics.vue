@@ -73,13 +73,13 @@ const school__items = [
       />
       <AiBanner class="marginer" />
 
-      <AcademicsInformation
+      <!-- <AcademicsInformation
         :school__options="school__options"
         :school__items="school__items"
         class="marginer"
-      />
+      /> -->
 
-      <AcademicsSchool :school__items="school__items" class="marginer" />
+      <!-- <AcademicsSchool :school__items="school__items" class="marginer" /> -->
 
       <AcademicsProgrammes
         :school__options="school__options"
@@ -88,7 +88,7 @@ const school__items = [
       />
 
       <AcademicsResearch :school__items="school__items" class="marginer" />
-      <AcademicsPortfolio :school__items="school__items" />
+      <!-- <AcademicsPortfolio :school__items="school__items" /> -->
     </div>
     <div class="right">
       <GeneralCard />
