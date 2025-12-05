@@ -268,6 +268,7 @@ onMounted(async () => {
     @ok="handleOk"
     :okText="'Add'"
     :cancelText="'Cancel'"
+    class="academics__form"
   >
     <a-form layout="vertical">
       <a-form-item label="Title" required>
@@ -308,6 +309,7 @@ onMounted(async () => {
     @ok="handleEditOk"
     :okText="'Update'"
     :cancelText="'Cancel'"
+    class="academics__form"
   >
     <a-form layout="vertical">
       <a-form-item label="Title" required>

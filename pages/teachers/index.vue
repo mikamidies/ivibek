@@ -141,6 +141,8 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  row-gap: 16px;
 }
 .teachers__top-left {
   display: flex;

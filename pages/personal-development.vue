@@ -166,7 +166,6 @@ onMounted(async () => {
         iconProps="/page-icons/personal.png"
       />
 
-      <!-- Reading Section -->
       <div class="development-body">
         <div class="development__header">
           <h4 class="section__title">Reading</h4>
@@ -206,7 +205,6 @@ onMounted(async () => {
         </a-spin>
       </div>
 
-      <!-- Writing Section -->
       <div class="development-body">
         <div class="development__header">
           <h4 class="section__title">Writing</h4>
@@ -246,7 +244,6 @@ onMounted(async () => {
         </a-spin>
       </div>
 
-      <!-- Experience Section -->
       <div class="development-body">
         <div class="development__header">
           <h4 class="section__title">Experience</h4>
@@ -290,7 +287,6 @@ onMounted(async () => {
         </a-spin>
       </div>
 
-      <!-- Relationship Section -->
       <div class="development-body">
         <div class="development__header">
           <h4 class="section__title">Relationship</h4>
@@ -334,7 +330,6 @@ onMounted(async () => {
         </a-spin>
       </div>
 
-      <!-- Academic Skills Section -->
       <div class="development-body">
         <div class="development__header">
           <h4 class="section__title">Academic Skills</h4>
@@ -378,7 +373,6 @@ onMounted(async () => {
         </a-spin>
       </div>
 
-      <!-- Academic Enrichment Section -->
       <div class="development-body">
         <div class="development__header">
           <h4 class="section__title">Academic Enrichment</h4>
@@ -425,13 +419,13 @@ onMounted(async () => {
     <GeneralCard />
   </div>
 
-  <!-- Create Modal -->
   <a-modal
     v-model:visible="visible"
     title="Add Item"
     @ok="handleOk"
     :okText="'Add'"
     :cancelText="'Cancel'"
+    class="academics__form"
   >
     <a-form layout="vertical">
       <a-form-item label="Title" required>
@@ -466,13 +460,13 @@ onMounted(async () => {
     </a-form>
   </a-modal>
 
-  <!-- Edit Modal -->
   <a-modal
     v-model:visible="editVisible"
     title="Edit Item"
     @ok="handleEditOk"
     :okText="'Update'"
     :cancelText="'Cancel'"
+    class="academics__form"
   >
     <a-form layout="vertical">
       <a-form-item label="Title" required>

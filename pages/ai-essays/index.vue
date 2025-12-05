@@ -1,6 +1,6 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
-import { ref, nextTick, onMounted, computed, watch } from "vue";
+import { marked } from "marked";
 import { message } from "ant-design-vue";
 
 const { createChat, sendMessage, getChats, getChatById } = useAiEssays();
@@ -399,7 +399,10 @@ const getStatusLabel = (status) => {
                       <Icon v-else name="lucide:bot" />
                     </div>
                     <div class="message-content">
-                      <p>{{ msg.message || msg.content }}</p>
+                      <div
+                        class="markdown-content"
+                        v-html="marked(msg.message || msg.content)"
+                      ></div>
                     </div>
                   </div>
 
@@ -788,6 +791,161 @@ const getStatusLabel = (status) => {
   line-height: 20px;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* Markdown Content Styling */
+.markdown-content {
+  font-size: 14px;
+  line-height: 24px;
+  color: #364153;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+  color: #1a1a1a;
+  line-height: 1.3;
+}
+
+.markdown-content h1 {
+  font-size: 24px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 8px;
+}
+
+.markdown-content h2 {
+  font-size: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 6px;
+}
+
+.markdown-content h3 {
+  font-size: 18px;
+}
+
+.markdown-content h4 {
+  font-size: 16px;
+}
+
+.markdown-content h5,
+.markdown-content h6 {
+  font-size: 14px;
+}
+
+.markdown-content p {
+  margin: 8px 0;
+  line-height: 24px;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.markdown-content em {
+  font-style: italic;
+  color: #4b5563;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.markdown-content li {
+  margin: 4px 0;
+  line-height: 24px;
+}
+
+.markdown-content ul li {
+  list-style-type: disc;
+}
+
+.markdown-content ol li {
+  list-style-type: decimal;
+}
+
+.markdown-content blockquote {
+  margin: 12px 0;
+  padding: 8px 16px;
+  border-left: 4px solid var(--blue);
+  background: #f3f4f6;
+  border-radius: 4px;
+  font-style: italic;
+  color: #4b5563;
+}
+
+.markdown-content code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  color: #e60076;
+}
+
+.markdown-content pre {
+  background: #1f2937;
+  color: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+.markdown-content pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.markdown-content a {
+  color: var(--blue);
+  text-decoration: underline;
+  transition: opacity 0.2s;
+}
+
+.markdown-content a:hover {
+  opacity: 0.8;
+}
+
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 16px 0;
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.markdown-content table th,
+.markdown-content table td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.markdown-content table th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 12px 0;
 }
 .chat__suggests {
   padding: 16px;

@@ -203,6 +203,7 @@ const formatDate = (date) => {
     @ok="handleOk"
     :confirm-loading="loading"
     width="600px"
+    class="academics__form"
   >
     <a-form layout="vertical">
       <a-form-item label="Research Name" required>

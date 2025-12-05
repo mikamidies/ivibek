@@ -195,3 +195,18 @@
 .ant-form {
   overflow: visible;
 }
+.academics__form .ant-form,
+.activities__form .ant-form {
+  grid-template-columns: 1fr !important;
+}
+.academics__form .ant-modal-body,
+.activities__form .ant-modal-body {
+  height: auto !important;
+  overflow: hidden !important;
+}
+.ant-input-number {
+  border: 0;
+}
+.ant-input-number-input {
+  height: 42px;
+}

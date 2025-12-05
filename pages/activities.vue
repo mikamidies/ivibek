@@ -447,6 +447,7 @@ onMounted(() => {
     :okText="'Add'"
     :cancelText="'Cancel'"
     width="600px"
+    class="activities__form"
   >
     <a-form layout="vertical">
       <a-form-item label="Activity Name" required>
@@ -509,6 +510,7 @@ onMounted(() => {
     :okText="'Update'"
     :cancelText="'Cancel'"
     width="600px"
+    class="activities__form"
   >
     <a-form layout="vertical">
       <a-form-item label="Activity Name" required>
@@ -571,6 +573,7 @@ onMounted(() => {
     :okText="'Add'"
     :cancelText="'Cancel'"
     width="600px"
+    class="activities__form"
   >
     <a-form layout="vertical">
       <a-form-item label="Internship Name" required>
@@ -641,6 +644,7 @@ onMounted(() => {
     :okText="'Update'"
     :cancelText="'Cancel'"
     width="600px"
+    class="activities__form"
   >
     <a-form layout="vertical">
       <a-form-item label="Internship Name" required>
