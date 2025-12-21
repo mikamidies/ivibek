@@ -318,7 +318,10 @@ const handleSessionOk = () => {
               </tr>
             </tbody>
           </table>
-          <a-empty v-else description="No meetings found" />
+          <div v-else-if="!meetings.length" class="empty__state">
+            <Icon name="lucide:file-text" />
+            <p>No bookings</p>
+          </div>
         </a-spin>
       </div>
     </div>
