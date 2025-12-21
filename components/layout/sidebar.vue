@@ -3,6 +3,8 @@ import PersonalCard from "@/components/cards/PersonalCard.vue";
 
 const { logout } = useAuth();
 
+const isSidebarOpen = inject("isSidebarOpen");
+
 const links = [
   { name: "Dashboard", link: "/", icon: "lucide:layout-dashboard" },
   { name: "Academics", link: "/academics", icon: "lucide:graduation-cap" },
@@ -43,7 +45,7 @@ const links = [
 </script>
 
 <template>
-  <div class="sidebar">
+  <div class="sidebar" :class="{ open: isSidebarOpen }">
     <div class="slider">
       <div class="top">
         <NuxtImg
@@ -85,6 +87,11 @@ const links = [
   position: fixed;
   z-index: 3;
   background: white;
+  left: -264px;
+  transition: left 0.3s ease;
+}
+.sidebar.open {
+  left: 0;
 }
 .slider {
   height: 100%;

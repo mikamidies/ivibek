@@ -1116,4 +1116,21 @@ const getStatusLabel = (status) => {
 .chat__ball img {
   mix-blend-mode: hard-light;
 }
+@media screen and (max-width: 1300px) {
+  .grid {
+    display: flex;
+    flex-direction: column-reverse;
+    height: auto;
+  }
+  .left {
+    height: auto;
+  }
+  .right {
+    height: 50vh;
+  }
+  .chat__scroller {
+    min-width: 700px;
+    max-width: 700px;
+  }
+}
 </style>

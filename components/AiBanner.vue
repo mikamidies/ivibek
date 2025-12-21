@@ -70,6 +70,11 @@
   max-width: 362px;
   gap: 12px;
 }
+@media screen and (max-width: 1300px) {
+  .ai-banner {
+    grid-template-columns: 6fr 4fr;
+  }
+}
 .title {
   font-size: 24px;
   line-height: 32px;

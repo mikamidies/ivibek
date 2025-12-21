@@ -267,6 +267,11 @@ onMounted(() => {
   height: 100vh;
   overflow: auto;
 }
+@media screen and (max-width: 1300px) {
+  .honors-page {
+    grid-template-columns: 1fr 300px;
+  }
+}
 .honors__body {
   padding: 24px;
   background: #ffffff;

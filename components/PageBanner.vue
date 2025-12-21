@@ -138,4 +138,20 @@ defineProps({
   overflow: hidden;
   filter: blur(40px);
 }
+@media screen and (max-width: 1300px) {
+  .icon {
+    width: 100px;
+    height: 100px;
+    right: 24px;
+  }
+  .icon img {
+    width: 60px;
+    height: 60px;
+  }
+  .icon::after,
+  .icon::before {
+    width: 100px;
+    height: 100px;
+  }
+}
 </style>

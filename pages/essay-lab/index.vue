@@ -3,7 +3,7 @@ import { message } from "ant-design-vue";
 import PageBanner from "@/components/PageBanner.vue";
 
 definePageMeta({
-  layoutTitle: "Essay Lab",
+  layoutTitle: "",
 });
 
 const { fetchEssays } = useEssay();

@@ -1243,4 +1243,25 @@ const getStatusLabel = (status) => {
     transform: scale(1.2);
   }
 }
+
+@media screen and (max-width: 1300px) {
+  .grid {
+    display: flex;
+    flex-direction: column-reverse;
+    height: auto;
+  }
+  .left {
+    height: auto;
+  }
+  .right {
+    height: 50vh;
+  }
+  .chat__scroller {
+    min-width: 700px;
+    max-width: 700px;
+  }
+  .chat__bg {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
 </style>

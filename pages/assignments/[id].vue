@@ -218,6 +218,11 @@ const handleSubmit = async () => {
   gap: 24px;
   margin-top: 24px;
 }
+@media screen and (max-width: 1300px) {
+  .assignment__grid {
+    grid-template-columns: 1fr 300px;
+  }
+}
 .assignment__teacher {
   background: white;
   border-radius: 16px;

@@ -355,7 +355,11 @@ onMounted(async () => {
   height: 100vh;
   overflow: auto;
 }
-
+@media screen and (max-width: 1300px) {
+  .careers-page {
+    grid-template-columns: 1fr 300px;
+  }
+}
 .majors-body {
   background: white;
   border-radius: 16px;
@@ -375,7 +379,7 @@ onMounted(async () => {
 }
 .books__item {
   display: grid;
-  grid-template-columns: 6fr 4fr;
+  grid-template-columns: 5fr 5fr;
   align-items: center;
   border: 1px solid var(--border);
   padding: 16px;

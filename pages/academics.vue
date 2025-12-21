@@ -107,6 +107,11 @@ const school__items = [
   overflow: auto;
   position: relative;
 }
+@media screen and (max-width: 1300px) {
+  .academics-page {
+    grid-template-columns: 1fr 300px;
+  }
+}
 .right {
   background: white;
   border-radius: 16px;

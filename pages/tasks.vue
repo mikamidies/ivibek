@@ -318,6 +318,11 @@ onMounted(() => {
   height: 100vh;
   overflow: auto;
 }
+@media screen and (max-width: 1300px) {
+  .tasks-page {
+    grid-template-columns: 1fr 300px;
+  }
+}
 .tasks__items {
   display: flex;
   flex-direction: column;

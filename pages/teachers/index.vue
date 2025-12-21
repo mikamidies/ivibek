@@ -144,6 +144,7 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
   flex-wrap: wrap;
   row-gap: 16px;
 }
+
 .teachers__top-left {
   display: flex;
   align-items: center;
@@ -219,5 +220,16 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
   color: var(--green);
   padding: 4px 8px;
   border-radius: 8px;
+}
+@media screen and (max-width: 1300px) {
+  .teachers__top-left :deep(.ant-select) {
+    width: 100% !important;
+  }
+  .search__input {
+    width: 100% !important;
+  }
+  .teachers__items {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 </style>

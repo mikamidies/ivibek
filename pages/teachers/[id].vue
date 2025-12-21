@@ -375,4 +375,13 @@ const genderFormat = (gender) => {
   font-size: 16px;
   line-height: 24px;
 }
+@media screen and (max-width: 1300px) {
+  .teacher__grid {
+    grid-template-columns: 1fr;
+  }
+  .teacher__left,
+  .teacher__right {
+    gap: 16px;
+  }
+}
 </style>

@@ -8,7 +8,7 @@ const { fetchTasks, toggleTask } = useTasks();
 import { message } from "ant-design-vue";
 
 definePageMeta({
-  layoutTitle: "Dashboard",
+  layoutTitle: "",
 });
 
 const sessions = ref([]);
@@ -396,6 +396,7 @@ const handleSessionOk = () => {
   grid-template-columns: 1fr 384px;
   gap: 24px;
 }
+
 .sections {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -806,5 +807,13 @@ const handleSessionOk = () => {
 }
 .session__modal .modal__response a:hover {
   text-decoration: underline;
+}
+@media screen and (max-width: 1300px) {
+  .grid {
+    grid-template-columns: 1fr 280px;
+  }
+  .sections {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

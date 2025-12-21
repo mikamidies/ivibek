@@ -2,11 +2,25 @@
 defineProps({
   title: { type: [String], default: "" },
 });
+
+const isSidebarOpen = inject("isSidebarOpen");
 </script>
 
 <template>
   <div class="container">
     <div class="left">
+      <button class="menu-btn" @click="isSidebarOpen = !isSidebarOpen">
+        <Icon name="lucide:menu" class="icon" />
+      </button>
+      <div class="brand">
+        <NuxtImg
+          src="/images/brand.svg"
+          alt="Brand"
+          class="logo"
+          width="140"
+          height="48"
+        />
+      </div>
       <h1 class="title">{{ title }}</h1>
     </div>
     <div class="right">
@@ -28,7 +42,7 @@ defineProps({
 
 <style scoped>
 .container {
-  padding: 24px 24px;
+  padding: 25px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -41,6 +55,19 @@ defineProps({
 .title {
   font-size: 24px;
   font-weight: 600;
+}
+.left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.brand {
+  display: none;
+}
+@media screen and (max-width: 1300px) {
+  .brand {
+    display: flex;
+  }
 }
 .right {
   display: flex;
@@ -83,5 +110,26 @@ defineProps({
 .buttons a:hover {
   background-color: var(--border);
   color: var(--blue);
+}
+.menu-btn {
+  border: 1px solid var(--border);
+  width: 36px;
+  height: 36px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--black);
+  transition: all 0.2s;
+  background: none;
+  cursor: pointer;
+}
+.menu-btn:hover {
+  background-color: var(--light-grey);
+}
+@media (min-width: 1300px) {
+  .menu-btn {
+    display: none;
+  }
 }
 </style>

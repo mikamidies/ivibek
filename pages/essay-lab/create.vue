@@ -363,6 +363,11 @@ const handleCreate = async () => {
   grid-template-columns: 1fr 384px;
   gap: 24px;
 }
+@media screen and (max-width: 1300px) {
+  .essay__grid {
+    grid-template-columns: 1fr;
+  }
+}
 .essay__left {
   background: white;
   padding: 24px;

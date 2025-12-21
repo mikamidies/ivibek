@@ -136,6 +136,11 @@ import GeneralCard from "@/components/cards/GeneralCard.vue";
   height: 100vh;
   overflow: auto;
 }
+@media screen and (max-width: 1300px) {
+  .testing-page {
+    grid-template-columns: 1fr 300px;
+  }
+}
 .testing__body {
   padding: 24px;
   background: #ffffff;

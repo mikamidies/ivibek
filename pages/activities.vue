@@ -732,6 +732,11 @@ onMounted(() => {
   height: 100vh;
   overflow: auto;
 }
+@media screen and (max-width: 1300px) {
+  .activities-page {
+    grid-template-columns: 1fr 300px;
+  }
+}
 .activities__body {
   padding: 24px;
   background: #ffffff;
