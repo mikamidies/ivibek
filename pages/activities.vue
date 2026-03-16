@@ -7,8 +7,8 @@ import { message } from "ant-design-vue";
 const { fetchActivities, createActivity, updateActivity } = useActivities();
 const { fetchInternships, createInternship, updateInternship } =
   useInternships();
+const { t } = useTranslations();
 
-// Active collapse keys для каждой группы
 const activitiesActiveKey = ref([0]);
 const internshipsActiveKey = ref([0]);
 
@@ -217,18 +217,18 @@ onMounted(() => {
   <div class="activities-page">
     <div class="activities__left">
       <PageBanner
-        titleProps="Activities"
+        :titleProps="t('activities.activities')"
         backgroundProps="#18A171"
         iconProps="/page-icons/activities.png"
       />
 
       <div class="activities__body">
         <div class="act__header">
-          <h4 class="section__title">Activities</h4>
+          <h4 class="section__title">{{ t("activities.activities") }}</h4>
 
           <a-button @click="showModal" class="add__btn">
             <Icon name="lucide:plus" class="icon" />
-            Add
+            {{ t("activities.add") }}
           </a-button>
         </div>
         <!-- <div class="act__top">
@@ -256,7 +256,7 @@ onMounted(() => {
         <a-spin :spinning="loading">
           <div v-if="activities.length === 0 && !loading" class="empty__state">
             <Icon name="lucide:file-text" class="empty-icon" />
-            No activities added yet
+            {{ t("activities.no-activities") }}
           </div>
 
           <div
@@ -287,38 +287,48 @@ onMounted(() => {
                 <a-collapse-panel :key="index" :show-arrow="false">
                   <template #header>
                     <div class="panel-header">
-                      <p>Details</p>
+                      <p>{{ t("activities.details") }}</p>
                       <Icon name="lucide:chevron-down" />
                     </div>
                   </template>
                   <div class="panel-content">
                     <div class="panel__content-items">
                       <div class="panel__content-item">
-                        <h4 class="panel__content-title">Organization Name</h4>
+                        <h4 class="panel__content-title">
+                          {{ t("activities.org-name") }}
+                        </h4>
                         <p class="panel__content-text">
                           {{ activity.orgName }}
                         </p>
                       </div>
                       <div class="panel__content-item">
-                        <h4 class="panel__content-title">School Year</h4>
+                        <h4 class="panel__content-title">
+                          {{ t("activities.school") }}
+                        </h4>
                         <p class="panel__content-text">
                           Year {{ activity.schoolYear }}
                         </p>
                       </div>
                       <div class="panel__content-item">
-                        <h4 class="panel__content-title">Hours per Week</h4>
+                        <h4 class="panel__content-title">
+                          {{ t("activities.week") }}
+                        </h4>
                         <p class="panel__content-text">
                           {{ activity.hoursPerWeek }}
                         </p>
                       </div>
                       <div class="panel__content-item">
-                        <h4 class="panel__content-title">Weeks per Year</h4>
+                        <h4 class="panel__content-title">
+                          {{ t("activities.year") }}
+                        </h4>
                         <p class="panel__content-text">
                           {{ activity.weekPerYear }}
                         </p>
                       </div>
                       <div class="panel__content-item">
-                        <h4 class="panel__content-title">Description</h4>
+                        <h4 class="panel__content-title">
+                          {{ t("activities.desc") }}
+                        </h4>
                         <p class="panel__content-text">
                           {{ activity.description }}
                         </p>
@@ -334,11 +344,11 @@ onMounted(() => {
 
       <div class="activities__body">
         <div class="act__header">
-          <h4 class="section__title">Internship & Work Experience</h4>
+          <h4 class="section__title">{{ t("activities.intership") }}</h4>
 
           <a-button @click="showInternshipModal" class="add__btn">
             <Icon name="lucide:plus" class="icon" />
-            Add
+            {{ t("activities.add") }}
           </a-button>
         </div>
 
@@ -348,7 +358,7 @@ onMounted(() => {
             class="empty__state"
           >
             <Icon name="lucide:file-text" class="empty-icon" />
-            No internships added yet
+            {{ t("activities.no-intership") }}
           </div>
 
           <div
@@ -386,7 +396,7 @@ onMounted(() => {
                 <a-collapse-panel :key="index" :show-arrow="false">
                   <template #header>
                     <div class="panel-header">
-                      <p>Details</p>
+                      <p>{{ t("activities.details") }}</p>
                       <Icon name="lucide:chevron-down" />
                     </div>
                   </template>
@@ -394,19 +404,25 @@ onMounted(() => {
                     <div class="panel__content-items new__grid">
                       <div class="separator">
                         <div class="panel__content-item">
-                          <h4 class="panel__content-title">Position</h4>
+                          <h4 class="panel__content-title">
+                            {{ t("activities.position") }}
+                          </h4>
                           <p class="panel__content-text">
                             {{ internship.position }}
                           </p>
                         </div>
                         <div class="panel__content-item">
-                          <h4 class="panel__content-title">Organization</h4>
+                          <h4 class="panel__content-title">
+                            {{ t("activities.org-name") }}
+                          </h4>
                           <p class="panel__content-text">
                             {{ internship.orgName }}
                           </p>
                         </div>
                         <div class="panel__content-item">
-                          <h4 class="panel__content-title">Program Provider</h4>
+                          <h4 class="panel__content-title">
+                            {{ t("activities.program-provider") }}
+                          </h4>
                           <p class="panel__content-text">
                             {{ internship.programProvider }}
                           </p>
@@ -415,14 +431,18 @@ onMounted(() => {
 
                       <div class="separator">
                         <div class="panel__content-item">
-                          <h4 class="panel__content-title">Period</h4>
+                          <h4 class="panel__content-title">
+                            {{ t("activities.period") }}
+                          </h4>
                           <p class="panel__content-text">
                             {{ formatDate(internship.startDate) }} -
                             {{ formatDate(internship.endDate) }}
                           </p>
                         </div>
                         <div class="panel__content-item">
-                          <h4 class="panel__content-title">Description</h4>
+                          <h4 class="panel__content-title">
+                            {{ t("activities.desc") }}
+                          </h4>
                           <p class="panel__content-text">
                             {{ internship.description }}
                           </p>
@@ -442,7 +462,7 @@ onMounted(() => {
 
   <a-modal
     v-model:visible="visible"
-    title="Add Activity"
+    :title="t('activities.add-activity')"
     @ok="handleOk"
     :okText="'Add'"
     :cancelText="'Cancel'"
@@ -450,24 +470,24 @@ onMounted(() => {
     class="activities__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Activity Name" required>
+      <a-form-item :label="t('activities.activity-name')" required>
         <a-input
           v-model:value="createForm.name"
-          placeholder="Enter activity name"
+          :placeholder="t('activities.activity-name')"
         />
       </a-form-item>
 
-      <a-form-item label="Organization Name" required>
+      <a-form-item :label="t('activities.org-name')" required>
         <a-input
           v-model:value="createForm.orgName"
-          placeholder="Enter organization name"
+          :placeholder="t('activities.org-name')"
         />
       </a-form-item>
 
-      <a-form-item label="School Year" required>
+      <a-form-item :label="t('activities.school')" required>
         <a-input-number
           v-model:value="createForm.schoolYear"
-          placeholder="Enter school year (e.g., 9, 10, 11, 12)"
+          :placeholder="t('activities.school')"
           style="width: 100%"
           :min="1"
           :max="13"
@@ -476,27 +496,27 @@ onMounted(() => {
 
       <a-row :gutter="16">
         <a-col :span="12">
-          <a-form-item label="Hours per Week" required>
+          <a-form-item :label="t('activities.week')" required>
             <a-input
               v-model:value="createForm.hoursPerWeek"
-              placeholder="e.g., 5"
+              :placeholder="t('activities.week')"
             />
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label="Weeks per Year" required>
+          <a-form-item :label="t('activities.year')" required>
             <a-input
               v-model:value="createForm.weekPerYear"
-              placeholder="e.g., 40"
+              :placeholder="t('activities.year')"
             />
           </a-form-item>
         </a-col>
       </a-row>
 
-      <a-form-item label="Description" required>
+      <a-form-item :label="t('activities.desc')" required>
         <a-textarea
           v-model:value="createForm.description"
-          placeholder="Describe the activity, what you accomplished, and any recognition received"
+          :placeholder="t('activities.desc')"
           :rows="4"
         />
       </a-form-item>
@@ -513,24 +533,24 @@ onMounted(() => {
     class="activities__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Activity Name" required>
+      <a-form-item :label="t('activities.activity-name')" required>
         <a-input
           v-model:value="editForm.name"
-          placeholder="Enter activity name"
+          :placeholder="t('activities.activity-name')"
         />
       </a-form-item>
 
-      <a-form-item label="Organization Name" required>
+      <a-form-item :label="t('activities.org-name')" required>
         <a-input
           v-model:value="editForm.orgName"
-          placeholder="Enter organization name"
+          :placeholder="t('activities.org-name')"
         />
       </a-form-item>
 
-      <a-form-item label="School Year" required>
+      <a-form-item :label="t('activities.school')" required>
         <a-input-number
           v-model:value="editForm.schoolYear"
-          placeholder="Enter school year (e.g., 9, 10, 11, 12)"
+          :placeholder="t('activities.school')"
           style="width: 100%"
           :min="1"
           :max="13"
@@ -539,27 +559,27 @@ onMounted(() => {
 
       <a-row :gutter="16">
         <a-col :span="12">
-          <a-form-item label="Hours per Week" required>
+          <a-form-item :label="t('activities.week')" required>
             <a-input
               v-model:value="editForm.hoursPerWeek"
-              placeholder="e.g., 5"
+              :placeholder="t('activities.week')"
             />
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label="Weeks per Year" required>
+          <a-form-item :label="t('activities.year')" required>
             <a-input
               v-model:value="editForm.weekPerYear"
-              placeholder="e.g., 40"
+              :placeholder="t('activities.year')"
             />
           </a-form-item>
         </a-col>
       </a-row>
 
-      <a-form-item label="Description" required>
+      <a-form-item :label="t('activities.desc')" required>
         <a-textarea
           v-model:value="editForm.description"
-          placeholder="Describe the activity, what you accomplished, and any recognition received"
+          :placeholder="t('activities.desc')"
           :rows="4"
         />
       </a-form-item>
@@ -568,7 +588,7 @@ onMounted(() => {
 
   <a-modal
     v-model:visible="intershipVisible"
-    title="Add Internship"
+    :title="t('activities.add-intership')"
     @ok="handleIntershipOk"
     :okText="'Add'"
     :cancelText="'Cancel'"
@@ -576,37 +596,37 @@ onMounted(() => {
     class="activities__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Internship Name" required>
+      <a-form-item :label="t('activities.intership-name')" required>
         <a-input
           v-model:value="createInternshipForm.name"
-          placeholder="Enter internship name"
+          :placeholder="t('activities.intership-name')"
         />
       </a-form-item>
 
-      <a-form-item label="Organization Name" required>
+      <a-form-item :label="t('activities.org-name')" required>
         <a-input
           v-model:value="createInternshipForm.orgName"
-          placeholder="Enter organization name"
+          :placeholder="t('activities.org-name')"
         />
       </a-form-item>
 
-      <a-form-item label="Position" required>
+      <a-form-item :label="t('activities.position')" required>
         <a-input
           v-model:value="createInternshipForm.position"
-          placeholder="Enter your position"
+          :placeholder="t('activities.position')"
         />
       </a-form-item>
 
-      <a-form-item label="Program Provider" required>
+      <a-form-item :label="t('activities.program-provider')" required>
         <a-input
           v-model:value="createInternshipForm.programProvider"
-          placeholder="Enter program provider"
+          :placeholder="t('activities.program-provider')"
         />
       </a-form-item>
 
       <a-row :gutter="16">
         <a-col :span="12">
-          <a-form-item label="Start Date" required>
+          <a-form-item :label="t('activities.start-date')" required>
             <a-date-picker
               v-model:value="createInternshipForm.startDate"
               style="width: 100%"
@@ -616,7 +636,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label="End Date" required>
+          <a-form-item :label="t('activities.end-date')" required>
             <a-date-picker
               v-model:value="createInternshipForm.endDate"
               style="width: 100%"
@@ -627,10 +647,10 @@ onMounted(() => {
         </a-col>
       </a-row>
 
-      <a-form-item label="Description" required>
+      <a-form-item :label="t('activities.desc')" required>
         <a-textarea
           v-model:value="createInternshipForm.description"
-          placeholder="Describe your work experience and accomplishments"
+          :placeholder="t('activities.desc')"
           :rows="4"
         />
       </a-form-item>
@@ -639,7 +659,7 @@ onMounted(() => {
 
   <a-modal
     v-model:visible="intershipEditVisible"
-    title="Edit Internship"
+    :title="t('activities.edit-intership')"
     @ok="handleIntershipEditOk"
     :okText="'Update'"
     :cancelText="'Cancel'"
@@ -647,37 +667,37 @@ onMounted(() => {
     class="activities__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Internship Name" required>
+      <a-form-item :label="t('activities.intership-name')" required>
         <a-input
           v-model:value="editInternshipForm.name"
-          placeholder="Enter internship name"
+          :placeholder="t('activities.intership-name')"
         />
       </a-form-item>
 
-      <a-form-item label="Organization Name" required>
+      <a-form-item :label="t('activities.org-name')" required>
         <a-input
           v-model:value="editInternshipForm.orgName"
-          placeholder="Enter organization name"
+          :placeholder="t('activities.org-name')"
         />
       </a-form-item>
 
-      <a-form-item label="Position" required>
+      <a-form-item :label="t('activities.position')" required>
         <a-input
           v-model:value="editInternshipForm.position"
-          placeholder="Enter your position"
+          :placeholder="t('activities.position')"
         />
       </a-form-item>
 
-      <a-form-item label="Program Provider" required>
+      <a-form-item :label="t('activities.program-provider')" required>
         <a-input
           v-model:value="editInternshipForm.programProvider"
-          placeholder="Enter program provider"
+          :placeholder="t('activities.program-provider')"
         />
       </a-form-item>
 
       <a-row :gutter="16">
         <a-col :span="12">
-          <a-form-item label="Start Date" required>
+          <a-form-item :label="t('activities.start-date')" required>
             <a-date-picker
               v-model:value="editInternshipForm.startDate"
               style="width: 100%"
@@ -687,7 +707,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label="End Date" required>
+          <a-form-item :label="t('activities.end-date')" required>
             <a-date-picker
               v-model:value="editInternshipForm.endDate"
               style="width: 100%"
@@ -698,10 +718,10 @@ onMounted(() => {
         </a-col>
       </a-row>
 
-      <a-form-item label="Description" required>
+      <a-form-item :label="t('activities.desc')" required>
         <a-textarea
           v-model:value="editInternshipForm.description"
-          placeholder="Describe your work experience and accomplishments"
+          :placeholder="t('activities.desc')"
           :rows="4"
         />
       </a-form-item>

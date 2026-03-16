@@ -1,4 +1,41 @@
 <script setup>
+/*
+ * Internationalization (i18n) Implementation Guide for Nuxt 3 Projects
+ *
+ * This project implements a complete i18n system for dynamic translations:
+ *
+ * 1. Composable Setup:
+ *    - Created composables/translations.ts with useTranslations()
+ *    - Loads translations from API endpoint with localStorage fallback
+ *    - Provides t() function for key-based translation lookup
+ *
+ * 2. Key Format:
+ *    - Keys follow 'page.key' format (e.g., 'booking.add-booking')
+ *    - Values are English strings stored in API/localStorage
+ *
+ * 3. Vue File Integration:
+ *    - Import { t } = useTranslations() in <script setup>
+ *    - Replace hardcoded strings with t('key') calls
+ *    - Use :placeholder="t('key')" for form inputs
+ *    - Use :label="t('key')" for form items
+ *
+ * 4. Translation Management:
+ *    - translations.md contains all keys and values for reference
+ *    - Admin can update translations via API, reflected after page reload
+ *    - Fallback to key if translation missing
+ *
+ * 5. Best Practices:
+ *    - Only translate user-facing text, not code/data
+ *    - Use descriptive keys matching English values
+ *    - Group related keys by page/component
+ *    - Test with missing translations to ensure fallbacks work
+ *
+ * Example Usage:
+ *   <h2>{{ t('booking.title') }}</h2>
+ *   <a-input :placeholder="t('booking.search')" />
+ *   <a-button>{{ t('common.save') }}</a-button>
+ */
+
 import PageBanner from "@/components/PageBanner.vue";
 import WeeklyCalendar from "@/components/booking/WeeklyCalendar.vue";
 import { message } from "ant-design-vue";
@@ -8,6 +45,7 @@ import { ref } from "vue";
 const { fetchMentors, fetchMentorById, fetchMentorTimeslots } = useMentors();
 const { fetchUniversities, fetchFaculties } = useCommon();
 const { createMeeting, fetchMeetings, fetchMeetingById } = useMeetings();
+const { t } = useTranslations();
 
 const meetings = ref([]);
 const meetingsLoading = ref(false);
@@ -19,7 +57,7 @@ const loadMeetings = async () => {
     meetings.value = response.content;
   } catch (error) {
     console.error("Failed to load meetings:", error);
-    message.error("Failed to load meetings");
+    message.error(t("booking.failed-load-meetings"));
   } finally {
     meetingsLoading.value = false;
   }
@@ -51,7 +89,7 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
   mentors.value = await fetchMentors(
     selectedUniversity.value,
     selectedFaculty.value,
-    debouncedSearch.value
+    debouncedSearch.value,
   );
 });
 
@@ -106,7 +144,7 @@ const loadTimeslots = async (mentorId, dateFrom, dateTo) => {
     const timeslotsData = await fetchMentorTimeslots(
       mentorId,
       dateFrom,
-      dateTo
+      dateTo,
     );
 
     const slots = [];
@@ -130,7 +168,7 @@ const loadTimeslots = async (mentorId, dateFrom, dateTo) => {
 
 const handleBookOk = () => {
   if (selectedSlots.value.length === 0) {
-    message.warning("Please select at least one time slot");
+    message.warning(t("booking.select-slot"));
     return;
   }
   paymentModalVisible.value = true;
@@ -143,7 +181,7 @@ const bookingLoading = ref(false);
 
 const handlePaymentOk = async () => {
   if (selectedSlots.value.length === 0) {
-    message.error("Please select at least one time slot");
+    message.error(t("booking.select-slot"));
     return;
   }
 
@@ -181,7 +219,7 @@ const handlePaymentOk = async () => {
     await loadMeetings();
   } catch (error) {
     message.error(
-      "Failed to book meeting: " + (error?.message || "Unknown error")
+      "Failed to book meeting: " + (error?.message || "Unknown error"),
     );
   } finally {
     bookingLoading.value = false;
@@ -248,17 +286,17 @@ const handleSessionOk = () => {
 <template>
   <div class="booking-page">
     <PageBanner
-      titleProps="Booking"
+      :titleProps="t('booking.booking')"
       backgroundProps="#0092B8"
       iconProps="/page-icons/booking.png"
     />
 
     <div class="booking__body">
       <div class="booking__header">
-        <h2 class="section__title">Testing overview</h2>
+        <h2 class="section__title">{{ t("booking.overview") }}</h2>
 
         <a-button class="add__btn" @click="showModal">
-          <Icon name="lucide:plus" /> Add
+          <Icon name="lucide:plus" /> {{ t("booking.add") }}
         </a-button>
       </div>
       <div class="booking__content">
@@ -266,11 +304,11 @@ const handleSessionOk = () => {
           <table v-if="meetings.length > 0">
             <thead>
               <tr>
-                <th>Mentor</th>
-                <th>University</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
+                <th>{{ t("booking.mentor") }}</th>
+                <th>{{ t("booking.university") }}</th>
+                <th>{{ t("booking.date") }}</th>
+                <th>{{ t("booking.time") }}</th>
+                <th>{{ t("booking.status") }}</th>
                 <th></th>
               </tr>
             </thead>
@@ -320,7 +358,7 @@ const handleSessionOk = () => {
           </table>
           <div v-else-if="!meetings.length" class="empty__state">
             <Icon name="lucide:file-text" />
-            <p>No bookings</p>
+            <p>{{ t("booking.no-bookings") }}</p>
           </div>
         </a-spin>
       </div>
@@ -329,22 +367,24 @@ const handleSessionOk = () => {
 
   <a-modal v-model:visible="visible" @ok="handleOk">
     <div class="modal__header">
-      <h2 class="section__title">Add Booking</h2>
+      <h2 class="section__title">{{ t("booking.add-booking") }}</h2>
     </div>
     <div class="modal__body">
       <div class="modal__top">
         <div class="modal__search">
           <a-input
             v-model:value="searchQuery"
-            placeholder="Search by name or keywords"
+            :placeholder="t('booking.search-name')"
           />
           <Icon name="lucide:search" />
         </div>
         <a-select
           v-model:value="selectedUniversity"
-          placeholder="Filter by university"
+          :placeholder="t('booking.filter-university')"
         >
-          <a-select-option :value="null">All Universities</a-select-option>
+          <a-select-option :value="null">{{
+            t("booking.all-universities")
+          }}</a-select-option>
           <a-select-option
             v-for="university in universities"
             :key="university.id"
@@ -355,9 +395,11 @@ const handleSessionOk = () => {
         </a-select>
         <a-select
           v-model:value="selectedFaculty"
-          placeholder="Filter by faculty"
+          :placeholder="t('booking.filter-faculty')"
         >
-          <a-select-option :value="null">All Faculties</a-select-option>
+          <a-select-option :value="null">{{
+            t("booking.all-faculties")
+          }}</a-select-option>
           <a-select-option
             v-for="faculty in faculties"
             :key="faculty.id"
@@ -370,7 +412,7 @@ const handleSessionOk = () => {
       <div class="modal__mid">
         <div v-if="!mentors.length" class="empty__state">
           <Icon name="lucide:file-text" />
-          <p>No teachers found</p>
+          <p>{{ t("booking.no-teachers") }}</p>
         </div>
         <div
           v-else
@@ -415,24 +457,24 @@ const handleSessionOk = () => {
       <div class="modal__header-left">
         <a-button
           type="text"
-          @click="(bookModalVisible = false), (visible = true)"
+          @click="((bookModalVisible = false), (visible = true))"
         >
           <Icon name="lucide:arrow-left" />
         </a-button>
         <h2 class="section__title">
-          Book a session with {{ selectedMentor?.info.fullName }}
+          {{ t("booking.book_sesh") }} {{ selectedMentor?.info.fullName }}
         </h2>
       </div>
     </div>
     <div class="modal__info">
       <div class="modal__desc" v-if="selectedMentor?.about">
-        <h4>About teacher</h4>
+        <h4>{{ t("booking.about_teacher") }}</h4>
         <p>
           {{ selectedMentor?.about }}
         </p>
       </div>
       <div class="modal__details">
-        <h4>Contact Information</h4>
+        <h4>{{ t("booking.contact_info") }}</h4>
         <div class="modal__details-items">
           <div class="modal__details-item">
             <Icon name="lucide:mail" />
@@ -468,7 +510,9 @@ const handleSessionOk = () => {
     <div class="modal__price">
       <div class="modal__price-hourly">
         <p>$ {{ selectedMentor?.pricing.meetingHourPrice }}</p>
-        <span>Hourly Rate</span>
+        <span>
+          {{ t("booking.hourly") }}
+        </span>
       </div>
     </div>
     <div class="modal__calendar">
@@ -493,33 +537,33 @@ const handleSessionOk = () => {
       <a-button
         type="text"
         @click="
-          (paymentModalVisible = false),
-            (bookModalVisible = true),
-            (meetingDescription = '')
+          ((paymentModalVisible = false),
+          (bookModalVisible = true),
+          (meetingDescription = ''))
         "
       >
         <Icon name="lucide:arrow-left" />
       </a-button>
       <h2 class="section__title">
-        Book a session with {{ selectedMentor?.info.fullName }}
+        {{ t("booking.book_sesh") }} {{ selectedMentor?.info.fullName }}
       </h2>
     </div>
     <div class="modal__body">
       <div class="modal__description">
-        <p class="modal__label">Description for teacher</p>
+        <p class="modal__label">{{ t("booking.description-teacher") }}</p>
         <a-textarea
           v-model:value="meetingDescription"
           rows="4"
-          placeholder="Describe the purpose of the meeting or any specific topics you'd like to discuss"
+          :placeholder="t('booking.describe-purpose')"
         />
       </div>
       <div class="modal__prices">
         <div class="modal__price-item">
-          <p>Teacher price (per hour)</p>
+          <p>{{ t("booking.teacher-price") }}</p>
           <span>${{ selectedMentor?.hourlyRate || 24 }}</span>
         </div>
         <div class="modal__price-item">
-          <p>Selected slots</p>
+          <p>{{ t("booking.selected-slots") }}</p>
           <span
             >{{ selectedSlots.length }} hour{{
               selectedSlots.length > 1 ? "s" : ""
@@ -527,11 +571,15 @@ const handleSessionOk = () => {
           >
         </div>
         <div class="modal__price-item" v-if="selectedSlots.length > 0">
-          <p>Date & Time</p>
+          <p>
+            {{ t("booking.date") }}
+          </p>
           <span>{{ formatTimeRange() }}</span>
         </div>
         <div class="modal__price-total-item">
-          <p>Total price</p>
+          <p>
+            {{ t("booking.price") }}
+          </p>
           <span>${{ calculateTotalPrice() }}</span>
         </div>
       </div>
@@ -546,7 +594,9 @@ const handleSessionOk = () => {
   >
     <a-spin :spinning="meetingDetailLoading">
       <div class="modal__header">
-        <h2 class="section__title">Session Details</h2>
+        <h2 class="section__title">
+          {{ t("booking.sesh_details") }}
+        </h2>
       </div>
       <div class="modal__body" v-if="selectedMeeting">
         <div class="meeting-modal__top">
@@ -606,7 +656,9 @@ const handleSessionOk = () => {
           </div>
         </div>
         <div class="modal__response" v-if="selectedMeeting.meetingLink">
-          <h4>Meeting Link</h4>
+          <h4>
+            {{ t("booking.meet_link") }}
+          </h4>
           <a :href="selectedMeeting.meetingLink.link" target="_blank">{{
             selectedMeeting.meetingLink.link
           }}</a>

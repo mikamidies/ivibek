@@ -13,6 +13,7 @@ defineProps({
 });
 
 const { fetchPrograms, createProgram, updateProgram } = usePrograms();
+const { t } = useTranslations();
 
 const activeKey = ref([]);
 const visible = ref(false);
@@ -121,9 +122,10 @@ const formatDate = (date) => {
 <template>
   <div class="programmes">
     <div class="programmes__head">
-      <h2 class="programmes__title">Summer Programs & Univercity Courses</h2>
+      <h2 class="programmes__title">{{ t("academics.summer") }}</h2>
       <button @click="showModal" class="add__btn">
-        <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add
+        <Icon name="lucide:plus" style="width: 16px; height: 16px" />
+        {{ t("academics.add") }}
       </button>
     </div>
     <div class="programmes__items">
@@ -133,7 +135,9 @@ const formatDate = (date) => {
             name="lucide:file"
             style="width: 48px; height: 48px; margin-bottom: 16px"
           />
-          <p>No programs yet</p>
+          <p>
+            {{ t("academics.no_programmes") }}
+          </p>
         </div>
         <div
           v-for="program in programs"
@@ -153,12 +157,12 @@ const formatDate = (date) => {
               </div>
             </div>
             <div class="programmes__item-right">
-              <div class="programmes__item-date">
+              <!-- <div class="programmes__item-date">
                 <span
                   >{{ formatDate(program.startDate) }} -
                   {{ formatDate(program.endDate) }}</span
                 >
-              </div>
+              </div> -->
               <button @click="showEditModal(program)" class="edit__btn">
                 <Icon name="lucide:edit" style="width: 16px; height: 16px" />
               </button>
@@ -172,37 +176,54 @@ const formatDate = (date) => {
               >
                 <template #header>
                   <div class="panel-header">
-                    <p>Details</p>
+                    <p>{{ t("academics.details") }}</p>
                     <Icon name="lucide:chevron-down" />
                   </div>
                 </template>
                 <div class="panel-content">
                   <div class="panel__content-items">
                     <div class="panel__content-item">
-                      <h4 class="panel__content-title">Category</h4>
+                      <h4 class="panel__content-title">
+                        {{ t("academics.category") }}
+                      </h4>
                       <p class="panel__content-text">{{ program.category }}</p>
                     </div>
                     <div class="panel__content-item">
-                      <h4 class="panel__content-title">Session</h4>
+                      <h4 class="panel__content-title">
+                        {{ t("academics.start") }}
+                      </h4>
                       <p class="panel__content-text">
-                        {{ formatDate(program.startDate) }} -
+                        {{ formatDate(program.startDate) }}
+                      </p>
+                    </div>
+                    <div class="panel__content-item">
+                      <h4 class="panel__content-title">
+                        {{ t("academics.end") }}
+                      </h4>
+                      <p class="panel__content-text">
                         {{ formatDate(program.endDate) }}
                       </p>
                     </div>
                     <div class="panel__content-item">
-                      <h4 class="panel__content-title">Learning Format</h4>
+                      <h4 class="panel__content-title">
+                        {{ t("academics.format") }}
+                      </h4>
                       <p class="panel__content-text">
                         {{ program.isOnline ? "Online" : "In-person" }}
                       </p>
                     </div>
-                    <div class="panel__content-item">
-                      <h4 class="panel__content-title">University</h4>
+                    <!-- <div class="panel__content-item">
+                      <h4 class="panel__content-title">
+                        {{ t("academics.university") }}
+                      </h4>
                       <p class="panel__content-text">
                         {{ program.university }}
                       </p>
-                    </div>
+                    </div> -->
                     <div class="panel__content-item">
-                      <h4 class="panel__content-title">Description</h4>
+                      <h4 class="panel__content-title">
+                        {{ t("academics.description") }}
+                      </h4>
                       <p class="panel__content-text">
                         {{ program.description }}
                       </p>
@@ -219,37 +240,39 @@ const formatDate = (date) => {
 
   <a-modal
     v-model:visible="visible"
-    :title="editMode ? 'Edit Program' : 'Add New Program'"
+    :title="
+      editMode ? t('academics.edit-program') : t('academics.add-new-program')
+    "
     @ok="handleOk"
     :confirm-loading="loading"
     width="600px"
     class="academics__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Program Name" required>
+      <a-form-item :label="t('academics.program-name')" required>
         <a-input
           v-model:value="formData.name"
-          placeholder="Enter program name"
+          :placeholder="`Enter ${t('academics.program-name')}`"
         />
       </a-form-item>
 
-      <a-form-item label="University" required>
+      <a-form-item :label="t('academics.university')" required>
         <a-input
           v-model:value="formData.university"
-          placeholder="Enter university name"
+          :placeholder="`Enter ${t('academics.university')}`"
         />
       </a-form-item>
 
-      <a-form-item label="Category">
+      <a-form-item :label="t('academics.category')">
         <a-input
           v-model:value="formData.category"
-          placeholder="e.g., Engineering, Science, Arts"
+          :placeholder="`Enter ${t('academics.category')}`"
         />
       </a-form-item>
 
       <a-row :gutter="16">
         <a-col :span="12">
-          <a-form-item label="Start Date" required>
+          <a-form-item :label="t('academics.start')" required>
             <a-date-picker
               v-model:value="formData.startDate"
               style="width: 100%"
@@ -259,7 +282,7 @@ const formatDate = (date) => {
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label="End Date" required>
+          <a-form-item :label="t('academics.end')" required>
             <a-date-picker
               v-model:value="formData.endDate"
               style="width: 100%"
@@ -270,17 +293,17 @@ const formatDate = (date) => {
         </a-col>
       </a-row>
 
-      <a-form-item label="Description">
+      <a-form-item :label="t('academics.description')">
         <a-textarea
           v-model:value="formData.description"
           :rows="4"
-          placeholder="Enter program description"
+          :placeholder="`Enter ${t('academics.description')}`"
         />
       </a-form-item>
 
       <a-form-item>
         <a-checkbox v-model:checked="formData.isOnline">
-          Online Program
+          {{ t("academics.online-format") }}
         </a-checkbox>
       </a-form-item>
     </a-form>

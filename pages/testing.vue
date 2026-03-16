@@ -1,22 +1,24 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
 import GeneralCard from "@/components/cards/GeneralCard.vue";
+
+const { t } = useTranslations();
 </script>
 
 <template>
   <div class="testing-page">
     <div class="testing__left">
       <PageBanner
-        titleProps="Testing"
+        :titleProps="t('testing.testing')"
         backgroundProps="#FB64B6"
         iconProps="/page-icons/testing.png"
       />
       <div class="testing__body">
         <div class="testing__header">
-          <h4 class="section__title">Testing overview</h4>
+          <h4 class="section__title">{{ t("testing.overview") }}</h4>
           <a-button class="add__btn">
             <Icon name="lucide:plus" class="add__btn-icon" />
-            Add
+            {{ t("testing.add") }}
           </a-button>
         </div>
         <div class="testing__items">

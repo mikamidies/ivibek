@@ -4,6 +4,7 @@ import { message } from "ant-design-vue";
 
 const route = useRoute();
 const { fetchAssignmentById, submitAssignmentSolution } = useAssignments();
+const { t } = useTranslations();
 
 const assignment = ref(null);
 const loading = ref(false);
@@ -61,7 +62,7 @@ const handleSubmit = async () => {
 <template>
   <div class="assignment-detail-page">
     <PageBanner
-      titleProps="Assignments"
+      :titleProps="t('assignments.assignments')"
       backgroundProps="#00A155"
       iconProps="/page-icons/tasks.png"
     />
@@ -73,7 +74,7 @@ const handleSubmit = async () => {
             <div class="assignment__back">
               <NuxtLink :to="`/assignments`">
                 <Icon name="lucide:arrow-left" />
-                Back
+                {{ t("assignments.back") }}
               </NuxtLink>
             </div>
             <div class="assignment__from">
@@ -93,11 +94,13 @@ const handleSubmit = async () => {
           </div>
         </div>
         <div class="assignment__teacher">
-          <h4 class="assignment__teacher-title">Teacher</h4>
+          <h4 class="assignment__teacher-title">
+            {{ t("assignments.teachers") }}
+          </h4>
           <div class="assignment__teacher-person">
             <div class="assignment__teacher-img">
               <img
-                :src="assignment?.mentor?.image || '/default-person.jpg'"
+                :src="assignment?.mentor?.image || '/images/default-person.jpg'"
                 alt="Teacher Avatar"
               />
             </div>
@@ -122,7 +125,7 @@ const handleSubmit = async () => {
               <a-input
                 v-model:value="submissionUrl"
                 type="text"
-                placeholder="Enter submission URL..."
+                :placeholder="t('assignments.enter')"
                 class="assignment__teacher-input"
                 :disabled="submitting"
               />
@@ -132,12 +135,12 @@ const handleSubmit = async () => {
                 class="assignment__teacher-submit"
                 :loading="submitting"
               >
-                Submit
+                {{ t("assignments.submit") }}
               </a-button>
             </form>
           </div>
           <div class="assignment__response" v-else>
-            <h4>Students response:</h4>
+            <h4>{{ t("assignments.response") }}</h4>
             <a
               target="_blank"
               :href="`${assignment?.submission?.submissionUrl}`"
@@ -146,7 +149,7 @@ const handleSubmit = async () => {
             </a>
           </div>
           <div class="assignment__grade" v-if="assignment?.grade">
-            <h4>Grade:</h4>
+            <h4>{{ t("assignments.grade") }}</h4>
             <p
               class="status"
               :class="`status--${assignment?.status?.toLowerCase()}`"
@@ -154,7 +157,7 @@ const handleSubmit = async () => {
               {{
                 assignment?.grade?.grade
                   ? assignment.grade.grade + " / 100"
-                  : "Not graded yet"
+                  : t("assignments.no-grade")
               }}
             </p>
           </div>

@@ -2,6 +2,7 @@
 import dayjs from "dayjs";
 
 const { fetchAssignments } = useAssignments();
+const { t } = useTranslations();
 
 const assignments = ref([]);
 const loading = ref(false);
@@ -42,24 +43,34 @@ const getStatusLabel = (status) => {
 <template>
   <div class="assignments-page">
     <PageBanner
-      titleProps="Assignments"
+      :titleProps="t('assignments.assignments')"
       backgroundProps="#00A155"
       iconProps="/page-icons/tasks.png"
     />
 
     <div class="assignments__body">
       <div class="assignments__head">
-        <h4 class="assignments__title">My Assignments</h4>
+        <h4 class="assignments__title">
+          {{ t("assignments.my-assignments") }}
+        </h4>
       </div>
       <div class="assignments__table">
         <a-spin :spinning="loading">
-          <table>
+          <div v-if="assignments.length === 0" class="empty__state">
+            <Icon
+              name="lucide:file"
+              style="width: 48px; height: 48px; margin-bottom: 16px"
+            />
+            <p>{{ t("assignments.no-assignments") }}</p>
+          </div>
+
+          <table v-else>
             <thead>
               <tr>
-                <th>University</th>
-                <th>Teacher name</th>
-                <th>Task name</th>
-                <th>Status</th>
+                <th>{{ t("assignments.university") }}</th>
+                <th>{{ t("assignments.teacher") }}</th>
+                <th>{{ t("assignments.task-name") }}</th>
+                <th>{{ t("assignments.status") }}</th>
                 <th></th>
               </tr>
             </thead>

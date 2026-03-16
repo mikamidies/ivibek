@@ -2,8 +2,10 @@
 import { message } from "ant-design-vue";
 import PageBanner from "@/components/PageBanner.vue";
 
+const { t } = useTranslations();
+
 definePageMeta({
-  layoutTitle: "",
+  layoutTitle: t("essay-lab.title"),
 });
 
 const { fetchEssays } = useEssay();
@@ -54,12 +56,12 @@ const formatDate = (date) => {
 
 const getStatusLabel = (status) => {
   const statuses = {
-    UNPAID: "Unpaid",
-    PAID: "Paid",
-    PENDING: "Pending",
-    IN_PROGRESS: "In Progress",
-    COMPLETED: "Completed",
-    CANCELLED: "Cancelled",
+    UNPAID: t("essay-lab.statuses.UNPAID"),
+    PAID: t("essay-lab.statuses.PAID"),
+    PENDING: t("essay-lab.statuses.PENDING"),
+    IN_PROGRESS: t("essay-lab.statuses.IN_PROGRESS"),
+    COMPLETED: t("essay-lab.statuses.COMPLETED"),
+    CANCELLED: t("essay-lab.statuses.CANCELLED"),
   };
   return statuses[status] || status;
 };
@@ -73,18 +75,18 @@ const truncateText = (text, maxLength = 60) => {
 <template>
   <div class="essay-page">
     <PageBanner
-      titleProps="Essay Lab"
+      :titleProps="t('essay-lab.title')"
       backgroundProps="#00A155"
       iconProps="/page-icons/tasks.png"
     />
 
     <div class="essay__body">
       <div class="essay__head">
-        <h4 class="essay__title">My Essays</h4>
+        <h4 class="essay__title">{{ t("essay-lab.my-essays") }}</h4>
 
         <NuxtLink to="/essay-lab/create" class="essay__new-btn">
           <Icon name="lucide:plus" class="icon" />
-          New Essay
+          {{ t("essay-lab.new-essay") }}
         </NuxtLink>
       </div>
 
@@ -95,18 +97,18 @@ const truncateText = (text, maxLength = 60) => {
 
         <div v-else-if="!essays.length" class="empty__state">
           <Icon name="lucide:file-text" />
-          <p>No essays yet</p>
+          <p>{{ t("essay-lab.no-essays") }}</p>
         </div>
 
         <div v-else>
           <table>
             <thead>
               <tr>
-                <th>University</th>
-                <th>Mentor</th>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Created</th>
+                <th>{{ t("essay-lab.university") }}</th>
+                <th>{{ t("essay-lab.mentor") }}</th>
+                <th>{{ t("essay-lab.title") }}</th>
+                <th>{{ t("essay-lab.status") }}</th>
+                <th>{{ t("essay-lab.created") }}</th>
                 <th></th>
               </tr>
             </thead>
@@ -128,7 +130,7 @@ const truncateText = (text, maxLength = 60) => {
                   <NuxtLink
                     :to="`/essay-lab/${essay.id}`"
                     class="btn btn--secondary"
-                    title="View details"
+                    :title="t('essay-lab.view_details')"
                   >
                     <Icon name="lucide:eye" class="icon" />
                   </NuxtLink>

@@ -4,6 +4,7 @@ import WeeklyCalendar from "@/components/booking/WeeklyCalendar.vue";
 
 const route = useRoute();
 const { fetchMentorById, fetchMentorTimeslots } = useMentors();
+const { t } = useTranslations();
 
 const mentorId = route.params.id;
 const mentor = await fetchMentorById(Number(mentorId));
@@ -96,7 +97,7 @@ const genderFormat = (gender) => {
           <div class="modal__price">
             <div class="modal__price-hourly">
               <p>${{ mentor?.pricing?.meetingHourPrice || "N/A" }}</p>
-              <span>Hourly Rate</span>
+              <span>{{ t("teachers.hourly-rate") }}</span>
             </div>
             <!-- <div class="modal__price-essay">
               <p>$24</p>
@@ -137,7 +138,7 @@ const genderFormat = (gender) => {
 
         <div class="teacher__general teacher__card">
           <div class="modal__details">
-            <h4 class="section__title">Contact Information</h4>
+            <h4 class="section__title">{{ t("teachers.contact-info") }}</h4>
             <div class="modal__details-items">
               <div class="modal__details-item">
                 <Icon name="lucide:mail" />
@@ -180,13 +181,13 @@ const genderFormat = (gender) => {
       </div>
       <div class="teacher__right">
         <div class="teacher__desc teacher__card">
-          <h4 class="section__title">About teacher</h4>
+          <h4 class="section__title">{{ t("teachers.about-teacher") }}</h4>
           <p>
-            {{ mentor?.about || "This teacher has not provided a bio yet." }}
+            {{ mentor?.about || t("teachers.no-bio") }}
           </p>
         </div>
         <div class="teacher__calendar teacher__card">
-          <h4 class="section__title">Available Hours</h4>
+          <h4 class="section__title">{{ t("teachers.available-hours") }}</h4>
           <WeeklyCalendar
             :mentor-id="Number(mentorId)"
             :available-slots="availableSlots"

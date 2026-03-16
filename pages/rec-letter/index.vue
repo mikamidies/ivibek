@@ -6,6 +6,7 @@ import { message } from "ant-design-vue";
 const { createChat, sendMessage, getChats, getChatById } = useRecLetters();
 const route = useRoute();
 const router = useRouter();
+const { t } = useTranslations();
 
 const currentChatId = ref("");
 const essayText = ref("");
@@ -208,7 +209,7 @@ const loadChat = async (uuid) => {
 
       const chatStatus = result.data.status;
       const userMessagesCount = messages.value.filter(
-        (m) => m.messageFrom === "USER"
+        (m) => m.messageFrom === "USER",
       ).length;
 
       if (chatStatus === "UNPAID" && userMessagesCount === 1) {
@@ -290,7 +291,7 @@ const getStatusLabel = (status) => {
 <template>
   <div class="ai-essays-page">
     <PageBanner
-      titleProps="Recommendation Letter AI"
+      :titleProps="t('rec-letter.rec-letter-ai')"
       iconProps="/page-icons/booking.png"
       style="
         background: linear-gradient(
@@ -307,10 +308,10 @@ const getStatusLabel = (status) => {
         <div class="grid">
           <div class="left">
             <div class="chat-list-header">
-              <h4 class="title">Saved Chats</h4>
+              <h4 class="title">{{ t("rec-letter.saved-chats") }}</h4>
               <button class="new-chat-btn" @click="createNewChat">
                 <Icon name="lucide:plus" />
-                New Chat
+                {{ t("rec-letter.new-chat") }}
               </button>
             </div>
 
@@ -319,10 +320,10 @@ const getStatusLabel = (status) => {
                 v-if="isLoadingChats && savedChats.length === 0"
                 class="loading"
               >
-                Loading...
+                {{ t("rec-letter.loading") }}
               </div>
               <div v-else-if="savedChats.length === 0" class="empty-state">
-                <p>No saved chats yet</p>
+                <p>{{ t("rec-letter.no-chats") }}</p>
               </div>
               <template v-else>
                 <div
@@ -337,7 +338,7 @@ const getStatusLabel = (status) => {
                   </div>
                   <div class="chat-item-content">
                     <h5 class="chat-item-title">
-                      {{ chat.title || "Untitled Chat" }}
+                      {{ chat.title || t("rec-letter.untitled-chat") }}
                     </h5>
                     <div class="chat-item-info">
                       <p class="chat-item-date">
@@ -355,14 +356,14 @@ const getStatusLabel = (status) => {
 
                 <div v-if="isLoadingChats" class="loading-more">
                   <Icon name="lucide:loader-2" class="spinning" />
-                  Loading more...
+                  {{ t("rec-letter.loading_more") }}
                 </div>
 
                 <div
                   v-else-if="!hasMoreChats && savedChats.length > 0"
                   class="no-more"
                 >
-                  No more chats
+                  {{ t("rec-letter.no_more_chats") }}
                 </div>
               </template>
             </div>
@@ -377,11 +378,10 @@ const getStatusLabel = (status) => {
                     <img src="/images/chat.png" alt="" />
                   </div>
                   <h4 class="chat__title">
-                    Get AI assistance for your <br />
-                    Recommendation Letter
+                    {{ t("rec-letter.chat_header_title") }}
                   </h4>
                   <p class="chat__description">
-                    Describe your letter requirements and get started
+                    {{ t("rec-letter.chat_header_desc") }}
                   </p>
                 </div>
 
@@ -429,17 +429,9 @@ const getStatusLabel = (status) => {
                   >
                     <div class="payment-card">
                       <div class="payment-blur">
-                        <h4>Unlock Answer</h4>
+                        <h4>{{ t("rec-letter.payment.unlock_title") }}</h4>
                         <p>
-                          Lorem, ipsum dolor sit amet consectetur adipisicing
-                          elit. At, dolore, voluptas ducimus eum laboriosam
-                          suscipit vitae vel nobis rem natus dignissimos quia
-                          nihil ea iste eos reiciendis consequatur modi enim
-                          facilis. Repellendus explicabo veniam, rerum ullam
-                          magnam dicta eum cupiditate quasi omnis rem voluptate
-                          soluta optio, asperiores facere? Omnis accusantium
-                          reprehenderit harum optio numquam eos id alias earum
-                          ab
+                          {{ t("rec-letter.payment.unlock_desc") }}
                         </p>
                       </div>
 
@@ -447,7 +439,7 @@ const getStatusLabel = (status) => {
                         class="payment-btn"
                         @click="showPaymentButton = false"
                       >
-                        Unlock Answer
+                        {{ t("rec-letter.payment.unlock_button") }}
                       </button>
                     </div>
                   </div>
@@ -455,18 +447,18 @@ const getStatusLabel = (status) => {
 
                 <div class="chat__flexer">
                   <div v-if="shouldShowSuggestions" class="chat__suggests">
-                    <h4>Suggestions for Your Recommendation Letter</h4>
+                    <h4>{{ t("rec-letter.suggestions.title") }}</h4>
                     <div class="suggest__items">
                       <div
                         class="suggest__item"
                         @click="
                           handleSuggestionClick(
-                            'Academic Recommendation Letter'
+                            'Academic Recommendation Letter',
                           )
                         "
                       >
                         <Icon name="lucide:graduation-cap" class="icon" />
-                        Academic Letter
+                        {{ t("rec-letter.suggestions.academic") }}
                       </div>
                       <div
                         class="suggest__item"
@@ -475,7 +467,7 @@ const getStatusLabel = (status) => {
                         "
                       >
                         <Icon name="lucide:briefcase" class="icon" />
-                        Professional Letter
+                        {{ t("rec-letter.suggestions.professional") }}
                       </div>
                       <div
                         class="suggest__item"
@@ -484,7 +476,7 @@ const getStatusLabel = (status) => {
                         "
                       >
                         <Icon name="lucide:user-check" class="icon" />
-                        Character Reference
+                        {{ t("rec-letter.suggestions.character") }}
                       </div>
                       <div
                         class="suggest__item"
@@ -493,18 +485,18 @@ const getStatusLabel = (status) => {
                         "
                       >
                         <Icon name="lucide:book-open" class="icon" />
-                        Graduate School
+                        {{ t("rec-letter.suggestions.graduate") }}
                       </div>
                       <div
                         class="suggest__item"
                         @click="
                           handleSuggestionClick(
-                            'Scholarship Recommendation Letter'
+                            'Scholarship Recommendation Letter',
                           )
                         "
                       >
                         <Icon name="lucide:award" class="icon" />
-                        Scholarship Letter
+                        {{ t("rec-letter.suggestions.scholarship") }}
                       </div>
                     </div>
                   </div>
@@ -515,7 +507,7 @@ const getStatusLabel = (status) => {
                     <textarea
                       v-model="essayText"
                       class="chat__text-input"
-                      placeholder="Describe your recommendation letter requirements..."
+                      :placeholder="t('rec-letter.placeholder')"
                       rows="1"
                       @input="handleInput"
                       @keydown.enter.exact.prevent="handleSend"
@@ -531,7 +523,7 @@ const getStatusLabel = (status) => {
                         name="lucide:loader-2"
                         class="spinning"
                       />
-                      <span v-else>Send</span>
+                      <span v-else>{{ t("rec-letter.send") }}</span>
                     </button>
                   </div>
                 </div>

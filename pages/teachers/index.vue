@@ -2,6 +2,7 @@
 import PageBanner from "@/components/PageBanner.vue";
 const { fetchMentors } = useMentors();
 const { fetchUniversities, fetchFaculties } = useCommon();
+const { t } = useTranslations();
 
 const universities = await fetchUniversities();
 const faculties = await fetchFaculties();
@@ -37,7 +38,7 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
 <template>
   <div class="booking-page">
     <PageBanner
-      titleProps="Teachers"
+      :titleProps="t('teachers.teachers')"
       backgroundProps="#00A155"
       iconProps="/page-icons/tasks.png"
     />
@@ -46,9 +47,11 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
         <div class="teachers__top-left">
           <a-select
             v-model:value="selectedUniversity"
-            placeholder="Choose university"
+            :placeholder="t('teachers.choose-university')"
           >
-            <a-select-option :value="null">All Universities</a-select-option>
+            <a-select-option :value="null">{{
+              t("teachers.all-universities")
+            }}</a-select-option>
             <a-select-option
               v-for="university in universities"
               :key="university.id"
@@ -59,9 +62,11 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
           </a-select>
           <a-select
             v-model:value="selectedFaculty"
-            placeholder="Choose faculty"
+            :placeholder="t('teachers.choose-faculty')"
           >
-            <a-select-option :value="null">All Faculties</a-select-option>
+            <a-select-option :value="null">{{
+              t("teachers.all-faculties")
+            }}</a-select-option>
             <a-select-option
               v-for="faculty in faculties"
               :key="faculty.id"
@@ -74,7 +79,7 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
         <div class="teachers__top-right">
           <a-input
             v-model:value="searchQuery"
-            placeholder="Search"
+            :placeholder="t('teachers.search')"
             class="search__input"
           />
           <Icon name="lucide:search" style="width: 16px; height: 16px" />
@@ -83,7 +88,7 @@ watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
       <div class="teachers__items">
         <div v-if="!mentors.length" class="empty__state">
           <Icon name="lucide:file-text" />
-          <p>No teachers found</p>
+          <p>{{ t("teachers.no-teachers") }}</p>
         </div>
         <div
           v-else

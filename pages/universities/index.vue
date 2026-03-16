@@ -1,11 +1,13 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
+
+const { t } = useTranslations();
 </script>
 
 <template>
   <div class="universities-page">
     <PageBanner
-      titleProps="Universities"
+      :titleProps="t('universities.universities')"
       backgroundProps="#00A155"
       iconProps="/page-icons/tasks.png"
     />
@@ -13,23 +15,26 @@ import PageBanner from "@/components/PageBanner.vue";
       <div class="uni__top">
         <div class="uni__find">
           <p class="uni__find-title">
-            Find your university <Icon name="lucide:bot" class="icon" />
+            {{ t("universities.find-university") }}
+            <Icon name="lucide:bot" class="icon" />
           </p>
           <p class="uni__find-sub">
-            Search for a university that best suits for you
+            {{ t("universities.search-suits") }}
           </p>
           <div class="uni__find-form">
             <a-textarea
               rows="5"
-              placeholder="Search university"
+              :placeholder="t('universities.search-university')"
               class="uni__find-input"
             />
-            <a-button class="uni__find-btn">Submit</a-button>
+            <a-button class="uni__find-btn">{{
+              t("universities.submit")
+            }}</a-button>
           </div>
         </div>
         <div class="uni__form">
           <a-select
-            placeholder="Select Degree"
+            :placeholder="t('universities.select-degree')"
             class="uni__form-select"
             style="width: 100%"
           >
@@ -39,7 +44,7 @@ import PageBanner from "@/components/PageBanner.vue";
             <a-select-option value="australia">Australia</a-select-option>
           </a-select>
           <a-select
-            placeholder="Select Major"
+            :placeholder="t('universities.select-major')"
             class="uni__form-select"
             style="width: 100%"
           >

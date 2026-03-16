@@ -1,8 +1,10 @@
 <script setup>
 import { message } from "ant-design-vue";
 
+const { t } = useTranslations();
+
 definePageMeta({
-  layoutTitle: "Create Essay",
+  layoutTitle: t("essay-lab.create-essay"),
 });
 
 const { createEssay, calculatePrice, fetchDeadlines, fetchWordLimits } =
@@ -75,7 +77,7 @@ onMounted(async () => {
       wordLimits.value = wordLimitsResult.data;
     } else {
       message.error(
-        wordLimitsResult.error || "Не удалось загрузить лимиты слов"
+        wordLimitsResult.error || "Не удалось загрузить лимиты слов",
       );
     }
 
@@ -94,7 +96,7 @@ watch(
     } else if (newType === "SUPPLEMENTAL" && wordLimits.value.length > 0) {
       form.value.wordLimitId = wordLimits.value[0].id;
     }
-  }
+  },
 );
 
 const handleCalculatePrice = async () => {
@@ -128,7 +130,7 @@ watch(
   () => [form.value.deadlineId, form.value.wordLimitId],
   async () => {
     await handleCalculatePrice();
-  }
+  },
 );
 
 const handleCreate = async () => {
@@ -191,18 +193,18 @@ const handleCreate = async () => {
       <div class="essay__left">
         <NuxtLink to="/essay-lab" class="essay__back">
           <Icon name="lucide:arrow-left" class="icon" />
-          Back
+          {{ t("essay-lab.back") }}
         </NuxtLink>
-        <h4 class="essay__title">Create New Essay</h4>
+        <h4 class="essay__title">{{ t("essay-lab.create-essay") }}</h4>
 
         <div class="essay__form">
           <div class="essay__selects">
             <div class="essay__select-item">
-              <label for="teacher">Mentor *</label>
+              <label for="teacher">{{ t("essay-lab.mentor") }} *</label>
               <a-select
                 id="teacher"
                 v-model:value="form.mentorId"
-                placeholder="Select Mentor"
+                :placeholder="t('essay-lab.select-mentor')"
                 show-search
                 :filter-option="
                   (input, option) =>
@@ -220,11 +222,11 @@ const handleCreate = async () => {
               </a-select>
             </div>
             <div class="essay__select-item">
-              <label for="time-limit">Time Limit</label>
+              <label for="time-limit">{{ t("essay-lab.time-limit") }}</label>
               <a-select
                 id="time-limit"
                 v-model:value="form.deadlineId"
-                placeholder="Select Time Limit"
+                :placeholder="t('essay-lab.select-time-limit')"
               >
                 <a-select-option
                   v-for="deadline in deadlines"
@@ -236,20 +238,20 @@ const handleCreate = async () => {
               </a-select>
             </div>
             <div class="essay__select-item">
-              <label for="type">Type *</label>
+              <label for="type">{{ t("essay-lab.type") }} *</label>
               <a-select
                 id="type"
                 v-model:value="form.essayType"
-                placeholder="Select Type"
+                :placeholder="t('essay-lab.select-type')"
                 :options="essayTypes"
               />
             </div>
             <div v-if="showWordLimit" class="essay__select-item">
-              <label for="word-limit">Word Limit *</label>
+              <label for="word-limit">{{ t("essay-lab.word-limit") }} *</label>
               <a-select
                 id="word-limit"
                 v-model:value="form.wordLimitId"
-                placeholder="Select Word Limit"
+                :placeholder="t('essay-lab.select-word-limit')"
               >
                 <a-select-option
                   v-for="wordLimit in wordLimits"
@@ -263,20 +265,20 @@ const handleCreate = async () => {
           </div>
           <div class="essay__inputs">
             <div class="essay__input-item">
-              <label for="title">Title *</label>
+              <label for="title">{{ t("essay-lab.title") }} *</label>
               <a-input
                 id="title"
                 v-model:value="form.title"
-                placeholder="Enter Essay Title"
+                :placeholder="t('essay-lab.enter-title')"
                 class="input-full"
               />
             </div>
             <div class="essay__input-item">
-              <label for="essay">Essay *</label>
+              <label for="essay">{{ t("essay-lab.essay") }} *</label>
               <a-textarea
                 id="essay"
                 v-model:value="form.body"
-                placeholder="Enter your essay"
+                :placeholder="t('essay-lab.enter-essay')"
                 class="input-full"
                 :autoSize="{ minRows: 30, maxRows: 30 }"
               />
@@ -285,44 +287,41 @@ const handleCreate = async () => {
         </div>
       </div>
       <div class="essay__right">
-        <h4 class="section__title">Details</h4>
+        <h4 class="section__title">{{ t("essay-lab.details") }}</h4>
         <div class="details__items">
           <p class="detail__item">
             <Icon name="lucide:check-circle" class="icon icon--success" />
-            Ensure your story stands out. Receive honest advice from Ivy League
-            consultants.
+            {{ t("essay-lab.detail1") }}
           </p>
           <p class="detail__item">
             <Icon name="lucide:check-circle" class="icon icon--success" />
-            Consultants will leave in-line edits, marginal comments, and a
-            thorough final comment.
+            {{ t("essay-lab.detail2") }}
           </p>
           <p class="detail__item">
             <Icon name="lucide:check-circle" class="icon icon--success" />
-            Ensure your story stands out. Receive honest advice from Ivy League
-            consultants.
+            {{ t("essay-lab.detail3") }}
           </p>
         </div>
         <div class="details__pricelist">
           <div class="pricelist__items">
             <div class="pricelist__item">
-              <p>Mentor</p>
+              <p>{{ t("essay-lab.mentor") }}</p>
               <p>{{ selectedMentor?.fullName || "-" }}</p>
             </div>
             <div class="pricelist__item">
-              <p>Essay Type</p>
+              <p>{{ t("essay-lab.type") }}</p>
               <p>{{ selectedEssayType?.label || "-" }}</p>
             </div>
             <div class="pricelist__item">
-              <p>Deadline</p>
+              <p>{{ t("essay-lab.time-limit") }}</p>
               <p>{{ selectedDeadline?.name || "-" }}</p>
             </div>
             <div v-if="showWordLimit" class="pricelist__item">
-              <p>Word Limit</p>
+              <p>{{ t("essay-lab.word-limit") }}</p>
               <p>{{ selectedWordLimit?.name || "-" }}</p>
             </div>
             <div class="pricelist__total">
-              <p>Total</p>
+              <p>{{ t("essay-lab.total") }}</p>
               <p v-if="priceLoading">
                 <a-spin size="small" />
               </p>
@@ -334,8 +333,14 @@ const handleCreate = async () => {
           </div>
         </div>
         <a-checkbox v-model:checked="agree" class="details__checkbox">
-          I agree to the <a href="#">Terms of Service</a> and have read the
-          <a href="#">Privacy Policy</a>.
+          {{ t("essay-lab.agree_1") }}
+          <a href="#">
+            {{ t("essay-lab.agree_2") }}
+          </a>
+          {{ t("essay-lab.agree_3") }}
+          <a href="#">
+            {{ t("essay-lab.agree_4") }} </a
+          >.
         </a-checkbox>
 
         <a-button
@@ -345,7 +350,7 @@ const handleCreate = async () => {
           :disabled="!calculatedPrice || priceLoading"
           @click="handleCreate"
         >
-          Proceed to Payment
+          {{ t("essay-lab.proceed") }}
         </a-button>
       </div>
     </div>

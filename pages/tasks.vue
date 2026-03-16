@@ -6,10 +6,9 @@ import { ref, onMounted } from "vue";
 import GeneralCard from "~/components/cards/GeneralCard.vue";
 import { message } from "ant-design-vue";
 
-// Явный импорт composable
 const { fetchTasks, createTask, updateTask, toggleTask } = useTasks();
+const { t } = useTranslations();
 
-// Состояние
 const tasks = ref([]);
 const loading = ref(false);
 const visible = ref(false);
@@ -90,7 +89,6 @@ const handleEditOk = async () => {
 };
 
 const handleToggle = async (taskId) => {
-  // Находим задачу и меняем статус локально для мгновенной реакции UI
   const taskIndex = tasks.value.findIndex((t) => t.id === taskId);
   if (taskIndex === -1) return;
 
@@ -99,11 +97,9 @@ const handleToggle = async (taskId) => {
 
   try {
     await toggleTask(taskId);
-    // Перезагружаем весь список, так как сервер не возвращает обновленную задачу
     await loadTasks();
   } catch (error) {
     console.error("Toggle error:", error);
-    // Откатываем изменение при ошибке
     tasks.value[taskIndex].isDone = previousState;
     message.error("Failed to toggle task");
   }
@@ -133,13 +129,14 @@ onMounted(() => {
   <div class="tasks-page">
     <div class="left">
       <PageBanner
-        titleProps="Tasks"
+        :titleProps="t('tasks.tasks')"
         backgroundProps="#0764F1"
         iconProps="/page-icons/tasks.png"
       />
       <div class="tasks__body">
         <button class="tasks__btn" @click="showModal">
-          <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add Task
+          <Icon name="lucide:plus" style="width: 16px; height: 16px" />
+          {{ t("tasks.add-task") }}
         </button>
 
         <a-spin :spinning="loading">
@@ -147,7 +144,7 @@ onMounted(() => {
             v-if="tasks.length === 0 && !loading"
             style="text-align: center; padding: 40px; color: #999"
           >
-            No tasks added yet
+            {{ t("tasks.no-tasks") }}
           </div>
 
           <div
@@ -211,7 +208,7 @@ onMounted(() => {
 
   <a-modal
     v-model:visible="visible"
-    title="Add Task"
+    :title="t('tasks.add-task')"
     @ok="handleOk"
     :okText="'Add'"
     :cancelText="'Cancel'"
@@ -220,25 +217,28 @@ onMounted(() => {
       <a-form :model="createForm" layout="vertical">
         <a-form-item
           style="grid-column: 1 / 3"
-          label="Task Name"
+          :label="t('tasks.task-name')"
           name="task"
           required
         >
-          <a-input v-model:value="createForm.task" placeholder="Task Name" />
+          <a-input
+            v-model:value="createForm.task"
+            :placeholder="t('tasks.task-name')"
+          />
         </a-form-item>
         <a-form-item
           style="grid-column: 1 / 3"
-          label="Description"
+          :label="t('tasks.task-desc')"
           name="description"
           required
         >
           <a-textarea
             v-model:value="createForm.description"
-            placeholder="Enter task description"
+            :placeholder="t('tasks.task-desc')"
             :rows="3"
           />
         </a-form-item>
-        <a-form-item label="Start Date" name="startDate" required>
+        <a-form-item :label="t('tasks.task-start')" name="startDate" required>
           <a-date-picker
             v-model:value="createForm.startDate"
             style="width: 100%"
@@ -246,7 +246,7 @@ onMounted(() => {
             value-format="YYYY-MM-DD"
           />
         </a-form-item>
-        <a-form-item label="End Date" name="endDate" required>
+        <a-form-item :label="t('tasks.task-end')" name="endDate" required>
           <a-date-picker
             v-model:value="createForm.endDate"
             style="width: 100%"

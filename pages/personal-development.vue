@@ -9,6 +9,7 @@ const {
   createPersonalDevelopment,
   updatePersonalDevelopment,
 } = usePersonalDevelopment();
+const { t } = useTranslations();
 
 const personalDevelopments = ref([]);
 const loading = ref(false);
@@ -36,55 +37,55 @@ const editForm = ref({
 
 const readingItems = computed(() => {
   const sections = personalDevelopments.value.filter(
-    (item) => item.type === "READING"
+    (item) => item.type === "READING",
   );
   return sections.flatMap((section) =>
-    (section.items || []).map((item) => ({ ...item, type: section.type }))
+    (section.items || []).map((item) => ({ ...item, type: section.type })),
   );
 });
 
 const writingItems = computed(() => {
   const sections = personalDevelopments.value.filter(
-    (item) => item.type === "WRITING"
+    (item) => item.type === "WRITING",
   );
   return sections.flatMap((section) =>
-    (section.items || []).map((item) => ({ ...item, type: section.type }))
+    (section.items || []).map((item) => ({ ...item, type: section.type })),
   );
 });
 
 const experienceItems = computed(() => {
   const sections = personalDevelopments.value.filter(
-    (item) => item.type === "EXPERIENCE"
+    (item) => item.type === "EXPERIENCE",
   );
   return sections.flatMap((section) =>
-    (section.items || []).map((item) => ({ ...item, type: section.type }))
+    (section.items || []).map((item) => ({ ...item, type: section.type })),
   );
 });
 
 const relationshipItems = computed(() => {
   const sections = personalDevelopments.value.filter(
-    (item) => item.type === "RELATIONSHIP"
+    (item) => item.type === "RELATIONSHIP",
   );
   return sections.flatMap((section) =>
-    (section.items || []).map((item) => ({ ...item, type: section.type }))
+    (section.items || []).map((item) => ({ ...item, type: section.type })),
   );
 });
 
 const academicSkillsItems = computed(() => {
   const sections = personalDevelopments.value.filter(
-    (item) => item.type === "ACADEMIC_SKILLS"
+    (item) => item.type === "ACADEMIC_SKILLS",
   );
   return sections.flatMap((section) =>
-    (section.items || []).map((item) => ({ ...item, type: section.type }))
+    (section.items || []).map((item) => ({ ...item, type: section.type })),
   );
 });
 
 const academicEnrichItems = computed(() => {
   const sections = personalDevelopments.value.filter(
-    (item) => item.type === "ACADEMIC_ENRICH"
+    (item) => item.type === "ACADEMIC_ENRICH",
   );
   return sections.flatMap((section) =>
-    (section.items || []).map((item) => ({ ...item, type: section.type }))
+    (section.items || []).map((item) => ({ ...item, type: section.type })),
   );
 });
 
@@ -161,17 +162,17 @@ onMounted(async () => {
   <div class="personal-development-page">
     <div class="personal-development__left">
       <PageBanner
-        titleProps="Personal Development"
+        :titleProps="t('personal.development')"
         backgroundProps="#4116FF"
         iconProps="/page-icons/personal.png"
       />
 
       <div class="development-body">
         <div class="development__header">
-          <h4 class="section__title">Reading</h4>
+          <h4 class="section__title">{{ t("personal.reading") }}</h4>
           <a-button @click="showModal('READING')" class="add__btn">
             <Icon name="lucide:plus" />
-            Add
+            {{ t("personal.add") }}
           </a-button>
         </div>
         <a-spin :spinning="loading">
@@ -180,7 +181,7 @@ onMounted(async () => {
             class="empty__state"
           >
             <Icon name="lucide:file-text" />
-            No items added yet
+            {{ t("personal.no_items") }}
           </div>
           <div v-else class="items__list">
             <div v-for="item in readingItems" :key="item.id" class="item__card">
@@ -207,10 +208,10 @@ onMounted(async () => {
 
       <div class="development-body">
         <div class="development__header">
-          <h4 class="section__title">Writing</h4>
+          <h4 class="section__title">{{ t("personal.writing") }}</h4>
           <a-button @click="showModal('WRITING')" class="add__btn">
             <Icon name="lucide:plus" />
-            Add
+            {{ t("personal.add") }}
           </a-button>
         </div>
         <a-spin :spinning="loading">
@@ -219,7 +220,7 @@ onMounted(async () => {
             class="empty__state"
           >
             <Icon name="lucide:file-text" />
-            No items added yet
+            {{ t("personal.no_items") }}
           </div>
           <div v-else class="items__list">
             <div v-for="item in writingItems" :key="item.id" class="item__card">
@@ -246,10 +247,10 @@ onMounted(async () => {
 
       <div class="development-body">
         <div class="development__header">
-          <h4 class="section__title">Experience</h4>
+          <h4 class="section__title">{{ t("personal.exp") }}</h4>
           <a-button @click="showModal('EXPERIENCE')" class="add__btn">
             <Icon name="lucide:plus" />
-            Add
+            {{ t("personal.add") }}
           </a-button>
         </div>
         <a-spin :spinning="loading">
@@ -258,7 +259,7 @@ onMounted(async () => {
             class="empty__state"
           >
             <Icon name="lucide:file-text" />
-            No items added yet
+            {{ t("personal.no_items") }}
           </div>
           <div v-else class="items__list">
             <div
@@ -289,10 +290,10 @@ onMounted(async () => {
 
       <div class="development-body">
         <div class="development__header">
-          <h4 class="section__title">Relationship</h4>
+          <h4 class="section__title">{{ t("personal.relations") }}</h4>
           <a-button @click="showModal('RELATIONSHIP')" class="add__btn">
             <Icon name="lucide:plus" />
-            Add
+            {{ t("personal.add") }}
           </a-button>
         </div>
         <a-spin :spinning="loading">
@@ -301,7 +302,7 @@ onMounted(async () => {
             class="empty__state"
           >
             <Icon name="lucide:file-text" />
-            No items added yet
+            {{ t("personal.no_items") }}
           </div>
           <div v-else class="items__list">
             <div
@@ -332,10 +333,10 @@ onMounted(async () => {
 
       <div class="development-body">
         <div class="development__header">
-          <h4 class="section__title">Academic Skills</h4>
+          <h4 class="section__title">{{ t("personal.skills") }}</h4>
           <a-button @click="showModal('ACADEMIC_SKILLS')" class="add__btn">
             <Icon name="lucide:plus" />
-            Add
+            {{ t("personal.add") }}
           </a-button>
         </div>
         <a-spin :spinning="loading">
@@ -344,7 +345,7 @@ onMounted(async () => {
             class="empty__state"
           >
             <Icon name="lucide:file-text" />
-            No items added yet
+            {{ t("personal.no_items") }}
           </div>
           <div v-else class="items__list">
             <div
@@ -375,10 +376,10 @@ onMounted(async () => {
 
       <div class="development-body">
         <div class="development__header">
-          <h4 class="section__title">Academic Enrichment</h4>
+          <h4 class="section__title">{{ t("personal.enrichment") }}</h4>
           <a-button @click="showModal('ACADEMIC_ENRICH')" class="add__btn">
             <Icon name="lucide:plus" />
-            Add
+            {{ t("personal.add") }}
           </a-button>
         </div>
         <a-spin :spinning="loading">
@@ -387,7 +388,7 @@ onMounted(async () => {
             class="empty__state"
           >
             <Icon name="lucide:file-text" />
-            No items added yet
+            {{ t("personal.no_items") }}
           </div>
           <div v-else class="items__list">
             <div
@@ -421,26 +422,29 @@ onMounted(async () => {
 
   <a-modal
     v-model:visible="visible"
-    title="Add Item"
+    :title="t('personal.add-item')"
     @ok="handleOk"
     :okText="'Add'"
     :cancelText="'Cancel'"
     class="academics__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Title" required>
-        <a-input v-model:value="createForm.name" placeholder="Enter title" />
+      <a-form-item :label="t('personal.title')" required>
+        <a-input
+          v-model:value="createForm.name"
+          :placeholder="t('personal.title')"
+        />
       </a-form-item>
 
-      <a-form-item label="Description" required>
+      <a-form-item :label="t('personal.desc')" required>
         <a-textarea
           v-model:value="createForm.description"
-          placeholder="Enter description"
+          :placeholder="t('personal.desc')"
           :rows="4"
         />
       </a-form-item>
 
-      <a-form-item label="Start Date" required>
+      <a-form-item :label="t('personal.start')" required>
         <a-date-picker
           v-model:value="createForm.startDate"
           style="width: 100%"
@@ -449,7 +453,7 @@ onMounted(async () => {
         />
       </a-form-item>
 
-      <a-form-item label="End Date" required>
+      <a-form-item :label="t('personal.end')" required>
         <a-date-picker
           v-model:value="createForm.endDate"
           style="width: 100%"
@@ -469,19 +473,22 @@ onMounted(async () => {
     class="academics__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Title" required>
-        <a-input v-model:value="editForm.name" placeholder="Enter title" />
+      <a-form-item :label="t('personal.title')" required>
+        <a-input
+          v-model:value="editForm.name"
+          :placeholder="t('personal.title')"
+        />
       </a-form-item>
 
-      <a-form-item label="Description" required>
+      <a-form-item :label="t('personal.desc')" required>
         <a-textarea
           v-model:value="editForm.description"
-          placeholder="Enter description"
+          :placeholder="t('personal.desc')"
           :rows="4"
         />
       </a-form-item>
 
-      <a-form-item label="Start Date" required>
+      <a-form-item :label="t('personal.start')" required>
         <a-date-picker
           v-model:value="editForm.startDate"
           style="width: 100%"
@@ -490,7 +497,7 @@ onMounted(async () => {
         />
       </a-form-item>
 
-      <a-form-item label="End Date" required>
+      <a-form-item :label="t('personal.end')" required>
         <a-date-picker
           v-model:value="editForm.endDate"
           style="width: 100%"

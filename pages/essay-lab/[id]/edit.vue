@@ -1,8 +1,10 @@
 <script setup>
 import { message } from "ant-design-vue";
 
+const { t } = useTranslations();
+
 definePageMeta({
-  layoutTitle: "Edit Essay",
+  layoutTitle: t("essay-lab.edit-essay"),
 });
 
 const route = useRoute();
@@ -62,7 +64,7 @@ const essayTypes = [
 onMounted(async () => {
   const id = Number(route.params.id);
   if (!id) {
-    message.error("Invalid essay ID");
+    message.error(t("essay-lab.invalid-id"));
     router.push("/essay-lab");
     return;
   }
@@ -78,14 +80,16 @@ onMounted(async () => {
     if (deadlinesResult.success) {
       deadlines.value = deadlinesResult.data;
     } else {
-      message.error(deadlinesResult.error || "Не удалось загрузить дедлайны");
+      message.error(
+        deadlinesResult.error || t("essay-lab.failed-load-deadlines"),
+      );
     }
 
     if (wordLimitsResult.success) {
       wordLimits.value = wordLimitsResult.data;
     } else {
       message.error(
-        wordLimitsResult.error || "Не удалось загрузить лимиты слов"
+        wordLimitsResult.error || t("essay-lab.failed-load-wordlimits"),
       );
     }
   } catch (error) {
@@ -110,7 +114,7 @@ onMounted(async () => {
 
     await handleCalculatePrice();
   } else {
-    message.error(result.error || "Не удалось загрузить эссе");
+    message.error(result.error || t("essay-lab.failed-load-essay"));
     router.push("/essay-lab");
   }
 
@@ -129,7 +133,7 @@ watch(
     ) {
       form.value.wordLimitId = wordLimits.value[0].id;
     }
-  }
+  },
 );
 
 const handleCalculatePrice = async () => {
@@ -153,7 +157,7 @@ const handleCalculatePrice = async () => {
   if (result.success) {
     calculatedPrice.value = result.price;
   } else {
-    message.error(result.error || "Не удалось рассчитать цену");
+    message.error(result.error || "Failed to calculate price");
     calculatedPrice.value = null;
   }
 };
@@ -162,32 +166,32 @@ watch(
   () => [form.value.deadlineId, form.value.wordLimitId],
   async () => {
     await handleCalculatePrice();
-  }
+  },
 );
 
 const handleSave = async () => {
   if (!form.value.mentorId) {
-    message.error("Выберите ментора");
+    message.error(t("essay-lab.select-mentor-message"));
     return;
   }
 
   if (!form.value.essayType) {
-    message.error("Выберите тип эссе");
+    message.error(t("essay-lab.select-type-message"));
     return;
   }
 
   if (!form.value.title) {
-    message.error("Введите название эссе");
+    message.error(t("essay-lab.enter-title-message"));
     return;
   }
 
   if (!form.value.body) {
-    message.error("Введите текст эссе");
+    message.error(t("essay-lab.enter-body-message"));
     return;
   }
 
   if (!calculatedPrice.value) {
-    message.error("Не удалось рассчитать цену. Попробуйте ещё раз");
+    message.error(t("essay-lab.failed-calc-price"));
     return;
   }
 
@@ -207,10 +211,10 @@ const handleSave = async () => {
   saving.value = false;
 
   if (result.success) {
-    message.success("Эссе успешно обновлено!");
+    message.success(t("essay-lab.updated-success"));
     router.push(`/essay-lab/${id}`);
   } else {
-    message.error(result.error || "Ошибка обновления эссе");
+    message.error(result.error || t("essay-lab.failed-update"));
   }
 };
 </script>
@@ -221,9 +225,9 @@ const handleSave = async () => {
       <div class="essay__left">
         <NuxtLink :to="`/essay-lab/${route.params.id}`" class="essay__back">
           <Icon name="lucide:arrow-left" class="icon" />
-          Back
+          {{ t("essay-lab.back") }}
         </NuxtLink>
-        <h4 class="essay__title">Edit Essay</h4>
+        <h4 class="essay__title">{{ t("essay-lab.edit-essay") }}</h4>
 
         <div v-if="loading" class="essay__loading">
           <a-spin size="large" />
@@ -232,11 +236,11 @@ const handleSave = async () => {
         <div v-else class="essay__form">
           <div class="essay__selects">
             <div class="essay__select-item">
-              <label for="teacher">Mentor *</label>
+              <label for="teacher">{{ t("essay-lab.mentor") }} *</label>
               <a-select
                 id="teacher"
                 v-model:value="form.mentorId"
-                placeholder="Select Mentor"
+                :placeholder="t('essay-lab.select-mentor')"
                 show-search
                 :filter-option="
                   (input, option) =>
@@ -254,11 +258,11 @@ const handleSave = async () => {
               </a-select>
             </div>
             <div class="essay__select-item">
-              <label for="time-limit">Time Limit</label>
+              <label for="time-limit">{{ t("essay-lab.time-limit") }}</label>
               <a-select
                 id="time-limit"
                 v-model:value="form.deadlineId"
-                placeholder="Select Time Limit"
+                :placeholder="t('essay-lab.select-time-limit')"
               >
                 <a-select-option
                   v-for="deadline in deadlines"
@@ -270,20 +274,20 @@ const handleSave = async () => {
               </a-select>
             </div>
             <div class="essay__select-item">
-              <label for="type">Type *</label>
+              <label for="type">{{ t("essay-lab.type") }} *</label>
               <a-select
                 id="type"
                 v-model:value="form.essayType"
-                placeholder="Select Type"
+                :placeholder="t('essay-lab.select-type')"
                 :options="essayTypes"
               />
             </div>
             <div v-if="showWordLimit" class="essay__select-item">
-              <label for="word-limit">Word Limit *</label>
+              <label for="word-limit">{{ t("essay-lab.word-limit") }} *</label>
               <a-select
                 id="word-limit"
                 v-model:value="form.wordLimitId"
-                placeholder="Select Word Limit"
+                :placeholder="t('essay-lab.select-word-limit')"
               >
                 <a-select-option
                   v-for="wordLimit in wordLimits"
@@ -297,20 +301,20 @@ const handleSave = async () => {
           </div>
           <div class="essay__inputs">
             <div class="essay__input-item">
-              <label for="title">Title *</label>
+              <label for="title">{{ t("essay-lab.title") }} *</label>
               <a-input
                 id="title"
                 v-model:value="form.title"
-                placeholder="Enter Essay Title"
+                :placeholder="t('essay-lab.enter-title')"
                 class="input-full"
               />
             </div>
             <div class="essay__input-item">
-              <label for="essay">Essay *</label>
+              <label for="essay">{{ t("essay-lab.essay") }} *</label>
               <a-textarea
                 id="essay"
                 v-model:value="form.body"
-                placeholder="Enter your essay"
+                :placeholder="t('essay-lab.enter-essay')"
                 class="input-full"
                 :autosize="{ minRows: 30, maxRows: 30 }"
               />
@@ -319,41 +323,41 @@ const handleSave = async () => {
         </div>
       </div>
       <div class="essay__right" v-if="!loading">
-        <h4 class="section__title">Details</h4>
+        <h4 class="section__title">{{ t("essay-lab.edit.details") }}</h4>
         <div class="details__items">
           <p class="detail__item">
             <Icon name="lucide:check-circle" class="icon icon--success" />
-            Update your essay content and mentor selection
+            {{ t("essay-lab.edit.detail1") }}
           </p>
           <p class="detail__item">
             <Icon name="lucide:check-circle" class="icon icon--success" />
-            Changes will be saved after payment confirmation
+            {{ t("essay-lab.edit.detail2") }}
           </p>
           <p class="detail__item">
             <Icon name="lucide:alert-circle" class="icon icon--warning" />
-            Make sure all required fields are filled
+            {{ t("essay-lab.edit.detail3") }}
           </p>
         </div>
         <div class="details__pricelist">
           <div class="pricelist__items">
             <div class="pricelist__item">
-              <p>Mentor</p>
+              <p>{{ t("essay-lab.mentor") }}</p>
               <p>{{ selectedMentor?.fullName || "-" }}</p>
             </div>
             <div class="pricelist__item">
-              <p>Essay Type</p>
+              <p>{{ t("essay-lab.type") }}</p>
               <p>{{ selectedEssayType?.label || "-" }}</p>
             </div>
             <div class="pricelist__item">
-              <p>Deadline</p>
+              <p>{{ t("essay-lab.time-limit") }}</p>
               <p>{{ selectedDeadline?.name || "-" }}</p>
             </div>
             <div v-if="showWordLimit" class="pricelist__item">
-              <p>Word Limit</p>
+              <p>{{ t("essay-lab.word-limit") }}</p>
               <p>{{ selectedWordLimit?.name || "-" }}</p>
             </div>
             <div class="pricelist__total">
-              <p>Total</p>
+              <p>{{ t("essay-lab.total") }}</p>
               <p v-if="priceLoading">
                 <a-spin size="small" />
               </p>
@@ -373,14 +377,14 @@ const handleSave = async () => {
             :disabled="!calculatedPrice || priceLoading"
             @click="handleSave"
           >
-            Save Changes
+            {{ t("essay-lab.save_changes") }}
           </a-button>
           <a-button
             class="btn--full"
             :disabled="saving"
             @click="router.push(`/essay-lab/${route.params.id}`)"
           >
-            Cancel
+            {{ t("essay-lab.cancel") }}
           </a-button>
         </div>
       </div>

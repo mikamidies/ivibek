@@ -6,6 +6,7 @@ import { message } from "ant-design-vue";
 const route = useRoute();
 const router = useRouter();
 const { fetchEssayById } = useEssay();
+const { t } = useTranslations();
 
 const loading = ref(true);
 const essay = ref({
@@ -23,7 +24,7 @@ const essay = ref({
 const load = async () => {
   const id = Number(route.params.id);
   if (!id) {
-    message.error("Invalid essay id");
+    message.error(t("essay-lab.invalid-id"));
     router.push("/essay-lab");
     return;
   }
@@ -47,7 +48,7 @@ const load = async () => {
       feedback: data.feedback,
     };
   } else {
-    message.error(res.error || "Не удалось загрузить эссе");
+    message.error(res.error || t("essay-lab.failed-load-essay"));
     router.push("/essay-lab");
   }
 };
@@ -79,14 +80,14 @@ const getStatusLabel = (s) => {
 };
 
 const openMentorOptions = () => {
-  message.info("Mentor options not implemented");
+  message.info(t("essay-lab.mentor-options-not-implemented"));
 };
 </script>
 
 <template>
   <div class="essay__edit-page">
     <PageBanner
-      titleProps="Essay Details"
+      :titleProps="t('essay-lab.essay-details')"
       backgroundProps="#00A155"
       iconProps="/page-icons/tasks.png"
     />
@@ -95,7 +96,7 @@ const openMentorOptions = () => {
         <div class="essay__top">
           <NuxtLink to="/essay-lab" class="essay__back">
             <Icon name="lucide:arrow-left" class="icon" />
-            Back
+            {{ t("essay-lab.back") }}
           </NuxtLink>
 
           <NuxtLink
@@ -108,7 +109,7 @@ const openMentorOptions = () => {
             "
           >
             <Icon name="lucide:edit-2" class="icon" />
-            Edit Essay
+            {{ t("essay-lab.edit-essay") }}
           </NuxtLink>
         </div>
 
@@ -118,7 +119,9 @@ const openMentorOptions = () => {
 
         <div v-else>
           <div class="essay__header">
-            <h4 class="essay__title">{{ essay.title || "Untitled Essay" }}</h4>
+            <h4 class="essay__title">
+              {{ essay.title || t("essay-lab.untitled-essay") }}
+            </h4>
             <!-- <div class="essay__meta">
               <span>Created: {{ formatDate(essay.createdAt) }}</span>
               <span class="separator">•</span>
@@ -161,7 +164,7 @@ const openMentorOptions = () => {
       <div class="essay__right" v-if="!loading">
         <div class="section">
           <div class="right__head">
-            <h4 class="section__title">Mentor</h4>
+            <h4 class="section__title">{{ t("essay-lab.mentor") }}</h4>
             <button class="edit" @click="openMentorOptions">
               <Icon name="lucide:ellipsis-vertical" class="icon" />
             </button>
@@ -170,7 +173,7 @@ const openMentorOptions = () => {
             <div class="essay__img">
               <NuxtImg
                 :src="essay.mentor?.image || '/images/person.jpg'"
-                alt="Mentor"
+                :alt="t('essay-lab.mentor')"
                 width="48"
                 height="48"
               />
@@ -189,11 +192,11 @@ const openMentorOptions = () => {
 
         <div class="section">
           <div class="right__head">
-            <h4 class="section__title">Feedback</h4>
+            <h4 class="section__title">{{ t("essay-lab.feedback") }}</h4>
           </div>
           <div class="feedback__items">
             <div v-if="!essay.feedback" class="text-muted">
-              No feedback yet. Waiting for mentor review.
+              {{ t("essay-lab.no-feedback-yet") }}
             </div>
             <div v-else class="feedback__item">
               <p class="feedback__date">

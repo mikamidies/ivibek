@@ -5,6 +5,7 @@ import { ref, onMounted } from "vue";
 const { user } = useAuth();
 const { fetchUpcomingMeetings, fetchMeetingById } = useMeetings();
 const { fetchTasks, toggleTask } = useTasks();
+const { t } = useTranslations();
 import { message } from "ant-design-vue";
 
 definePageMeta({
@@ -113,19 +114,19 @@ const handleSessionOk = () => {
   <div class="index">
     <div class="grid">
       <div class="left">
-        <AiBanner />
+        <!-- <AiBanner /> -->
         <div class="sections">
           <div class="sessions">
             <div class="sessions__head">
-              <p class="sessions__title">Upcoming sessions</p>
+              <p class="sessions__title">{{ t("main.sessions") }}</p>
               <NuxtLink to="/booking">View</NuxtLink>
             </div>
             <div class="sessions__items">
               <div v-if="isLoadingSessions" class="sessions__loading">
-                Loading...
+                {{ t("main.loading") }}
               </div>
               <div v-else-if="sessions.length === 0" class="sessions__empty">
-                No upcoming sessions
+                {{ t("main.no-sessions") }}
               </div>
               <div
                 v-else
@@ -160,13 +161,15 @@ const handleSessionOk = () => {
           </div>
           <div class="tasks">
             <div class="tasks__head">
-              <p class="tasks__title">Student tasks</p>
+              <p class="tasks__title">{{ t("main.tasks") }}</p>
               <NuxtLink to="/tasks">View</NuxtLink>
             </div>
             <div class="tasks__items">
-              <div v-if="isLoadingTasks" class="tasks__loading">Loading...</div>
+              <div v-if="isLoadingTasks" class="tasks__loading">
+                {{ t("main.loading") }}
+              </div>
               <div v-else-if="tasks.length === 0" class="tasks__empty">
-                No tasks available
+                {{ t("main.no-tasks") }}
               </div>
               <div
                 v-else
@@ -401,7 +404,6 @@ const handleSessionOk = () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
-  margin-top: 24px;
 }
 .sessions,
 .tasks,

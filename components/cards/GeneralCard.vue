@@ -4,6 +4,7 @@ import { message } from "ant-design-vue";
 
 const { fetchSidebarData } = useSidebar();
 const { fetchMeetingById } = useMeetings();
+const { t } = useTranslations();
 
 const sidebarData = ref(null);
 const isLoading = ref(true);
@@ -127,13 +128,15 @@ const handleSessionOk = () => {
 
 <template>
   <div class="general-card">
-    <div v-if="isLoading" class="loading-state">Loading...</div>
+    <div v-if="isLoading" class="loading-state">{{ t("main.loading") }}</div>
     <template v-else>
       <div class="general__info">
-        <p class="section__title">General information</p>
+        <p class="section__title">{{ t("main.info") }}</p>
         <div class="profile__overview-items">
           <div class="profile__overview-item">
-            <p class="profile__overview-name">Active Sessions</p>
+            <p class="profile__overview-name">
+              {{ t("main.active-sessions") }}
+            </p>
             <div class="profile__overview-flex">
               <div class="profile__overview-icon blue">
                 <Icon
@@ -147,7 +150,7 @@ const handleSessionOk = () => {
             </div>
           </div>
           <div class="profile__overview-item">
-            <p class="profile__overview-name">Sent Essays</p>
+            <p class="profile__overview-name">{{ t("main.sent-essays") }}</p>
             <div class="profile__overview-flex">
               <div class="profile__overview-icon green">
                 <Icon name="lucide:backpack" />
@@ -158,9 +161,9 @@ const handleSessionOk = () => {
         </div>
       </div>
       <div class="active__sessions">
-        <p class="section__title">Active sessions</p>
+        <p class="section__title">{{ t("main.sessions") }}</p>
         <div v-if="activeSessions.length === 0" class="empty-state">
-          No active sessions
+          {{ t("main.no-sessions") }}
         </div>
         <div v-else class="active__sessions-items">
           <div
@@ -184,9 +187,9 @@ const handleSessionOk = () => {
         </div>
       </div>
       <div class="essay__sent">
-        <p class="section__title">Essays sent</p>
+        <p class="section__title">{{ t("main.sent-essays") }}</p>
         <div v-if="sentEssays.length === 0" class="empty-state">
-          No essays sent
+          {{ t("main.no-essay") }}
         </div>
         <div v-else class="essay__items">
           <div v-for="essay in sentEssays" :key="essay.id" class="essay__item">
@@ -221,7 +224,7 @@ const handleSessionOk = () => {
   >
     <a-spin :spinning="meetingDetailLoading">
       <div class="modal__header">
-        <h2 class="section__title">Session Details</h2>
+        <h2 class="section__title">{{ t("main.sessions") }} Details</h2>
       </div>
       <div class="modal__body" v-if="selectedMeeting">
         <div class="meeting-modal__top">
@@ -281,7 +284,7 @@ const handleSessionOk = () => {
           </div>
         </div>
         <div class="modal__response" v-if="selectedMeeting.meetingLink">
-          <h4>Meeting Link</h4>
+          <h4>{{ t("main.meeting-link") }}</h4>
           <a :href="selectedMeeting.meetingLink.link" target="_blank">{{
             selectedMeeting.meetingLink.link
           }}</a>

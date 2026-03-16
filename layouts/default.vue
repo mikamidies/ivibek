@@ -39,7 +39,7 @@ onMounted(() => {
       <Header :title="pageTitle" />
       <slot />
     </main>
-    <AiChat />
+    <!-- <AiChat /> -->
   </div>
 </template>
 

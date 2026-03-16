@@ -6,6 +6,7 @@ import { message } from "ant-design-vue";
 
 const { fetchMajorsCareersGrouped, createMajorCareer, updateMajorCareer } =
   useMajorsCareers();
+const { t } = useTranslations();
 
 const majorsCareers = ref([]);
 const loading = ref(false);
@@ -33,26 +34,26 @@ const editForm = ref({
 
 const researchItems = computed(() => {
   const sections = majorsCareers.value.filter(
-    (item) => item.type === "RESEARCH"
+    (item) => item.type === "RESEARCH",
   );
   return sections.flatMap((section) =>
-    (section.items || []).map((item) => ({ ...item, type: section.type }))
+    (section.items || []).map((item) => ({ ...item, type: section.type })),
   );
 });
 const careerItems = computed(() => {
   const sections = majorsCareers.value.filter(
-    (item) => item.type === "EXPLORATION"
+    (item) => item.type === "EXPLORATION",
   );
   return sections.flatMap((section) =>
-    (section.items || []).map((item) => ({ ...item, type: section.type }))
+    (section.items || []).map((item) => ({ ...item, type: section.type })),
   );
 });
 const networkingItems = computed(() => {
   const sections = majorsCareers.value.filter(
-    (item) => item.type === "NETWORKING"
+    (item) => item.type === "NETWORKING",
   );
   return sections.flatMap((section) =>
-    (section.items || []).map((item) => ({ ...item, type: section.type }))
+    (section.items || []).map((item) => ({ ...item, type: section.type })),
   );
 });
 
@@ -129,17 +130,17 @@ onMounted(async () => {
   <div class="careers-page">
     <div class="careers__left">
       <PageBanner
-        titleProps="Majors & Careers"
+        :titleProps="t('majors.majors-careers')"
         backgroundProps="#FF163D"
         iconProps="/page-icons/majors.png"
       />
 
       <div class="majors-body">
         <div class="majors__header">
-          <h4 class="section__title">School Research & Preparation</h4>
+          <h4 class="section__title">{{ t("majors.school-research") }}</h4>
           <a-button @click="showModal('RESEARCH')" class="add__btn">
             <Icon name="lucide:plus" />
-            Add
+            {{ t("majors.add") }}
           </a-button>
         </div>
         <a-spin :spinning="loading">
@@ -148,7 +149,7 @@ onMounted(async () => {
             class="empty__state"
           >
             <Icon name="lucide:file-text" />
-            No items added yet
+            {{ t("majors.no-items") }}
           </div>
           <div v-else class="books__items">
             <div
@@ -180,16 +181,16 @@ onMounted(async () => {
 
       <div class="majors-body">
         <div class="majors__header">
-          <h4 class="section__title">Major, Career and Interest Exploration</h4>
+          <h4 class="section__title">{{ t("majors.major-exploration") }}</h4>
           <a-button @click="showModal('EXPLORATION')" class="add__btn">
             <Icon name="lucide:plus" />
-            Add
+            {{ t("majors.add") }}
           </a-button>
         </div>
         <a-spin :spinning="loading">
           <div v-if="careerItems.length === 0 && !loading" class="empty__state">
             <Icon name="lucide:file-text" />
-            No items added yet
+            {{ t("majors.no-items") }}
           </div>
           <div v-else class="books__items">
             <div v-for="item in careerItems" :key="item.id" class="books__item">
@@ -217,10 +218,12 @@ onMounted(async () => {
 
       <div class="majors-body">
         <div class="majors__header">
-          <h4 class="section__title">Networking</h4>
+          <h4 class="section__title">
+            {{ t("majors.networking") }}
+          </h4>
           <a-button @click="showModal('NETWORKING')" class="add__btn">
             <Icon name="lucide:plus" />
-            Add
+            {{ t("majors.add") }}
           </a-button>
         </div>
         <a-spin :spinning="loading">
@@ -229,7 +232,7 @@ onMounted(async () => {
             class="empty__state"
           >
             <Icon name="lucide:file-text" />
-            No items added yet
+            {{ t("majors.no-items") }}
           </div>
           <div v-else class="books__items">
             <div
@@ -264,26 +267,29 @@ onMounted(async () => {
 
   <a-modal
     v-model:visible="visible"
-    title="Add Item"
+    :title="t('majors.add-item')"
     @ok="handleOk"
     :okText="'Add'"
     :cancelText="'Cancel'"
     class="academics__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Title" required>
-        <a-input v-model:value="createForm.title" placeholder="Enter title" />
+      <a-form-item :label="t('majors.title')" required>
+        <a-input
+          v-model:value="createForm.title"
+          :placeholder="t('majors.title')"
+        />
       </a-form-item>
 
-      <a-form-item label="Description" required>
+      <a-form-item :label="t('majors.desc')" required>
         <a-textarea
           v-model:value="createForm.description"
-          placeholder="Enter description"
+          :placeholder="t('majors.desc')"
           :rows="4"
         />
       </a-form-item>
 
-      <a-form-item label="Start Date" required>
+      <a-form-item :label="t('majors.start')" required>
         <a-date-picker
           v-model:value="createForm.startDate"
           style="width: 100%"
@@ -292,7 +298,7 @@ onMounted(async () => {
         />
       </a-form-item>
 
-      <a-form-item label="End Date" required>
+      <a-form-item :label="t('majors.end')" required>
         <a-date-picker
           v-model:value="createForm.endDate"
           style="width: 100%"
@@ -305,26 +311,29 @@ onMounted(async () => {
 
   <a-modal
     v-model:visible="editVisible"
-    title="Edit Item"
+    :title="t('majors.edit-item')"
     @ok="handleEditOk"
     :okText="'Update'"
     :cancelText="'Cancel'"
     class="academics__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Title" required>
-        <a-input v-model:value="editForm.title" placeholder="Enter title" />
+      <a-form-item :label="t('majors.title')" required>
+        <a-input
+          v-model:value="editForm.title"
+          :placeholder="t('majors.title')"
+        />
       </a-form-item>
 
-      <a-form-item label="Description" required>
+      <a-form-item :label="t('majors.desc')" required>
         <a-textarea
           v-model:value="editForm.description"
-          placeholder="Enter description"
+          :placeholder="t('majors.desc')"
           :rows="4"
         />
       </a-form-item>
 
-      <a-form-item label="Start Date" required>
+      <a-form-item :label="t('majors.start')" required>
         <a-date-picker
           v-model:value="editForm.startDate"
           style="width: 100%"
@@ -333,7 +342,7 @@ onMounted(async () => {
         />
       </a-form-item>
 
-      <a-form-item label="End Date" required>
+      <a-form-item :label="t('majors.end')" required>
         <a-date-picker
           v-model:value="editForm.endDate"
           style="width: 100%"

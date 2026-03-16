@@ -1,4 +1,6 @@
-<script setup></script>
+<script setup>
+const { t } = useTranslations();
+</script>
 
 <template>
   <div class="uni-body">
@@ -7,26 +9,32 @@
         <div class="uni__top">
           <NuxtLink to="/universities" class="uni__back">
             <Icon name="lucide:arrow-left" class="icon" />
-            <p>Back</p>
+            <p>{{ t("universities.back") }}</p>
           </NuxtLink>
         </div>
         <div class="uni__grid">
           <div class="uni__left">
             <div class="uni__section">
-              <p class="uni__section-title">Application deadline</p>
+              <p class="uni__section-title">
+                {{ t("universities.application-deadline") }}
+              </p>
               <div class="uni__section-item">
-                <p class="uni__section-item-title">Undergraduate</p>
+                <p class="uni__section-item-title">
+                  {{ t("universities.undergraduate") }}
+                </p>
                 <div class="uni__section-item-flexer">
-                  <p>Early Action:</p>
+                  <p>{{ t("universities.early-action") }}</p>
                   <span> November 1, 2024 </span>
                 </div>
                 <div class="uni__section-item-flexer">
-                  <p>Regular Decision:</p>
+                  <p>{{ t("universities.regular-decision") }}</p>
                   <span> January 5, 2025 </span>
                 </div>
               </div>
               <div class="uni__section-item">
-                <p class="uni__section-item-title">Graduate</p>
+                <p class="uni__section-item-title">
+                  {{ t("universities.graduate") }}
+                </p>
                 <p class="uni__section-item-txt">
                   Deadlines vary by department, often falling between December
                   and March.
@@ -35,15 +43,15 @@
             </div>
             <div class="uni__section">
               <div class="uni__section-item-flexer">
-                <p>Tuition fee:</p>
+                <p>{{ t("universities.tuition-fee") }}</p>
                 <span> $61,990 </span>
               </div>
               <div class="uni__section-item-flexer">
-                <p>Application fee:</p>
+                <p>{{ t("universities.application-fee") }}</p>
                 <span> $75 </span>
               </div>
               <div class="uni__section-item-flexer">
-                <p>Acceptance rate:</p>
+                <p>{{ t("universities.acceptance-rate") }}</p>
                 <span> 4% </span>
               </div>
             </div>

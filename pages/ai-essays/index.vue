@@ -6,6 +6,7 @@ import { message } from "ant-design-vue";
 const { createChat, sendMessage, getChats, getChatById } = useAiEssays();
 const route = useRoute();
 const router = useRouter();
+const { t } = useTranslations();
 
 const currentChatId = ref("");
 const essayText = ref("");
@@ -208,7 +209,7 @@ const loadChat = async (uuid) => {
 
       const chatStatus = result.data.status;
       const userMessagesCount = messages.value.filter(
-        (m) => m.messageFrom === "USER"
+        (m) => m.messageFrom === "USER",
       ).length;
 
       if (chatStatus === "UNPAID" && userMessagesCount === 1) {
@@ -290,7 +291,7 @@ const getStatusLabel = (status) => {
 <template>
   <div class="ai-essays-page">
     <PageBanner
-      titleProps="AI Essays"
+      :titleProps="t('ai-essays.ai-essays')"
       iconProps="/page-icons/tasks.png"
       style="
         background: linear-gradient(
@@ -307,10 +308,10 @@ const getStatusLabel = (status) => {
         <div class="grid">
           <div class="left">
             <div class="chat-list-header">
-              <h4 class="title">Saved Chats</h4>
+              <h4 class="title">{{ t("ai-essays.saved-chats") }}</h4>
               <button class="new-chat-btn" @click="createNewChat">
                 <Icon name="lucide:plus" />
-                New Chat
+                {{ t("ai-essays.new-chat") }}
               </button>
             </div>
 
@@ -319,10 +320,10 @@ const getStatusLabel = (status) => {
                 v-if="isLoadingChats && savedChats.length === 0"
                 class="loading"
               >
-                Loading...
+                {{ t("load") }}
               </div>
               <div v-else-if="savedChats.length === 0" class="empty-state">
-                <p>No saved chats yet</p>
+                <p>{{ t("ai-essays.no-chats") }}</p>
               </div>
               <template v-else>
                 <div
@@ -337,7 +338,7 @@ const getStatusLabel = (status) => {
                   </div>
                   <div class="chat-item-content">
                     <h5 class="chat-item-title">
-                      {{ chat.title || "Untitled Chat" }}
+                      {{ chat.title || t("ai-essays.untitled-chat") }}
                     </h5>
                     <div class="chat-item-info">
                       <p class="chat-item-date">
@@ -355,14 +356,14 @@ const getStatusLabel = (status) => {
 
                 <div v-if="isLoadingChats" class="loading-more">
                   <Icon name="lucide:loader-2" class="spinning" />
-                  Loading more...
+                  {{ t("ai.loading") }}
                 </div>
 
                 <div
                   v-else-if="!hasMoreChats && savedChats.length > 0"
                   class="no-more"
                 >
-                  No more chats
+                  {{ t("ai.no_more") }}
                 </div>
               </template>
             </div>
@@ -375,10 +376,11 @@ const getStatusLabel = (status) => {
                 <div class="chat__header" v-if="!hasMessages">
                   <img src="/images/chat.png" alt="" />
                   <h4 class="chat__title">
-                    You can check your essay with our <br />
-                    AI here
+                    {{ t("ai.check") }}
                   </h4>
-                  <p class="chat__description">Write your essay and wait</p>
+                  <p class="chat__description">
+                    {{ t("ai.write") }}
+                  </p>
                 </div>
 
                 <div v-if="hasMessages" class="chat__messages">
@@ -428,17 +430,9 @@ const getStatusLabel = (status) => {
                   >
                     <div class="payment-card">
                       <div class="payment-blur">
-                        <h4>Unlock Answer</h4>
+                        <h4>{{ t("ai.unlock") }}</h4>
                         <p>
-                          Lorem, ipsum dolor sit amet consectetur adipisicing
-                          elit. At, dolore, voluptas ducimus eum laboriosam
-                          suscipit vitae vel nobis rem natus dignissimos quia
-                          nihil ea iste eos reiciendis consequatur modi enim
-                          facilis. Repellendus explicabo veniam, rerum ullam
-                          magnam dicta eum cupiditate quasi omnis rem voluptate
-                          soluta optio, asperiores facere? Omnis accusantium
-                          reprehenderit harum optio numquam eos id alias earum
-                          ab
+                          {{ t("ai.unlock_desc") }}
                         </p>
                       </div>
 
@@ -446,7 +440,7 @@ const getStatusLabel = (status) => {
                         class="payment-btn"
                         @click="showPaymentButton = false"
                       >
-                        Unlock Answer
+                        {{ t("ai.pay_now") }}
                       </button>
                     </div>
                   </div>
@@ -454,42 +448,44 @@ const getStatusLabel = (status) => {
 
                 <div class="chat__flexer">
                   <div v-if="shouldShowSuggestions" class="chat__suggests">
-                    <h4>Chat Suggestions for Your Essay</h4>
+                    <h4>
+                      {{ t("ai.categories") }}
+                    </h4>
                     <div class="suggest__items">
                       <div
                         class="suggest__item"
                         @click="handleSuggestionClick('Narrative Essay')"
                       >
                         <Icon name="lucide:pencil" class="icon" />
-                        Narrative Essay
+                        {{ t("ai.narrative") }}
                       </div>
                       <div
                         class="suggest__item"
                         @click="handleSuggestionClick('Descriptive Essay')"
                       >
                         <Icon name="lucide:pencil" class="icon" />
-                        Descriptive Essay
+                        {{ t("ai.descriptive") }}
                       </div>
                       <div
                         class="suggest__item"
                         @click="handleSuggestionClick('Expository Essay')"
                       >
                         <Icon name="lucide:pencil" class="icon" />
-                        Expository Essay
+                        {{ t("ai.expository") }}
                       </div>
                       <div
                         class="suggest__item"
                         @click="handleSuggestionClick('Persuasive Essay')"
                       >
                         <Icon name="lucide:pencil" class="icon" />
-                        Persuasive Essay
+                        {{ t("ai.persuasive") }}
                       </div>
                       <div
                         class="suggest__item"
                         @click="handleSuggestionClick('Comparative Essay')"
                       >
                         <Icon name="lucide:pencil" class="icon" />
-                        Comparative Essay
+                        {{ t("ai.comparative") }}
                       </div>
                     </div>
                   </div>
@@ -516,7 +512,9 @@ const getStatusLabel = (status) => {
                         name="lucide:loader-2"
                         class="spinning"
                       />
-                      <span v-else>Send</span>
+                      <span v-else>
+                        {{ t("ai.send") }}
+                      </span>
                     </button>
                   </div>
                 </div>

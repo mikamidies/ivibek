@@ -16,6 +16,7 @@ const {
 } = useAuth();
 
 const { fetchCountries } = useCommon();
+const { t } = useTranslations();
 
 const loading = ref(false);
 const uploadLoading = ref(false);
@@ -50,7 +51,7 @@ watch(
       about.value = newUser.about || "";
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 const visible = ref(false);
@@ -202,7 +203,8 @@ const timezones = [
           </h3>
           <p class="profile__email">{{ user.info?.email || "Not set" }}</p>
           <p class="profile__apply">
-            Joined {{ dayjs(user.joinedAt).format("MMM DD, YYYY") }}
+            {{ t("profile.joined") }}
+            {{ dayjs(user.joinedAt).format("MMM DD, YYYY") }}
           </p>
         </div>
       </div>
@@ -211,7 +213,7 @@ const timezones = [
     <div class="profile__grid">
       <div class="profile__details">
         <div class="profile__details-head">
-          <h4 class="section__title">Personal Details</h4>
+          <h4 class="section__title">{{ t("profile.personal-details") }}</h4>
           <button class="profile__details-edit" @click="showModal">
             <Icon name="lucide:pencil" />
           </button>
@@ -260,13 +262,13 @@ const timezones = [
 
       <div class="profile__about">
         <div class="profile__about-head">
-          <h4 class="section__title">About Me</h4>
+          <h4 class="section__title">{{ t("profile.about-me") }}</h4>
           <button class="profile__about-edit" @click="showModalDesc">
             <Icon name="lucide:pencil" />
           </button>
         </div>
         <div class="profile__about-text">
-          {{ user?.about || "No description yet" }}
+          {{ user?.about || t("profile.no-description") }}
         </div>
       </div>
     </div>
@@ -274,39 +276,41 @@ const timezones = [
 
   <a-modal
     v-model:visible="visible"
-    title="Edit Profile"
+    :title="t('profile.edit-profile')"
     @ok="handleOk"
     :confirm-loading="loading"
   >
     <template #footer>
-      <a-button key="back" @click="handleCancel">Cancel</a-button>
+      <a-button key="back" @click="handleCancel">
+        {{ t("profile.cancel") }}
+      </a-button>
       <a-button
         key="submit"
         type="primary"
         :loading="loading"
         @click="handleOk"
       >
-        Save information
+        {{ t("profile.save-info") }}
       </a-button>
     </template>
     <div class="form__wrapper">
       <a-form :model="form" layout="vertical">
-        <a-form-item label="Full Name" name="fullName">
+        <a-form-item :label="t('profile.full-name')" name="fullName">
           <a-input
             v-model:value="form.fullName"
-            placeholder="Enter your full name"
+            :placeholder="t('profile.full-name')"
           />
         </a-form-item>
 
-        <a-form-item label="Email" name="email">
+        <a-form-item :label="t('profile.email')" name="email">
           <a-input
             v-model:value="form.email"
             type="email"
-            placeholder="Enter your email"
+            :placeholder="t('profile.email')"
           />
         </a-form-item>
 
-        <a-form-item label="Date of Birth" name="dateOfBirth">
+        <a-form-item :label="t('profile.date-of-birth')" name="dateOfBirth">
           <a-date-picker
             v-model:value="form.dateOfBirth"
             style="width: 100%"
@@ -314,19 +318,19 @@ const timezones = [
           />
         </a-form-item>
 
-        <a-form-item label="Gender" name="gender">
+        <a-form-item :label="t('profile.gender')" name="gender">
           <a-select
             v-model:value="form.gender"
-            placeholder="Choose gender"
+            :placeholder="t('profile.choose-gender')"
             :options="genderOptions"
           />
         </a-form-item>
 
-        <a-form-item label="Country" name="countryId">
+        <a-form-item :label="t('profile.country')" name="countryId">
           <a-select
             v-model:value="form.countryId"
             show-search
-            placeholder="Select a country"
+            :placeholder="t('profile.select-country')"
             :filter-option="
               (input, option) =>
                 option.label.toLowerCase().includes(input.toLowerCase())
@@ -344,7 +348,7 @@ const timezones = [
           </a-select>
         </a-form-item>
 
-        <a-form-item label="Timezone" name="timezone">
+        <a-form-item :label="t('profile.timezone')" name="timezone">
           <a-select
             v-model:value="form.timezone"
             show-search
@@ -359,15 +363,19 @@ const timezones = [
 
   <a-modal
     v-model:visible="visibleDesc"
-    title="Change Description"
+    :title="t('profile.change-description')"
     @ok="handleOkDesc"
     :confirm-loading="loading"
   >
-    <a-form-item label="About Me" name="about" class="long-form-item columner">
+    <a-form-item
+      :label="t('profile.about-me')"
+      name="about"
+      class="long-form-item columner"
+    >
       <a-textarea
         v-model:value="about"
         rows="4"
-        placeholder="Tell us about yourself"
+        :placeholder="t('profile.tell-about')"
         :autosize="{ minRows: 18, maxRows: 24 }"
       />
     </a-form-item>

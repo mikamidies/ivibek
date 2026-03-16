@@ -2,45 +2,66 @@
 import PersonalCard from "@/components/cards/PersonalCard.vue";
 
 const { logout } = useAuth();
+const { t } = useTranslations();
 
 const isSidebarOpen = inject("isSidebarOpen");
 
 const links = [
-  { name: "Dashboard", link: "/", icon: "lucide:layout-dashboard" },
-  { name: "Academics", link: "/academics", icon: "lucide:graduation-cap" },
-  { name: "Tasks", link: "/tasks", icon: "lucide:file-check" },
-  { name: "Assignments", link: "/assignments", icon: "lucide:check" },
-  // { name: "Testing", link: "/testing", icon: "lucide:file-pen" },
-  { name: "Activities", link: "/activities", icon: "lucide:folder-pen" },
-  { name: "Honors", link: "/honors", icon: "lucide:medal" },
+  { name: t("sidebar.dashboard"), link: "/", icon: "lucide:layout-dashboard" },
   {
-    name: "Personal Development",
+    name: t("sidebar.academics"),
+    link: "/academics",
+    icon: "lucide:graduation-cap",
+  },
+  { name: t("sidebar.tasks"), link: "/tasks", icon: "lucide:file-check" },
+  {
+    name: t("sidebar.assignments"),
+    link: "/assignments",
+    icon: "lucide:check",
+  },
+  // { name: "Testing", link: "/testing", icon: "lucide:file-pen" },
+  {
+    name: t("sidebar.activities"),
+    link: "/activities",
+    icon: "lucide:folder-pen",
+  },
+  { name: t("sidebar.honors"), link: "/honors", icon: "lucide:medal" },
+  {
+    name: t("sidebar.personal"),
     link: "/personal-development",
     icon: "lucide:book-open",
   },
   {
-    name: "Majors & Careers",
+    name: t("sidebar.majors"),
     link: "/majors-careers",
     icon: "lucide:briefcase-business",
   },
-  { name: "Booking", link: "/booking", icon: "lucide:calendar-days" },
-  { name: "Essay Lab", link: "/essay-lab", icon: "lucide:test-tubes" },
-  { name: "Teachers", link: "/teachers", icon: "lucide:user-round-pen" },
+  {
+    name: t("sidebar.booking"),
+    link: "/booking",
+    icon: "lucide:calendar-days",
+  },
+  { name: t("sidebar.essay"), link: "/essay-lab", icon: "lucide:test-tubes" },
+  {
+    name: t("sidebar.teachers"),
+    link: "/teachers",
+    icon: "lucide:user-round-pen",
+  },
   // {
   //   name: "Universities",
   //   link: "/universities",
   //   icon: "lucide:building",
   // },
-  {
-    name: "AI Essays",
-    link: "/ai-essays",
-    icon: "lucide:bot",
-  },
-  {
-    name: "Recommendation Letters",
-    link: "/rec-letter",
-    icon: "lucide:mail",
-  },
+  // {
+  //   name: t("sidebar.ai-essays"),
+  //   link: "/ai-essays",
+  //   icon: "lucide:bot",
+  // },
+  // {
+  //   name: t("sidebar.rec-letters"),
+  //   link: "/rec-letter",
+  //   icon: "lucide:mail",
+  // },
 ];
 </script>
 
@@ -71,7 +92,7 @@ const links = [
         <div class="logout">
           <button @click="logout">
             <Icon name="lucide:log-out" class="icon" />
-            Logout
+            {{ t("sidebar.logout") }}
           </button>
         </div>
       </div>

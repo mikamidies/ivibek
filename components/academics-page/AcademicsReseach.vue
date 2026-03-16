@@ -13,6 +13,7 @@ defineProps({
 });
 
 const { fetchResearches, createResearch, updateResearch } = useResearches();
+const { t } = useTranslations();
 
 const value = ref(2);
 const activeKey = ref([]);
@@ -33,9 +34,7 @@ const loadResearches = async () => {
   loading.value = true;
   try {
     researches.value = await fetchResearches();
-    console.log("Researches loaded:", researches.value);
   } catch (error) {
-    console.error("Load researches error:", error);
     message.error(`Failed to load researches: ${error.message || error}`);
   } finally {
     loading.value = false;
@@ -96,7 +95,6 @@ const handleOk = async () => {
     await loadResearches();
     visible.value = false;
   } catch (error) {
-    console.error("Save research error:", error);
     message.error(`Failed to save research: ${error.message || error}`);
   } finally {
     loading.value = false;
@@ -116,9 +114,10 @@ const formatDate = (date) => {
 <template>
   <div class="programmes">
     <div class="programmes__head">
-      <h2 class="programmes__title">Academics Research & Publications</h2>
+      <h2 class="programmes__title">{{ t("academics.research") }}</h2>
       <button @click="showModal" class="add__btn">
-        <Icon name="lucide:plus" style="width: 16px; height: 16px" /> Add
+        <Icon name="lucide:plus" style="width: 16px; height: 16px" />
+        {{ t("academics.add") }}
       </button>
     </div>
     <div class="programmes__items">
@@ -128,7 +127,9 @@ const formatDate = (date) => {
             name="lucide:file"
             style="width: 48px; height: 48px; margin-bottom: 16px"
           />
-          <p>No researches yet</p>
+          <p>
+            {{ t("academics.no_researches") }}
+          </p>
         </div>
         <div
           v-for="research in researches"
@@ -145,12 +146,12 @@ const formatDate = (date) => {
               </div>
             </div>
             <div class="flexer">
-              <div class="programmes__item-date">
+              <!-- <div class="programmes__item-date">
                 <span
                   >{{ formatDate(research.startDate) }} -
                   {{ formatDate(research.endDate) }}</span
                 >
-              </div>
+              </div> -->
               <div class="programmes__item-right">
                 <button @click="showEditModal(research)" class="edit__btn">
                   <Icon name="lucide:edit" style="width: 16px; height: 16px" />
@@ -166,26 +167,39 @@ const formatDate = (date) => {
               >
                 <template #header>
                   <div class="panel-header">
-                    <p>Details</p>
+                    <p>{{ t("academics.details") }}</p>
                     <Icon name="lucide:chevron-down" />
                   </div>
                 </template>
                 <div class="panel-content">
                   <div class="panel__content-items">
                     <div class="panel__content-item">
-                      <h4 class="panel__content-title">Research Name</h4>
+                      <h4 class="panel__content-title">
+                        {{ t("academics.research-name") }}
+                      </h4>
                       <p class="panel__content-text">{{ research.name }}</p>
                     </div>
                     <div class="panel__content-item">
-                      <h4 class="panel__content-title">Period</h4>
+                      <h4 class="panel__content-title">
+                        {{ t("academics.question") }}
+                      </h4>
+                      <p class="panel__content-text">{{ research.question }}</p>
+                    </div>
+                    <div class="panel__content-item">
+                      <h4 class="panel__content-title">
+                        {{ t("academics.start") }}
+                      </h4>
                       <p class="panel__content-text">
-                        {{ formatDate(research.startDate) }} -
-                        {{ formatDate(research.endDate) }}
+                        {{ formatDate(research.startDate) }}
                       </p>
                     </div>
                     <div class="panel__content-item">
-                      <h4 class="panel__content-title">Research Question</h4>
-                      <p class="panel__content-text">{{ research.question }}</p>
+                      <h4 class="panel__content-title">
+                        {{ t("academics.end") }}
+                      </h4>
+                      <p class="panel__content-text">
+                        {{ formatDate(research.endDate) }}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -199,31 +213,33 @@ const formatDate = (date) => {
 
   <a-modal
     v-model:visible="visible"
-    :title="editMode ? 'Edit Research' : 'Add New Research'"
+    :title="
+      editMode ? t('academics.editResearch') : t('academics.addNewResearch')
+    "
     @ok="handleOk"
     :confirm-loading="loading"
     width="600px"
     class="academics__form"
   >
     <a-form layout="vertical">
-      <a-form-item label="Research Name" required>
+      <a-form-item :label="t('academics.researchName')" required>
         <a-input
           v-model:value="formData.name"
-          placeholder="Enter research name"
+          :placeholder="`Enter ${t('academics.researchName')}`"
         />
       </a-form-item>
 
-      <a-form-item label="Research Question" required>
+      <a-form-item :label="t('academics.question')" required>
         <a-textarea
           v-model:value="formData.question"
           :rows="4"
-          placeholder="Enter research question"
+          :placeholder="`Enter ${t('academics.question')}`"
         />
       </a-form-item>
 
       <a-row :gutter="16">
         <a-col :span="12">
-          <a-form-item label="Start Date" required>
+          <a-form-item :label="t('academics.start')" required>
             <a-date-picker
               v-model:value="formData.startDate"
               style="width: 100%"
@@ -233,7 +249,7 @@ const formatDate = (date) => {
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label="End Date" required>
+          <a-form-item :label="t('academics.end')" required>
             <a-date-picker
               v-model:value="formData.endDate"
               style="width: 100%"
@@ -360,7 +376,7 @@ const formatDate = (date) => {
 }
 .panel__content-items {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
 }
 .panel__content-title {
