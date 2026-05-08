@@ -1,26 +1,20 @@
 <script setup>
 import dayjs from "dayjs";
+import { computed } from "vue";
 
 const { fetchAssignments } = useAssignments();
 const { t } = useTranslations();
 
-const assignments = ref([]);
-const loading = ref(false);
-
-const loadAssignments = async () => {
-  loading.value = true;
-  try {
-    assignments.value = await fetchAssignments();
-  } catch (error) {
-    console.error("Failed to load assignments:", error);
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(() => {
-  loadAssignments();
+const {
+  data: assignments,
+  pending: loading,
+} = await useAsyncData("assignments", () => fetchAssignments(), {
+  default: () => [],
 });
+
+const assignmentItems = computed(() =>
+  Array.isArray(assignments.value) ? assignments.value : []
+);
 
 const truncateText = (text, maxLength) => {
   if (!text) return "-";
@@ -56,7 +50,10 @@ const getStatusLabel = (status) => {
       </div>
       <div class="assignments__table">
         <a-spin :spinning="loading">
-          <div v-if="assignments.length === 0" class="empty__state">
+          <div
+            v-if="!loading && assignmentItems.length === 0"
+            class="empty__state"
+          >
             <Icon
               name="lucide:file"
               style="width: 48px; height: 48px; margin-bottom: 16px"
@@ -75,7 +72,7 @@ const getStatusLabel = (status) => {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="assignment in assignments.content" :key="assignment">
+              <tr v-for="assignment in assignmentItems" :key="assignment.id">
                 <td>{{ assignment?.mentor.university.name || "No data" }}</td>
                 <td>{{ assignment?.mentor.fullName || "No data" }}</td>
                 <td>{{ assignment?.title || "No data" }}</td>

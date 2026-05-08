@@ -7,61 +7,45 @@ const { t } = useTranslations();
 const isSidebarOpen = inject("isSidebarOpen");
 
 const links = [
-  { name: t("sidebar.dashboard"), link: "/", icon: "lucide:layout-dashboard" },
+  { labelKey: "sidebar.dashboard", link: "/", icon: "lucide:layout-dashboard" },
   {
-    name: t("sidebar.academics"),
+    labelKey: "sidebar.academics",
     link: "/academics",
     icon: "lucide:graduation-cap",
   },
-  { name: t("sidebar.tasks"), link: "/tasks", icon: "lucide:file-check" },
+  { labelKey: "sidebar.tasks", link: "/tasks", icon: "lucide:file-check" },
   {
-    name: t("sidebar.assignments"),
+    labelKey: "sidebar.assignments",
     link: "/assignments",
     icon: "lucide:check",
   },
-  // { name: "Testing", link: "/testing", icon: "lucide:file-pen" },
   {
-    name: t("sidebar.activities"),
+    labelKey: "sidebar.activities",
     link: "/activities",
     icon: "lucide:folder-pen",
   },
-  { name: t("sidebar.honors"), link: "/honors", icon: "lucide:medal" },
+  { labelKey: "sidebar.honors", link: "/honors", icon: "lucide:medal" },
   {
-    name: t("sidebar.personal"),
+    labelKey: "sidebar.personal",
     link: "/personal-development",
     icon: "lucide:book-open",
   },
   {
-    name: t("sidebar.majors"),
+    labelKey: "sidebar.majors",
     link: "/majors-careers",
     icon: "lucide:briefcase-business",
   },
   {
-    name: t("sidebar.booking"),
+    labelKey: "sidebar.booking",
     link: "/booking",
     icon: "lucide:calendar-days",
   },
-  { name: t("sidebar.essay"), link: "/essay-lab", icon: "lucide:test-tubes" },
+  { labelKey: "sidebar.essay", link: "/essay-lab", icon: "lucide:test-tubes" },
   {
-    name: t("sidebar.teachers"),
+    labelKey: "sidebar.teachers",
     link: "/teachers",
     icon: "lucide:user-round-pen",
   },
-  // {
-  //   name: "Universities",
-  //   link: "/universities",
-  //   icon: "lucide:building",
-  // },
-  // {
-  //   name: t("sidebar.ai-essays"),
-  //   link: "/ai-essays",
-  //   icon: "lucide:bot",
-  // },
-  // {
-  //   name: t("sidebar.rec-letters"),
-  //   link: "/rec-letter",
-  //   icon: "lucide:mail",
-  // },
 ];
 </script>
 
@@ -84,7 +68,7 @@ const links = [
             <li v-for="link in links" :key="link.link">
               <NuxtLink :to="link.link">
                 <Icon :name="link.icon" class="icon" />
-                {{ link.name }}
+                {{ t(link.labelKey) }}
               </NuxtLink>
             </li>
           </ul>
@@ -118,16 +102,6 @@ const links = [
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: auto;
-}
-.slider::-webkit-scrollbar {
-  display: none;
-}
-.slider {
-  scrollbar-width: none;
-}
-.slider {
-  -ms-overflow-style: none;
 }
 .top {
   padding: 19px 24px;
@@ -135,6 +109,11 @@ const links = [
   display: flex;
   align-items: center;
   justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: white;
+  flex-shrink: 0;
 }
 .bottom {
   padding: 24px 16px;
@@ -143,6 +122,16 @@ const links = [
   gap: 32px;
   height: 100%;
   justify-content: space-between;
+  overflow: auto;
+}
+.bottom::-webkit-scrollbar {
+  display: none;
+}
+.bottom {
+  scrollbar-width: none;
+}
+.bottom {
+  -ms-overflow-style: none;
 }
 .bottom ul {
   display: flex;

@@ -1,8 +1,6 @@
 <script setup>
-import AiBanner from "~/components/AiBanner.vue";
 import GeneralCard from "~/components/cards/GeneralCard.vue";
-import { ref, onMounted } from "vue";
-const { user } = useAuth();
+import { ref } from "vue";
 const { fetchUpcomingMeetings, fetchMeetingById } = useMeetings();
 const { fetchTasks, toggleTask } = useTasks();
 const { t } = useTranslations();
@@ -11,11 +9,6 @@ import { message } from "ant-design-vue";
 definePageMeta({
   layoutTitle: "",
 });
-
-const sessions = ref([]);
-const tasks = ref([]);
-const isLoadingSessions = ref(true);
-const isLoadingTasks = ref(true);
 
 const formatTime = (time) => {
   const [hours, minutes] = time.split(":");
@@ -32,59 +25,52 @@ const formatDate = (dateString) => {
   return `${month} ${day}`;
 };
 
-const loadSessions = async () => {
-  try {
-    isLoadingSessions.value = true;
-    const data = await fetchUpcomingMeetings();
+const {
+  data: sessions,
+  pending: isLoadingSessions,
+} = await useAsyncData("dashboard-sessions", async () => {
+  const data = await fetchUpcomingMeetings();
 
-    sessions.value = data.meetings.map((group) => ({
-      date: formatDate(group.date),
-      items: group.meetings.map((meeting) => ({
-        id: meeting.id,
-        name: meeting.meetingWith.fullName,
-        time: `${formatTime(meeting.timeFrom)}-${formatTime(meeting.timeTo)}`,
-        title: meeting.description,
-        img: meeting.meetingWith.image || "/images/person.jpg",
-      })),
-    }));
-  } catch (error) {
-    console.error("Failed to load sessions:", error);
-  } finally {
-    isLoadingSessions.value = false;
-  }
-};
+  return (data.meetings || []).map((group) => ({
+    date: formatDate(group.date),
+    items: group.meetings.map((meeting) => ({
+      id: meeting.id,
+      name: meeting.meetingWith.fullName,
+      time: `${formatTime(meeting.timeFrom)}-${formatTime(meeting.timeTo)}`,
+      title: meeting.description,
+      img: meeting.meetingWith.image || "/images/person.jpg",
+    })),
+  }));
+}, {
+  default: () => [],
+});
 
-const loadTasks = async () => {
-  try {
-    isLoadingTasks.value = true;
-    const data = await fetchTasks();
+const {
+  data: tasks,
+  pending: isLoadingTasks,
+  refresh: refreshTasks,
+} = await useAsyncData("dashboard-tasks", async () => {
+  const data = await fetchTasks();
 
-    tasks.value = data.map((task) => ({
-      id: task.id,
-      name: task.task,
-      desc: task.description,
-      date: formatDate(task.endDate),
-      checked: task.isDone,
-    }));
-  } catch (error) {
-    console.error("Failed to load tasks:", error);
-  } finally {
-    isLoadingTasks.value = false;
-  }
-};
+  return data.map((task) => ({
+    id: task.id,
+    name: task.task,
+    desc: task.description,
+    date: formatDate(task.endDate),
+    checked: task.isDone,
+  }));
+}, {
+  default: () => [],
+});
 
 const handleTaskToggle = async (taskId) => {
   try {
     await toggleTask(taskId);
+    await refreshTasks();
   } catch (error) {
     console.error("Failed to toggle task:", error);
   }
 };
-
-onMounted(() => {
-  loadSessions();
-  loadTasks();
-});
 
 const sessionModalVisible = ref(false);
 const selectedMeeting = ref(null);

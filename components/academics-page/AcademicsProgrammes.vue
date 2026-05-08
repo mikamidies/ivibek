@@ -21,6 +21,12 @@ const editMode = ref(false);
 const programs = ref([]);
 const currentProgram = ref(null);
 const loading = ref(false);
+const formErrors = ref({
+  name: "",
+  university: "",
+  startDate: "",
+  endDate: "",
+});
 
 const formData = ref({
   name: "",
@@ -31,6 +37,42 @@ const formData = ref({
   category: "",
   isOnline: false,
 });
+
+const resetProgramErrors = () => {
+  Object.keys(formErrors.value).forEach((key) => {
+    formErrors.value[key] = "";
+  });
+};
+
+const validateProgramForm = () => {
+  resetProgramErrors();
+
+  if (!formData.value.name.trim()) {
+    formErrors.value.name = "Program name is required";
+  }
+
+  if (!formData.value.university.trim()) {
+    formErrors.value.university = "University is required";
+  }
+
+  if (!formData.value.startDate) {
+    formErrors.value.startDate = "Start date is required";
+  }
+
+  if (!formData.value.endDate) {
+    formErrors.value.endDate = "End date is required";
+  }
+
+  if (
+    formData.value.startDate &&
+    formData.value.endDate &&
+    formData.value.endDate < formData.value.startDate
+  ) {
+    formErrors.value.endDate = "End date must be on or after start date";
+  }
+
+  return !Object.values(formErrors.value).some(Boolean);
+};
 
 const loadPrograms = async () => {
   loading.value = true;
@@ -60,6 +102,7 @@ const showModal = () => {
     category: "",
     isOnline: false,
   };
+  resetProgramErrors();
   visible.value = true;
 };
 
@@ -75,10 +118,16 @@ const showEditModal = (program) => {
     category: program.category,
     isOnline: program.isOnline,
   };
+  resetProgramErrors();
   visible.value = true;
 };
 
 const handleOk = async () => {
+  if (!validateProgramForm()) {
+    message.error("Please fix the form errors");
+    return;
+  }
+
   loading.value = true;
   try {
     const payload = {
@@ -249,14 +298,24 @@ const formatDate = (date) => {
     class="academics__form"
   >
     <a-form layout="vertical">
-      <a-form-item :label="t('academics.program-name')" required>
+      <a-form-item
+        :label="t('academics.program-name')"
+        required
+        :validate-status="formErrors.name ? 'error' : ''"
+        :help="formErrors.name"
+      >
         <a-input
           v-model:value="formData.name"
           :placeholder="`Enter ${t('academics.program-name')}`"
         />
       </a-form-item>
 
-      <a-form-item :label="t('academics.university')" required>
+      <a-form-item
+        :label="t('academics.university')"
+        required
+        :validate-status="formErrors.university ? 'error' : ''"
+        :help="formErrors.university"
+      >
         <a-input
           v-model:value="formData.university"
           :placeholder="`Enter ${t('academics.university')}`"
@@ -272,7 +331,12 @@ const formatDate = (date) => {
 
       <a-row :gutter="16">
         <a-col :span="12">
-          <a-form-item :label="t('academics.start')" required>
+          <a-form-item
+            :label="t('academics.start')"
+            required
+            :validate-status="formErrors.startDate ? 'error' : ''"
+            :help="formErrors.startDate"
+          >
             <a-date-picker
               v-model:value="formData.startDate"
               style="width: 100%"
@@ -282,7 +346,12 @@ const formatDate = (date) => {
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item :label="t('academics.end')" required>
+          <a-form-item
+            :label="t('academics.end')"
+            required
+            :validate-status="formErrors.endDate ? 'error' : ''"
+            :help="formErrors.endDate"
+          >
             <a-date-picker
               v-model:value="formData.endDate"
               style="width: 100%"

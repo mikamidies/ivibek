@@ -4,7 +4,7 @@ import { message } from "ant-design-vue";
 const { t } = useTranslations();
 
 definePageMeta({
-  layoutTitle: t("essay-lab.edit-essay"),
+  layoutTitle: "essay-lab.edit-essay",
 });
 
 const route = useRoute();

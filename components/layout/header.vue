@@ -4,6 +4,7 @@ defineProps({
 });
 
 const isSidebarOpen = inject("isSidebarOpen");
+const { t } = useTranslations();
 </script>
 
 <template>
@@ -21,7 +22,7 @@ const isSidebarOpen = inject("isSidebarOpen");
           height="48"
         />
       </div>
-      <h1 class="title">{{ title }}</h1>
+      <h1 class="title">{{ title ? t(title) : "" }}</h1>
     </div>
     <div class="right">
       <!-- <div class="search">

@@ -5,7 +5,7 @@ import PageBanner from "@/components/PageBanner.vue";
 const { t } = useTranslations();
 
 definePageMeta({
-  layoutTitle: t("essay-lab.title"),
+  layoutTitle: "essay-lab.title",
 });
 
 const { fetchEssays } = useEssay();

@@ -5,6 +5,23 @@ definePageMeta({
   layout: "auth",
 });
 
+useHead({
+  link: [
+    {
+      rel: "preload",
+      as: "image",
+      href: "/images/login.webp",
+      type: "image/webp",
+    },
+    {
+      rel: "preload",
+      as: "image",
+      href: "/images/brand.svg",
+      type: "image/svg+xml",
+    },
+  ],
+});
+
 const { register } = useAuth();
 const { fetchCountries } = useCommon(); // ✅ Добавили
 
@@ -18,6 +35,16 @@ const dateOfBirth = ref(null); // ✅ Изменили с "" на null для a-
 const countryId = ref(null); // ✅ Изменили с 1 на null
 const agree = ref(false);
 const loading = ref(false);
+const errors = ref({
+  username: "",
+  fullName: "",
+  email: "",
+  countryId: "",
+  dateOfBirth: "",
+  password: "",
+  confirmPassword: "",
+  agree: "",
+});
 
 // ✅ Добавили массив для стран
 const countries = ref([]);
@@ -32,32 +59,66 @@ onMounted(async () => {
   }
 });
 
-const handleRegister = async () => {
-  if (
-    !username.value ||
-    !email.value ||
-    !fullName.value ||
-    !password.value ||
-    !confirmPassword.value ||
-    !dateOfBirth.value ||
-    !countryId.value // ✅ Добавили проверку
-  ) {
-    message.error("Заполните все поля");
-    return;
+const resetErrors = () => {
+  errors.value = {
+    username: "",
+    fullName: "",
+    email: "",
+    countryId: "",
+    dateOfBirth: "",
+    password: "",
+    confirmPassword: "",
+    agree: "",
+  };
+};
+
+const validateForm = () => {
+  resetErrors();
+
+  if (!username.value.trim()) {
+    errors.value.username = "Username is required";
   }
 
-  if (password.value !== confirmPassword.value) {
-    message.error("Пароли не совпадают");
-    return;
+  if (!fullName.value.trim()) {
+    errors.value.fullName = "Full name is required";
   }
 
-  if (password.value.length < 6) {
-    message.error("Пароль должен быть не менее 6 символов");
-    return;
+  if (!email.value.trim()) {
+    errors.value.email = "Email is required";
+  } else if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) {
+    errors.value.email = "Enter a valid email";
+  }
+
+  if (!countryId.value) {
+    errors.value.countryId = "Country is required";
+  }
+
+  if (!dateOfBirth.value) {
+    errors.value.dateOfBirth = "Date of birth is required";
+  }
+
+  if (!password.value) {
+    errors.value.password = "Password is required";
+  } else if (password.value.length < 6) {
+    errors.value.password = "Password must be at least 6 characters";
+  }
+
+  if (!confirmPassword.value) {
+    errors.value.confirmPassword = "Confirm your password";
+  } else if (password.value !== confirmPassword.value) {
+    errors.value.confirmPassword = "Passwords do not match";
   }
 
   if (!agree.value) {
-    message.error("Примите условия использования");
+    errors.value.agree = "You must accept the terms";
+  }
+
+  return !Object.values(errors.value).some(Boolean);
+};
+
+const handleRegister = async () => {
+  if (!validateForm()) {
+    message.error("Please fix the form errors");
     return;
   }
 
@@ -89,17 +150,27 @@ const handleRegister = async () => {
   <div class="login-page auth">
     <div class="login__wrapper">
       <div class="login__img">
-        <NuxtImg
-          src="/images/login.svg"
+        <img
+          src="/images/login.webp"
           alt="Register Illustration"
           width="500"
           height="500"
+          loading="eager"
+          decoding="sync"
+          fetchpriority="high"
         />
         <p class="login__type">Platform for Students</p>
       </div>
       <div class="login__body">
         <div class="login__logo">
-          <NuxtImg src="/images/brand.svg" alt="Logo" width="120" height="40" />
+          <img
+            src="/images/brand.svg"
+            alt="Logo"
+            width="120"
+            height="40"
+            decoding="sync"
+            fetchpriority="high"
+          />
         </div>
         <div class="login__somewhat">
           <div class="login__header">
@@ -110,85 +181,143 @@ const handleRegister = async () => {
           </div>
           <form class="login__form" @submit.prevent="handleRegister">
             <div class="login__items">
-              <a-input
-                v-model:value="username"
-                placeholder="Username"
-                class="login__input"
-                :disabled="loading"
-              />
-              <a-input
-                v-model:value="fullName"
-                placeholder="Full Name"
-                class="login__input"
-                :disabled="loading"
-              />
-              <a-input
-                v-model:value="email"
-                type="email"
-                placeholder="Email"
-                class="login__input"
-                :disabled="loading"
-              />
-              <a-select
-                v-model:value="gender"
-                placeholder="Gender"
-                class="login__input"
-                :disabled="loading"
-              >
-                <a-select-option value="MALE">Male</a-select-option>
-                <a-select-option value="FEMALE">Female</a-select-option>
-              </a-select>
-
-              <a-select
-                v-model:value="countryId"
-                show-search
-                placeholder="Select Country"
-                class="login__input"
-                :disabled="loading"
-                :filter-option="
-                  (input, option) =>
-                    option.label.toLowerCase().includes(input.toLowerCase())
-                "
-              >
-                <a-select-option
-                  v-for="country in countries"
-                  :key="country.id"
-                  :value="country.id"
-                  :label="country.name"
+              <div>
+                <a-input
+                  v-model:value="username"
+                  placeholder="Username"
+                  class="login__input"
+                  :status="errors.username ? 'error' : ''"
+                  :disabled="loading"
+                  @input="errors.username = ''"
+                />
+                <p v-if="errors.username" class="login__error">
+                  {{ errors.username }}
+                </p>
+              </div>
+              <div>
+                <a-input
+                  v-model:value="fullName"
+                  placeholder="Full Name"
+                  class="login__input"
+                  :status="errors.fullName ? 'error' : ''"
+                  :disabled="loading"
+                  @input="errors.fullName = ''"
+                />
+                <p v-if="errors.fullName" class="login__error">
+                  {{ errors.fullName }}
+                </p>
+              </div>
+              <div>
+                <a-input
+                  v-model:value="email"
+                  type="email"
+                  placeholder="Email"
+                  class="login__input"
+                  :status="errors.email ? 'error' : ''"
+                  :disabled="loading"
+                  @input="errors.email = ''"
+                />
+                <p v-if="errors.email" class="login__error">
+                  {{ errors.email }}
+                </p>
+              </div>
+              <div>
+                <a-select
+                  v-model:value="gender"
+                  placeholder="Gender"
+                  class="login__input"
+                  :disabled="loading"
                 >
-                  {{ country.name }}
-                </a-select-option>
-              </a-select>
+                  <a-select-option value="MALE">Male</a-select-option>
+                  <a-select-option value="FEMALE">Female</a-select-option>
+                </a-select>
+              </div>
 
-              <a-date-picker
-                v-model:value="dateOfBirth"
-                placeholder="Date of Birth"
-                class="login__input"
-                :disabled="loading"
-                format="DD/MM/YYYY"
-                style="width: 100%"
-              />
+              <div>
+                <a-select
+                  v-model:value="countryId"
+                  show-search
+                  placeholder="Select Country"
+                  class="login__input"
+                  :status="errors.countryId ? 'error' : ''"
+                  :disabled="loading"
+                  :filter-option="
+                    (input, option) =>
+                      option.label.toLowerCase().includes(input.toLowerCase())
+                  "
+                  @change="errors.countryId = ''"
+                >
+                  <a-select-option
+                    v-for="country in countries"
+                    :key="country.id"
+                    :value="country.id"
+                    :label="country.name"
+                  >
+                    {{ country.name }}
+                  </a-select-option>
+                </a-select>
+                <p v-if="errors.countryId" class="login__error">
+                  {{ errors.countryId }}
+                </p>
+              </div>
 
-              <a-input-password
-                v-model:value="password"
-                placeholder="Password"
-                class="login__input"
-                :disabled="loading"
-              />
-              <a-input-password
-                v-model:value="confirmPassword"
-                placeholder="Confirm Password"
-                class="login__input"
-                :disabled="loading"
-              />
+              <div>
+                <a-date-picker
+                  v-model:value="dateOfBirth"
+                  placeholder="Date of Birth"
+                  class="login__input"
+                  :status="errors.dateOfBirth ? 'error' : ''"
+                  :disabled="loading"
+                  format="DD/MM/YYYY"
+                  style="width: 100%"
+                  @change="errors.dateOfBirth = ''"
+                />
+                <p v-if="errors.dateOfBirth" class="login__error">
+                  {{ errors.dateOfBirth }}
+                </p>
+              </div>
+
+              <div>
+                <a-input-password
+                  v-model:value="password"
+                  placeholder="Password"
+                  class="login__input"
+                  :status="errors.password ? 'error' : ''"
+                  :disabled="loading"
+                  @input="errors.password = ''"
+                />
+                <p v-if="errors.password" class="login__error">
+                  {{ errors.password }}
+                </p>
+              </div>
+              <div>
+                <a-input-password
+                  v-model:value="confirmPassword"
+                  placeholder="Confirm Password"
+                  class="login__input"
+                  :status="errors.confirmPassword ? 'error' : ''"
+                  :disabled="loading"
+                  @input="errors.confirmPassword = ''"
+                />
+                <p v-if="errors.confirmPassword" class="login__error">
+                  {{ errors.confirmPassword }}
+                </p>
+              </div>
             </div>
 
             <div>
               <div class="login__flexer">
-                <a-checkbox v-model:checked="agree" class="login__checkbox">
+                <a-checkbox
+                  v-model:checked="agree"
+                  class="login__checkbox"
+                  @change="errors.agree = ''"
+                >
                   I agree to terms
                 </a-checkbox>
               </div>
+              <p v-if="errors.agree" class="login__error">
+                {{ errors.agree }}
+              </p>
               <div class="login__buttons">
                 <a-button
                   type="primary"
@@ -312,6 +441,12 @@ const handleRegister = async () => {
   height: 48px;
   border-radius: 12px;
   border: 1px solid var(--border);
+}
+.login__error {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #ff4d4f;
 }
 .login__flexer {
   display: flex;

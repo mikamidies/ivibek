@@ -3,63 +3,31 @@ interface ChoiceItem {
   name: string;
 }
 
-interface PaginatedResponse<T> {
-  content: T[];
-  pageNumber: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-  first: boolean;
-  last: boolean;
-  empty: boolean;
-}
-
 export const useCommon = () => {
-  const API_BASE = "https://api.ivybek.com";
+  const { fetchList } = useApiClient();
 
-  const fetchCountries = async (): Promise<ChoiceItem[]> => {
+  const fetchChoiceList = async (path: string, errorLabel: string) => {
     try {
-      const data = await $fetch<PaginatedResponse<ChoiceItem>>(
-        `${API_BASE}/api/v1/common/country/choice-list?search=`
-      );
-
-      const countries = data?.content || [];
-
-      return countries;
+      return await fetchList<ChoiceItem>(path, {}, false);
     } catch (error) {
-      console.error("Failed to fetch countries:", error);
+      console.error(`Failed to fetch ${errorLabel}:`, error);
       return [];
     }
+  };
+
+  const fetchCountries = async (): Promise<ChoiceItem[]> => {
+    return fetchChoiceList("/api/v1/common/country/choice-list?search=", "countries");
   };
 
   const fetchUniversities = async (): Promise<ChoiceItem[]> => {
-    try {
-      const data = await $fetch<PaginatedResponse<ChoiceItem>>(
-        `${API_BASE}/api/v1/common/university/choice-list?search=`
-      );
-
-      const universities = data?.content || [];
-
-      return universities;
-    } catch (error) {
-      console.error("Failed to fetch universities:", error);
-      return [];
-    }
+    return fetchChoiceList(
+      "/api/v1/common/university/choice-list?search=",
+      "universities"
+    );
   };
 
   const fetchFaculties = async (): Promise<ChoiceItem[]> => {
-    try {
-      const data = await $fetch<PaginatedResponse<ChoiceItem>>(
-        `${API_BASE}/api/v1/common/faculty/choice-list?search=`
-      );
-
-      const faculties = data?.content || [];
-
-      return faculties;
-    } catch (error) {
-      console.error("Failed to fetch faculties:", error);
-      return [];
-    }
+    return fetchChoiceList("/api/v1/common/faculty/choice-list?search=", "faculties");
   };
 
   return {

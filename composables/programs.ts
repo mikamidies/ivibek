@@ -19,66 +19,21 @@ interface CreateProgramPayload {
   isOnline: boolean;
 }
 
-interface PaginatedResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  first: boolean;
-  last: boolean;
-  size: number;
-  number: number;
-  numberOfElements: number;
-  empty: boolean;
-}
-
 export const usePrograms = () => {
-  const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const { fetchList, request, postJson, putJson } = useApiClient();
 
   const fetchPrograms = async (): Promise<Program[]> => {
     try {
-      console.log(
-        "Fetching programs with token:",
-        accessToken.value?.substring(0, 20) + "..."
-      );
-      const data = await $fetch<PaginatedResponse<Program>>(
-        `${API_BASE}/api/v1/student/programs`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-          async onResponseError({ response }) {
-            console.error("Response error:", {
-              status: response.status,
-              statusText: response.statusText,
-              body: response._data,
-              headers: response.headers,
-            });
-          },
-        }
-      );
-      console.log("Programs fetched successfully:", data);
-      return data?.content || [];
+      return await fetchList<Program>("/api/v1/student/programs");
     } catch (error: any) {
       console.error("Error fetching programs:", error);
-      console.error("Error response:", error.response);
-      console.error("Error data:", error.data);
-      console.error("Full error object:", JSON.stringify(error, null, 2));
       throw error;
     }
   };
 
   const fetchProgramById = async (id: number): Promise<Program> => {
     try {
-      const data = await $fetch<Program>(
-        `${API_BASE}/api/v1/student/programs/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data;
+      return await request<Program>(`/api/v1/student/programs/${id}`);
     } catch (error) {
       console.error("Error fetching program:", error);
       throw error;
@@ -89,18 +44,7 @@ export const usePrograms = () => {
     payload: CreateProgramPayload
   ): Promise<Program> => {
     try {
-      const data = await $fetch<Program>(
-        `${API_BASE}/api/v1/student/programs`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        }
-      );
-      return data;
+      return await postJson<Program>("/api/v1/student/programs", payload);
     } catch (error) {
       console.error("Error creating program:", error);
       throw error;
@@ -112,18 +56,7 @@ export const usePrograms = () => {
     payload: CreateProgramPayload
   ): Promise<Program> => {
     try {
-      const data = await $fetch<Program>(
-        `${API_BASE}/api/v1/student/programs/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        }
-      );
-      return data;
+      return await putJson<Program>(`/api/v1/student/programs/${id}`, payload);
     } catch (error) {
       console.error("Error updating program:", error);
       throw error;

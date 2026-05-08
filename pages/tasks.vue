@@ -2,17 +2,35 @@
 definePageMeta({});
 
 import PageBanner from "@/components/PageBanner.vue";
-import { ref, onMounted } from "vue";
-import GeneralCard from "~/components/cards/GeneralCard.vue";
+import EntityFormModal from "@/components/forms/EntityFormModal.vue";
+import { ref } from "vue";
 import { message } from "ant-design-vue";
 
 const { fetchTasks, createTask, updateTask, toggleTask } = useTasks();
 const { t } = useTranslations();
 
-const tasks = ref([]);
-const loading = ref(false);
+const {
+  data: tasks,
+  pending: loading,
+  refresh: refreshTasks,
+} = await useAsyncData("tasks", () => fetchTasks(), {
+  default: () => [],
+});
+
 const visible = ref(false);
 const editVisible = ref(false);
+const createErrors = ref({
+  task: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
+const editErrors = ref({
+  task: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
 
 const createForm = ref({
   task: "",
@@ -29,15 +47,40 @@ const editForm = ref({
   endDate: "",
 });
 
-const loadTasks = async () => {
-  loading.value = true;
-  try {
-    tasks.value = await fetchTasks();
-  } catch (error) {
-    message.error("Failed to load tasks");
-  } finally {
-    loading.value = false;
+const resetTaskErrors = (target) => {
+  Object.keys(target.value).forEach((key) => {
+    target.value[key] = "";
+  });
+};
+
+const validateTaskForm = (form, errors) => {
+  resetTaskErrors(errors);
+
+  if (!form.value.task.trim()) {
+    errors.value.task = "Task name is required";
   }
+
+  if (!form.value.description.trim()) {
+    errors.value.description = "Description is required";
+  }
+
+  if (!form.value.startDate) {
+    errors.value.startDate = "Start date is required";
+  }
+
+  if (!form.value.endDate) {
+    errors.value.endDate = "End date is required";
+  }
+
+  if (
+    form.value.startDate &&
+    form.value.endDate &&
+    form.value.endDate < form.value.startDate
+  ) {
+    errors.value.endDate = "End date must be on or after start date";
+  }
+
+  return !Object.values(errors.value).some(Boolean);
 };
 
 const showModal = () => {
@@ -47,15 +90,21 @@ const showModal = () => {
     startDate: "",
     endDate: "",
   };
+  resetTaskErrors(createErrors);
   visible.value = true;
 };
 
 const handleOk = async () => {
+  if (!validateTaskForm(createForm, createErrors)) {
+    message.error("Please fix the form errors");
+    return;
+  }
+
   try {
     await createTask(createForm.value);
     message.success("Task added successfully");
     visible.value = false;
-    await loadTasks();
+    await refreshTasks();
   } catch (error) {
     message.error("Failed to add task");
   }
@@ -69,10 +118,16 @@ const showEditModal = (task) => {
     startDate: task.startDate,
     endDate: task.endDate,
   };
+  resetTaskErrors(editErrors);
   editVisible.value = true;
 };
 
 const handleEditOk = async () => {
+  if (!validateTaskForm(editForm, editErrors)) {
+    message.error("Please fix the form errors");
+    return;
+  }
+
   try {
     await updateTask(editForm.value.id, {
       task: editForm.value.task,
@@ -82,7 +137,7 @@ const handleEditOk = async () => {
     });
     message.success("Task updated successfully");
     editVisible.value = false;
-    await loadTasks();
+    await refreshTasks();
   } catch (error) {
     message.error("Failed to update task");
   }
@@ -97,7 +152,7 @@ const handleToggle = async (taskId) => {
 
   try {
     await toggleTask(taskId);
-    await loadTasks();
+    await refreshTasks();
   } catch (error) {
     console.error("Toggle error:", error);
     tasks.value[taskIndex].isDone = previousState;
@@ -115,14 +170,6 @@ const formatDate = (dateString) => {
   });
 };
 
-const handleCancel = () => {
-  visible.value = false;
-  editVisible.value = false;
-};
-
-onMounted(() => {
-  loadTasks();
-});
 </script>
 
 <template>
@@ -200,128 +247,51 @@ onMounted(() => {
         </a-spin>
       </div>
     </div>
-
-    <div class="right">
-      <GeneralCard />
-    </div>
   </div>
 
-  <a-modal
+  <EntityFormModal
     v-model:visible="visible"
     :title="t('tasks.add-task')"
-    @ok="handleOk"
-    :okText="'Add'"
-    :cancelText="'Cancel'"
-  >
-    <div class="form__wrapper">
-      <a-form :model="createForm" layout="vertical">
-        <a-form-item
-          style="grid-column: 1 / 3"
-          :label="t('tasks.task-name')"
-          name="task"
-          required
-        >
-          <a-input
-            v-model:value="createForm.task"
-            :placeholder="t('tasks.task-name')"
-          />
-        </a-form-item>
-        <a-form-item
-          style="grid-column: 1 / 3"
-          :label="t('tasks.task-desc')"
-          name="description"
-          required
-        >
-          <a-textarea
-            v-model:value="createForm.description"
-            :placeholder="t('tasks.task-desc')"
-            :rows="3"
-          />
-        </a-form-item>
-        <a-form-item :label="t('tasks.task-start')" name="startDate" required>
-          <a-date-picker
-            v-model:value="createForm.startDate"
-            style="width: 100%"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-          />
-        </a-form-item>
-        <a-form-item :label="t('tasks.task-end')" name="endDate" required>
-          <a-date-picker
-            v-model:value="createForm.endDate"
-            style="width: 100%"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-          />
-        </a-form-item>
-      </a-form>
-    </div>
-  </a-modal>
+    okText="Add"
+    cancelText="Cancel"
+    :form="createForm"
+    :errors="createErrors"
+    nameKey="task"
+    :nameLabel="t('tasks.task-name')"
+    :namePlaceholder="t('tasks.task-name')"
+    :descriptionLabel="t('tasks.task-desc')"
+    :descriptionPlaceholder="t('tasks.task-desc')"
+    :startLabel="t('tasks.task-start')"
+    :endLabel="t('tasks.task-end')"
+    :descriptionRows="3"
+    @submit="handleOk"
+  />
 
-  <a-modal
+  <EntityFormModal
     v-model:visible="editVisible"
     title="Edit Task"
-    @ok="handleEditOk"
-    :okText="'Update'"
-    :cancelText="'Cancel'"
-  >
-    <div class="form__wrapper">
-      <a-form :model="editForm" layout="vertical">
-        <a-form-item
-          style="grid-column: 1 / 3"
-          label="Task Name"
-          name="task"
-          required
-        >
-          <a-input v-model:value="editForm.task" placeholder="Task Name" />
-        </a-form-item>
-        <a-form-item
-          style="grid-column: 1 / 3"
-          label="Description"
-          name="description"
-          required
-        >
-          <a-textarea
-            v-model:value="editForm.description"
-            placeholder="Enter task description"
-            :rows="3"
-          />
-        </a-form-item>
-        <a-form-item label="Start Date" name="startDate" required>
-          <a-date-picker
-            v-model:value="editForm.startDate"
-            style="width: 100%"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-          />
-        </a-form-item>
-        <a-form-item label="End Date" name="endDate" required>
-          <a-date-picker
-            v-model:value="editForm.endDate"
-            style="width: 100%"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-          />
-        </a-form-item>
-      </a-form>
-    </div>
-  </a-modal>
+    okText="Update"
+    cancelText="Cancel"
+    :form="editForm"
+    :errors="editErrors"
+    nameKey="task"
+    nameLabel="Task Name"
+    namePlaceholder="Task Name"
+    descriptionLabel="Description"
+    descriptionPlaceholder="Enter task description"
+    startLabel="Start Date"
+    endLabel="End Date"
+    :descriptionRows="3"
+    @submit="handleEditOk"
+  />
 </template>
 
 <style scoped>
 .tasks-page {
-  display: grid;
-  gap: 24px;
-  grid-template-columns: 1fr 384px;
   padding: 24px;
   background: var(--border);
   height: 100vh;
   overflow: auto;
-}
-@media screen and (max-width: 1300px) {
-  .tasks-page {
-    grid-template-columns: 1fr 300px;
-  }
 }
 .tasks__items {
   display: flex;

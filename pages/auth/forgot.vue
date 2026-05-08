@@ -10,10 +10,23 @@ const { forgotPassword } = useAuth();
 const email = ref("");
 const loading = ref(false);
 const sent = ref(false);
+const emailError = ref("");
+
+const validateEmail = () => {
+  emailError.value = "";
+
+  if (!email.value.trim()) {
+    emailError.value = "Email is required";
+  } else if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) {
+    emailError.value = "Enter a valid email";
+  }
+
+  return !emailError.value;
+};
 
 const handleForgot = async () => {
-  if (!email.value) {
-    message.error("Введите email");
+  if (!validateEmail()) {
+    message.error("Please fix the form errors");
     return;
   }
 
@@ -49,13 +62,20 @@ const handleForgot = async () => {
           </p>
         </div>
         <form class="login__form" @submit.prevent="handleForgot" v-if="!sent">
-          <a-input
-            v-model:value="email"
-            type="email"
-            placeholder="Email"
-            class="login__input"
-            :disabled="loading"
-          />
+          <div>
+            <a-input
+              v-model:value="email"
+              type="email"
+              placeholder="Email"
+              class="login__input"
+              :status="emailError ? 'error' : ''"
+              :disabled="loading"
+              @input="emailError = ''"
+            />
+            <p v-if="emailError" class="login__error">
+              {{ emailError }}
+            </p>
+          </div>
 
           <div class="login__buttons">
             <a-button
@@ -138,6 +158,12 @@ const handleForgot = async () => {
   width: 100%;
   height: 48px;
   border-radius: 12px;
+}
+.login__error {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #ff4d4f;
 }
 .login__buttons {
   display: flex;

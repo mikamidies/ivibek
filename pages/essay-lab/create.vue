@@ -4,7 +4,7 @@ import { message } from "ant-design-vue";
 const { t } = useTranslations();
 
 definePageMeta({
-  layoutTitle: t("essay-lab.create-essay"),
+  layoutTitle: "essay-lab.create-essay",
 });
 
 const { createEssay, calculatePrice, fetchDeadlines, fetchWordLimits } =

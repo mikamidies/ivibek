@@ -19,33 +19,12 @@ interface CreateInternshipPayload {
   endDate: string;
 }
 
-interface PaginatedResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  first: boolean;
-  last: boolean;
-  size: number;
-  number: number;
-  numberOfElements: number;
-  empty: boolean;
-}
-
 export const useInternships = () => {
-  const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const { fetchList, request, postJson, putJson } = useApiClient();
 
   const fetchInternships = async (): Promise<Internship[]> => {
     try {
-      const data = await $fetch<PaginatedResponse<Internship>>(
-        `${API_BASE}/api/v1/student/internships`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data?.content || [];
+      return await fetchList<Internship>("/api/v1/student/internships");
     } catch (error) {
       console.error("Error fetching internships:", error);
       throw error;
@@ -54,15 +33,7 @@ export const useInternships = () => {
 
   const fetchInternshipById = async (id: number): Promise<Internship> => {
     try {
-      const data = await $fetch<Internship>(
-        `${API_BASE}/api/v1/student/internships/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data;
+      return await request<Internship>(`/api/v1/student/internships/${id}`);
     } catch (error) {
       console.error("Error fetching internship:", error);
       throw error;
@@ -73,18 +44,7 @@ export const useInternships = () => {
     payload: CreateInternshipPayload
   ): Promise<Internship> => {
     try {
-      const data = await $fetch<Internship>(
-        `${API_BASE}/api/v1/student/internships`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        }
-      );
-      return data;
+      return await postJson<Internship>("/api/v1/student/internships", payload);
     } catch (error) {
       console.error("Error creating internship:", error);
       throw error;
@@ -96,18 +56,10 @@ export const useInternships = () => {
     payload: CreateInternshipPayload
   ): Promise<Internship> => {
     try {
-      const data = await $fetch<Internship>(
-        `${API_BASE}/api/v1/student/internships/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        }
+      return await putJson<Internship>(
+        `/api/v1/student/internships/${id}`,
+        payload
       );
-      return data;
     } catch (error) {
       console.error("Error updating internship:", error);
       throw error;

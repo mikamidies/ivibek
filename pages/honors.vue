@@ -1,14 +1,19 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
-import GeneralCard from "@/components/cards/GeneralCard.vue";
-import { ref, onMounted } from "vue";
+import EntityFormModal from "@/components/forms/EntityFormModal.vue";
+import { ref } from "vue";
 import { message } from "ant-design-vue";
 
 const { fetchHonors, createHonor, updateHonor } = useHonors();
 const { t } = useTranslations();
 
-const honors = ref([]);
-const loading = ref(false);
+const {
+  data: honors,
+  pending: loading,
+  refresh: refreshHonors,
+} = await useAsyncData("honors", () => fetchHonors(), {
+  default: () => [],
+});
 
 const visible = ref(false);
 const editVisible = ref(false);
@@ -20,6 +25,56 @@ const createForm = ref({
   endDate: "",
 });
 
+const createErrors = ref({
+  name: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
+
+const editErrors = ref({
+  name: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
+
+const resetHonorErrors = (target) => {
+  Object.keys(target.value).forEach((key) => {
+    target.value[key] = "";
+  });
+};
+
+const validateHonorForm = (form, errors) => {
+  resetHonorErrors(errors);
+
+  if (!form.value.name.trim()) {
+    errors.value.name = "Name is required";
+  }
+
+  if (!form.value.description.trim()) {
+    errors.value.description = "Description is required";
+  }
+
+  if (!form.value.startDate) {
+    errors.value.startDate = "Start date is required";
+  }
+
+  if (!form.value.endDate) {
+    errors.value.endDate = "End date is required";
+  }
+
+  if (
+    form.value.startDate &&
+    form.value.endDate &&
+    form.value.endDate < form.value.startDate
+  ) {
+    errors.value.endDate = "End date must be on or after start date";
+  }
+
+  return !Object.values(errors.value).some(Boolean);
+};
+
 const editForm = ref({
   id: null,
   name: "",
@@ -28,17 +83,6 @@ const editForm = ref({
   endDate: "",
 });
 
-const loadHonors = async () => {
-  loading.value = true;
-  try {
-    honors.value = await fetchHonors();
-  } catch (error) {
-    message.error("Failed to load honors");
-  } finally {
-    loading.value = false;
-  }
-};
-
 const showModal = () => {
   createForm.value = {
     name: "",
@@ -46,15 +90,21 @@ const showModal = () => {
     startDate: "",
     endDate: "",
   };
+  resetHonorErrors(createErrors);
   visible.value = true;
 };
 
 const handleOk = async () => {
+  if (!validateHonorForm(createForm, createErrors)) {
+    message.error("Please fix the form errors");
+    return;
+  }
+
   try {
     await createHonor(createForm.value);
     message.success("Honor added successfully");
     visible.value = false;
-    await loadHonors();
+    await refreshHonors();
   } catch (error) {
     message.error("Failed to add honor");
   }
@@ -68,10 +118,16 @@ const showEditModal = (honor) => {
     startDate: honor.startDate,
     endDate: honor.endDate,
   };
+  resetHonorErrors(editErrors);
   editVisible.value = true;
 };
 
 const handleVisibleOk = async () => {
+  if (!validateHonorForm(editForm, editErrors)) {
+    message.error("Please fix the form errors");
+    return;
+  }
+
   try {
     await updateHonor(editForm.value.id, {
       name: editForm.value.name,
@@ -81,7 +137,7 @@ const handleVisibleOk = async () => {
     });
     message.success("Honor updated successfully");
     editVisible.value = false;
-    await loadHonors();
+    await refreshHonors();
   } catch (error) {
     message.error("Failed to update honor");
   }
@@ -96,9 +152,6 @@ const formatDate = (dateString) => {
   });
 };
 
-onMounted(() => {
-  loadHonors();
-});
 </script>
 
 <template>
@@ -156,113 +209,47 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <GeneralCard />
   </div>
 
-  <a-modal
+  <EntityFormModal
     v-model:visible="visible"
     :title="t('honors.add-honor')"
-    @ok="handleOk"
-    :okText="'Add'"
-    :cancelText="'Cancel'"
-  >
-    <a-form layout="vertical">
-      <a-form-item class="columner" :label="t('honors.name')" required>
-        <a-input
-          v-model:value="createForm.name"
-          :placeholder="t('honors.name')"
-        />
-      </a-form-item>
+    okText="Add"
+    cancelText="Cancel"
+    :form="createForm"
+    :errors="createErrors"
+    :nameLabel="t('honors.name')"
+    :namePlaceholder="t('honors.name')"
+    :descriptionLabel="t('honors.desc')"
+    :descriptionPlaceholder="t('honors.desc')"
+    :startLabel="t('honors.start')"
+    :endLabel="t('honors.end')"
+    @submit="handleOk"
+  />
 
-      <a-form-item :label="t('honors.start')" required>
-        <a-date-picker
-          v-model:value="createForm.startDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('honors.end')" required>
-        <a-date-picker
-          v-model:value="createForm.endDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-
-      <a-form-item class="columner" :label="t('honors.desc')" required>
-        <a-textarea
-          v-model:value="createForm.description"
-          :placeholder="t('honors.desc')"
-          :rows="4"
-        />
-      </a-form-item>
-    </a-form>
-  </a-modal>
-
-  <a-modal
+  <EntityFormModal
     v-model:visible="editVisible"
     :title="t('honors.edit-honor')"
-    @ok="handleVisibleOk"
-    :okText="'Update'"
-    :cancelText="'Cancel'"
-  >
-    <a-form layout="vertical">
-      <a-form-item class="columner" :label="t('honors.name')" required>
-        <a-input
-          v-model:value="editForm.name"
-          :placeholder="t('honors.name')"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('honors.start')" required>
-        <a-date-picker
-          v-model:value="editForm.startDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('honors.end')" required>
-        <a-date-picker
-          v-model:value="editForm.endDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-
-      <a-form-item class="columner" :label="t('honors.desc')" required>
-        <a-textarea
-          v-model:value="editForm.description"
-          :placeholder="t('honors.desc')"
-          :rows="4"
-        />
-      </a-form-item>
-    </a-form>
-  </a-modal>
+    okText="Update"
+    cancelText="Cancel"
+    :form="editForm"
+    :errors="editErrors"
+    :nameLabel="t('honors.name')"
+    :namePlaceholder="t('honors.name')"
+    :descriptionLabel="t('honors.desc')"
+    :descriptionPlaceholder="t('honors.desc')"
+    :startLabel="t('honors.start')"
+    :endLabel="t('honors.end')"
+    @submit="handleVisibleOk"
+  />
 </template>
 
 <style scoped>
-.columner {
-  grid-column: 1/3;
-}
 .honors-page {
-  display: grid;
-  gap: 24px;
-  grid-template-columns: 1fr 384px;
   padding: 24px 24px 120px 24px;
   background: var(--border);
   height: 100vh;
   overflow: auto;
-}
-@media screen and (max-width: 1300px) {
-  .honors-page {
-    grid-template-columns: 1fr 300px;
-  }
 }
 .honors__body {
   padding: 24px;

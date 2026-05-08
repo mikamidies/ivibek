@@ -1,7 +1,7 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
-import GeneralCard from "@/components/cards/GeneralCard.vue";
-import { ref, onMounted, computed } from "vue";
+import EntityFormModal from "@/components/forms/EntityFormModal.vue";
+import { ref, computed } from "vue";
 import { message } from "ant-design-vue";
 
 const {
@@ -11,13 +11,20 @@ const {
 } = usePersonalDevelopment();
 const { t } = useTranslations();
 
-const personalDevelopments = ref([]);
-const loading = ref(false);
+const {
+  data: personalDevelopments,
+  pending: loading,
+  refresh: refreshPersonalDevelopments,
+} = await useAsyncData(
+  "personal-developments",
+  () => fetchPersonalDevelopmentsGrouped(),
+  {
+    default: () => [],
+  }
+);
 
 const visible = ref(false);
 const editVisible = ref(false);
-const currentType = ref("READING");
-
 const createForm = ref({
   name: "",
   description: "",
@@ -34,6 +41,56 @@ const editForm = ref({
   endDate: "",
   type: "READING",
 });
+
+const createErrors = ref({
+  name: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
+
+const editErrors = ref({
+  name: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
+
+const resetDevelopmentErrors = (target) => {
+  Object.keys(target.value).forEach((key) => {
+    target.value[key] = "";
+  });
+};
+
+const validateDevelopmentForm = (form, errors) => {
+  resetDevelopmentErrors(errors);
+
+  if (!form.value.name.trim()) {
+    errors.value.name = "Title is required";
+  }
+
+  if (!form.value.description.trim()) {
+    errors.value.description = "Description is required";
+  }
+
+  if (!form.value.startDate) {
+    errors.value.startDate = "Start date is required";
+  }
+
+  if (!form.value.endDate) {
+    errors.value.endDate = "End date is required";
+  }
+
+  if (
+    form.value.startDate &&
+    form.value.endDate &&
+    form.value.endDate < form.value.startDate
+  ) {
+    errors.value.endDate = "End date must be on or after start date";
+  }
+
+  return !Object.values(errors.value).some(Boolean);
+};
 
 const readingItems = computed(() => {
   const sections = personalDevelopments.value.filter(
@@ -89,20 +146,7 @@ const academicEnrichItems = computed(() => {
   );
 });
 
-const loadPersonalDevelopments = async () => {
-  loading.value = true;
-  try {
-    const data = await fetchPersonalDevelopmentsGrouped();
-    personalDevelopments.value = Array.isArray(data) ? data : [];
-  } catch (error) {
-    personalDevelopments.value = [];
-  } finally {
-    loading.value = false;
-  }
-};
-
 const showModal = (type) => {
-  currentType.value = type;
   createForm.value = {
     name: "",
     description: "",
@@ -110,15 +154,21 @@ const showModal = (type) => {
     endDate: "",
     type: type,
   };
+  resetDevelopmentErrors(createErrors);
   visible.value = true;
 };
 
 const handleOk = async () => {
+  if (!validateDevelopmentForm(createForm, createErrors)) {
+    message.error("Please fix the form errors");
+    return;
+  }
+
   try {
     const result = await createPersonalDevelopment(createForm.value);
     message.success("Item added successfully");
     visible.value = false;
-    await loadPersonalDevelopments();
+    await refreshPersonalDevelopments();
   } catch (error) {
     message.error("Failed to add item");
   }
@@ -133,10 +183,16 @@ const showEditModal = (item) => {
     endDate: item.endDate,
     type: item.type,
   };
+  resetDevelopmentErrors(editErrors);
   editVisible.value = true;
 };
 
 const handleEditOk = async () => {
+  if (!validateDevelopmentForm(editForm, editErrors)) {
+    message.error("Please fix the form errors");
+    return;
+  }
+
   try {
     await updatePersonalDevelopment(editForm.value.id, {
       name: editForm.value.name,
@@ -147,15 +203,11 @@ const handleEditOk = async () => {
     });
     message.success("Item updated successfully");
     editVisible.value = false;
-    await loadPersonalDevelopments();
+    await refreshPersonalDevelopments();
   } catch (error) {
     message.error("Failed to update item");
   }
 };
-
-onMounted(async () => {
-  await loadPersonalDevelopments();
-});
 </script>
 
 <template>
@@ -417,112 +469,49 @@ onMounted(async () => {
         </a-spin>
       </div>
     </div>
-    <GeneralCard />
   </div>
 
-  <a-modal
+  <EntityFormModal
     v-model:visible="visible"
     :title="t('personal.add-item')"
-    @ok="handleOk"
-    :okText="'Add'"
-    :cancelText="'Cancel'"
-    class="academics__form"
-  >
-    <a-form layout="vertical">
-      <a-form-item :label="t('personal.title')" required>
-        <a-input
-          v-model:value="createForm.name"
-          :placeholder="t('personal.title')"
-        />
-      </a-form-item>
+    okText="Add"
+    cancelText="Cancel"
+    modalClass="academics__form"
+    :form="createForm"
+    :errors="createErrors"
+    :nameLabel="t('personal.title')"
+    :namePlaceholder="t('personal.title')"
+    :descriptionLabel="t('personal.desc')"
+    :descriptionPlaceholder="t('personal.desc')"
+    :startLabel="t('personal.start')"
+    :endLabel="t('personal.end')"
+    @submit="handleOk"
+  />
 
-      <a-form-item :label="t('personal.desc')" required>
-        <a-textarea
-          v-model:value="createForm.description"
-          :placeholder="t('personal.desc')"
-          :rows="4"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('personal.start')" required>
-        <a-date-picker
-          v-model:value="createForm.startDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('personal.end')" required>
-        <a-date-picker
-          v-model:value="createForm.endDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-    </a-form>
-  </a-modal>
-
-  <a-modal
+  <EntityFormModal
     v-model:visible="editVisible"
     title="Edit Item"
-    @ok="handleEditOk"
-    :okText="'Update'"
-    :cancelText="'Cancel'"
-    class="academics__form"
-  >
-    <a-form layout="vertical">
-      <a-form-item :label="t('personal.title')" required>
-        <a-input
-          v-model:value="editForm.name"
-          :placeholder="t('personal.title')"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('personal.desc')" required>
-        <a-textarea
-          v-model:value="editForm.description"
-          :placeholder="t('personal.desc')"
-          :rows="4"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('personal.start')" required>
-        <a-date-picker
-          v-model:value="editForm.startDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('personal.end')" required>
-        <a-date-picker
-          v-model:value="editForm.endDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-    </a-form>
-  </a-modal>
+    okText="Update"
+    cancelText="Cancel"
+    modalClass="academics__form"
+    :form="editForm"
+    :errors="editErrors"
+    :nameLabel="t('personal.title')"
+    :namePlaceholder="t('personal.title')"
+    :descriptionLabel="t('personal.desc')"
+    :descriptionPlaceholder="t('personal.desc')"
+    :startLabel="t('personal.start')"
+    :endLabel="t('personal.end')"
+    @submit="handleEditOk"
+  />
 </template>
 
 <style scoped>
 .personal-development-page {
-  display: grid;
-  gap: 24px;
-  grid-template-columns: 1fr 384px;
   padding: 24px 24px 120px 24px;
   background: var(--border);
   height: 100vh;
   overflow: auto;
-}
-@media screen and (max-width: 1300px) {
-  .personal-development-page {
-    grid-template-columns: 1fr 300px;
-  }
 }
 .development-body {
   background: white;

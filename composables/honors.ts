@@ -13,33 +13,12 @@ interface CreateHonorPayload {
   endDate: string;
 }
 
-interface PaginatedResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  first: boolean;
-  last: boolean;
-  size: number;
-  number: number;
-  numberOfElements: number;
-  empty: boolean;
-}
-
 export const useHonors = () => {
-  const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const { fetchList, request, postJson, putJson } = useApiClient();
 
   const fetchHonors = async (): Promise<Honor[]> => {
     try {
-      const data = await $fetch<PaginatedResponse<Honor>>(
-        `${API_BASE}/api/v1/student/honors`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data?.content || [];
+      return await fetchList<Honor>("/api/v1/student/honors");
     } catch (error) {
       console.error("Error fetching honors:", error);
       throw error;
@@ -48,15 +27,7 @@ export const useHonors = () => {
 
   const fetchHonorById = async (id: number): Promise<Honor> => {
     try {
-      const data = await $fetch<Honor>(
-        `${API_BASE}/api/v1/student/honors/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data;
+      return await request<Honor>(`/api/v1/student/honors/${id}`);
     } catch (error) {
       console.error("Error fetching honor:", error);
       throw error;
@@ -65,15 +36,7 @@ export const useHonors = () => {
 
   const createHonor = async (payload: CreateHonorPayload): Promise<Honor> => {
     try {
-      const data = await $fetch<Honor>(`${API_BASE}/api/v1/student/honors`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken.value}`,
-          "Content-Type": "application/json",
-        },
-        body: payload,
-      });
-      return data;
+      return await postJson<Honor>("/api/v1/student/honors", payload);
     } catch (error) {
       console.error("Error creating honor:", error);
       throw error;
@@ -85,18 +48,7 @@ export const useHonors = () => {
     payload: CreateHonorPayload
   ): Promise<Honor> => {
     try {
-      const data = await $fetch<Honor>(
-        `${API_BASE}/api/v1/student/honors/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        }
-      );
-      return data;
+      return await putJson<Honor>(`/api/v1/student/honors/${id}`, payload);
     } catch (error) {
       console.error("Error updating honor:", error);
       throw error;

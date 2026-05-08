@@ -17,33 +17,12 @@ interface CreateActivityPayload {
   weekPerYear: string;
 }
 
-interface PaginatedResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  first: boolean;
-  last: boolean;
-  size: number;
-  number: number;
-  numberOfElements: number;
-  empty: boolean;
-}
-
 export const useActivities = () => {
-  const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const { fetchList, request, postJson, putJson } = useApiClient();
 
   const fetchActivities = async (): Promise<Activity[]> => {
     try {
-      const data = await $fetch<PaginatedResponse<Activity>>(
-        `${API_BASE}/api/v1/student/activities`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data?.content || [];
+      return await fetchList<Activity>("/api/v1/student/activities");
     } catch (error) {
       console.error("Error fetching activities:", error);
       throw error;
@@ -52,15 +31,7 @@ export const useActivities = () => {
 
   const fetchActivityById = async (id: number): Promise<Activity> => {
     try {
-      const data = await $fetch<Activity>(
-        `${API_BASE}/api/v1/student/activities/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data;
+      return await request<Activity>(`/api/v1/student/activities/${id}`);
     } catch (error) {
       console.error("Error fetching activity:", error);
       throw error;
@@ -71,18 +42,7 @@ export const useActivities = () => {
     payload: CreateActivityPayload
   ): Promise<Activity> => {
     try {
-      const data = await $fetch<Activity>(
-        `${API_BASE}/api/v1/student/activities`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        }
-      );
-      return data;
+      return await postJson<Activity>("/api/v1/student/activities", payload);
     } catch (error) {
       console.error("Error creating activity:", error);
       throw error;
@@ -94,18 +54,10 @@ export const useActivities = () => {
     payload: CreateActivityPayload
   ): Promise<Activity> => {
     try {
-      const data = await $fetch<Activity>(
-        `${API_BASE}/api/v1/student/activities/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        }
+      return await putJson<Activity>(
+        `/api/v1/student/activities/${id}`,
+        payload
       );
-      return data;
     } catch (error) {
       console.error("Error updating activity:", error);
       throw error;

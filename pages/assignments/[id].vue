@@ -6,25 +6,22 @@ const route = useRoute();
 const { fetchAssignmentById, submitAssignmentSolution } = useAssignments();
 const { t } = useTranslations();
 
-const assignment = ref(null);
-const loading = ref(false);
+const {
+  data: assignment,
+  pending: loading,
+  refresh: refreshAssignment,
+} = await useAsyncData(
+  `assignment-${route.params.id}`,
+  () => fetchAssignmentById(route.params.id),
+  {
+    default: () => null,
+    watch: [() => route.params.id],
+  }
+);
+
 const submitting = ref(false);
 const submissionUrl = ref("");
-
-const loadAssignment = async () => {
-  loading.value = true;
-  try {
-    assignment.value = await fetchAssignmentById(route.params.id);
-  } catch (error) {
-    console.error("Failed to load assignment:", error);
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(() => {
-  loadAssignment();
-});
+const submissionError = ref("");
 
 const formatDate = (date) => {
   return date ? dayjs(date).format("MMM DD, YYYY") : "-";
@@ -39,8 +36,20 @@ const getStatusLabel = (status) => {
 };
 
 const handleSubmit = async () => {
+  submissionError.value = "";
+
   if (!submissionUrl.value.trim()) {
-    message.error("Please enter a submission URL");
+    submissionError.value = "Submission URL is required";
+  } else {
+    try {
+      new URL(submissionUrl.value.trim());
+    } catch {
+      submissionError.value = "Enter a valid URL";
+    }
+  }
+
+  if (submissionError.value) {
+    message.error(submissionError.value);
     return;
   }
 
@@ -49,7 +58,7 @@ const handleSubmit = async () => {
     await submitAssignmentSolution(route.params.id, submissionUrl.value);
     message.success("Solution submitted successfully!");
     submissionUrl.value = "";
-    await loadAssignment();
+    await refreshAssignment();
   } catch (error) {
     console.error("Failed to submit solution:", error);
     message.error("Failed to submit solution");
@@ -122,13 +131,18 @@ const handleSubmit = async () => {
             v-if="!assignment?.submission?.submissionUrl"
           >
             <form @submit.prevent="handleSubmit">
-              <a-input
-                v-model:value="submissionUrl"
-                type="text"
-                :placeholder="t('assignments.enter')"
-                class="assignment__teacher-input"
-                :disabled="submitting"
-              />
+              <a-form-item
+                :validate-status="submissionError ? 'error' : ''"
+                :help="submissionError"
+              >
+                <a-input
+                  v-model:value="submissionUrl"
+                  type="text"
+                  :placeholder="t('assignments.enter')"
+                  class="assignment__teacher-input"
+                  :disabled="submitting"
+                />
+              </a-form-item>
               <a-button
                 type="primary"
                 html-type="submit"

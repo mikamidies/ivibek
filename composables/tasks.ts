@@ -14,33 +14,12 @@ interface CreateTaskPayload {
   endDate: string;
 }
 
-interface PaginatedResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  first: boolean;
-  last: boolean;
-  size: number;
-  number: number;
-  numberOfElements: number;
-  empty: boolean;
-}
-
 export const useTasks = () => {
-  const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const { fetchList, request, postJson, putJson, patch } = useApiClient();
 
   const fetchTasks = async (): Promise<Task[]> => {
     try {
-      const data = await $fetch<PaginatedResponse<Task>>(
-        `${API_BASE}/api/v1/student/tasks`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data?.content || [];
+      return await fetchList<Task>("/api/v1/student/tasks");
     } catch (error) {
       console.error("Error fetching tasks:", error);
       throw error;
@@ -49,15 +28,7 @@ export const useTasks = () => {
 
   const fetchTaskById = async (id: number): Promise<Task> => {
     try {
-      const data = await $fetch<Task>(
-        `${API_BASE}/api/v1/student/tasks/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data;
+      return await request<Task>(`/api/v1/student/tasks/${id}`);
     } catch (error) {
       console.error("Error fetching task:", error);
       throw error;
@@ -66,15 +37,7 @@ export const useTasks = () => {
 
   const createTask = async (payload: CreateTaskPayload): Promise<Task> => {
     try {
-      const data = await $fetch<Task>(`${API_BASE}/api/v1/student/tasks`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken.value}`,
-          "Content-Type": "application/json",
-        },
-        body: payload,
-      });
-      return data;
+      return await postJson<Task>("/api/v1/student/tasks", payload);
     } catch (error) {
       console.error("Error creating task:", error);
       throw error;
@@ -86,18 +49,7 @@ export const useTasks = () => {
     payload: CreateTaskPayload
   ): Promise<Task> => {
     try {
-      const data = await $fetch<Task>(
-        `${API_BASE}/api/v1/student/tasks/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        }
-      );
-      return data;
+      return await putJson<Task>(`/api/v1/student/tasks/${id}`, payload);
     } catch (error) {
       console.error("Error updating task:", error);
       throw error;
@@ -106,16 +58,7 @@ export const useTasks = () => {
 
   const toggleTask = async (id: number): Promise<Task> => {
     try {
-      const data = await $fetch<Task>(
-        `${API_BASE}/api/v1/student/tasks/${id}/toggle`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        }
-      );
-      return data;
+      return await patch<Task>(`/api/v1/student/tasks/${id}/toggle`);
     } catch (error) {
       console.error("Error toggling task:", error);
       throw error;

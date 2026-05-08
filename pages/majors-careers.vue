@@ -1,20 +1,23 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
-import GeneralCard from "@/components/cards/GeneralCard.vue";
-import { ref, onMounted, computed } from "vue";
+import EntityFormModal from "@/components/forms/EntityFormModal.vue";
+import { ref, computed } from "vue";
 import { message } from "ant-design-vue";
 
 const { fetchMajorsCareersGrouped, createMajorCareer, updateMajorCareer } =
   useMajorsCareers();
 const { t } = useTranslations();
 
-const majorsCareers = ref([]);
-const loading = ref(false);
+const {
+  data: majorsCareers,
+  pending: loading,
+  refresh: refreshMajorsCareers,
+} = await useAsyncData("majors-careers", () => fetchMajorsCareersGrouped(), {
+  default: () => [],
+});
 
 const visible = ref(false);
 const editVisible = ref(false);
-const currentType = ref("RESEARCH");
-
 const createForm = ref({
   title: "",
   description: "",
@@ -31,6 +34,56 @@ const editForm = ref({
   endDate: "",
   type: "RESEARCH",
 });
+
+const createErrors = ref({
+  title: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
+
+const editErrors = ref({
+  title: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+});
+
+const resetMajorCareerErrors = (target) => {
+  Object.keys(target.value).forEach((key) => {
+    target.value[key] = "";
+  });
+};
+
+const validateMajorCareerForm = (form, errors) => {
+  resetMajorCareerErrors(errors);
+
+  if (!form.value.title.trim()) {
+    errors.value.title = "Title is required";
+  }
+
+  if (!form.value.description.trim()) {
+    errors.value.description = "Description is required";
+  }
+
+  if (!form.value.startDate) {
+    errors.value.startDate = "Start date is required";
+  }
+
+  if (!form.value.endDate) {
+    errors.value.endDate = "End date is required";
+  }
+
+  if (
+    form.value.startDate &&
+    form.value.endDate &&
+    form.value.endDate < form.value.startDate
+  ) {
+    errors.value.endDate = "End date must be on or after start date";
+  }
+
+  return !Object.values(errors.value).some(Boolean);
+};
 
 const researchItems = computed(() => {
   const sections = majorsCareers.value.filter(
@@ -57,20 +110,7 @@ const networkingItems = computed(() => {
   );
 });
 
-const loadMajorsCareers = async () => {
-  loading.value = true;
-  try {
-    const data = await fetchMajorsCareersGrouped();
-    majorsCareers.value = Array.isArray(data) ? data : [];
-  } catch (error) {
-    majorsCareers.value = [];
-  } finally {
-    loading.value = false;
-  }
-};
-
 const showModal = (type) => {
-  currentType.value = type;
   createForm.value = {
     title: "",
     description: "",
@@ -78,15 +118,21 @@ const showModal = (type) => {
     endDate: "",
     type: type,
   };
+  resetMajorCareerErrors(createErrors);
   visible.value = true;
 };
 
 const handleOk = async () => {
+  if (!validateMajorCareerForm(createForm, createErrors)) {
+    message.error("Please fix the form errors");
+    return;
+  }
+
   try {
     const result = await createMajorCareer(createForm.value);
     message.success("Item added successfully");
     visible.value = false;
-    await loadMajorsCareers();
+    await refreshMajorsCareers();
   } catch (error) {
     message.error("Failed to add item");
   }
@@ -101,10 +147,16 @@ const showEditModal = (item) => {
     endDate: item.endDate,
     type: item.type,
   };
+  resetMajorCareerErrors(editErrors);
   editVisible.value = true;
 };
 
 const handleEditOk = async () => {
+  if (!validateMajorCareerForm(editForm, editErrors)) {
+    message.error("Please fix the form errors");
+    return;
+  }
+
   try {
     await updateMajorCareer(editForm.value.id, {
       title: editForm.value.title,
@@ -115,15 +167,11 @@ const handleEditOk = async () => {
     });
     message.success("Item updated successfully");
     editVisible.value = false;
-    await loadMajorsCareers();
+    await refreshMajorsCareers();
   } catch (error) {
     message.error("Failed to update item");
   }
 };
-
-onMounted(async () => {
-  await loadMajorsCareers();
-});
 </script>
 
 <template>
@@ -262,112 +310,51 @@ onMounted(async () => {
         </a-spin>
       </div>
     </div>
-    <GeneralCard />
   </div>
 
-  <a-modal
+  <EntityFormModal
     v-model:visible="visible"
     :title="t('majors.add-item')"
-    @ok="handleOk"
-    :okText="'Add'"
-    :cancelText="'Cancel'"
-    class="academics__form"
-  >
-    <a-form layout="vertical">
-      <a-form-item :label="t('majors.title')" required>
-        <a-input
-          v-model:value="createForm.title"
-          :placeholder="t('majors.title')"
-        />
-      </a-form-item>
+    okText="Add"
+    cancelText="Cancel"
+    modalClass="academics__form"
+    :form="createForm"
+    :errors="createErrors"
+    nameKey="title"
+    :nameLabel="t('majors.title')"
+    :namePlaceholder="t('majors.title')"
+    :descriptionLabel="t('majors.desc')"
+    :descriptionPlaceholder="t('majors.desc')"
+    :startLabel="t('majors.start')"
+    :endLabel="t('majors.end')"
+    @submit="handleOk"
+  />
 
-      <a-form-item :label="t('majors.desc')" required>
-        <a-textarea
-          v-model:value="createForm.description"
-          :placeholder="t('majors.desc')"
-          :rows="4"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('majors.start')" required>
-        <a-date-picker
-          v-model:value="createForm.startDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('majors.end')" required>
-        <a-date-picker
-          v-model:value="createForm.endDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-    </a-form>
-  </a-modal>
-
-  <a-modal
+  <EntityFormModal
     v-model:visible="editVisible"
     :title="t('majors.edit-item')"
-    @ok="handleEditOk"
-    :okText="'Update'"
-    :cancelText="'Cancel'"
-    class="academics__form"
-  >
-    <a-form layout="vertical">
-      <a-form-item :label="t('majors.title')" required>
-        <a-input
-          v-model:value="editForm.title"
-          :placeholder="t('majors.title')"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('majors.desc')" required>
-        <a-textarea
-          v-model:value="editForm.description"
-          :placeholder="t('majors.desc')"
-          :rows="4"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('majors.start')" required>
-        <a-date-picker
-          v-model:value="editForm.startDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-
-      <a-form-item :label="t('majors.end')" required>
-        <a-date-picker
-          v-model:value="editForm.endDate"
-          style="width: 100%"
-          format="YYYY-MM-DD"
-          value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-    </a-form>
-  </a-modal>
+    okText="Update"
+    cancelText="Cancel"
+    modalClass="academics__form"
+    :form="editForm"
+    :errors="editErrors"
+    nameKey="title"
+    :nameLabel="t('majors.title')"
+    :namePlaceholder="t('majors.title')"
+    :descriptionLabel="t('majors.desc')"
+    :descriptionPlaceholder="t('majors.desc')"
+    :startLabel="t('majors.start')"
+    :endLabel="t('majors.end')"
+    @submit="handleEditOk"
+  />
 </template>
 
 <style scoped>
 .careers-page {
-  display: grid;
-  gap: 24px;
-  grid-template-columns: 1fr 384px;
   padding: 24px 24px 120px 24px;
   background: var(--border);
   height: 100vh;
   overflow: auto;
-}
-@media screen and (max-width: 1300px) {
-  .careers-page {
-    grid-template-columns: 1fr 300px;
-  }
 }
 .majors-body {
   background: white;

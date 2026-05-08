@@ -10,32 +10,38 @@ const pageTitle = computed(() => route.meta?.layoutTitle || "");
 const isSidebarOpen = ref(false);
 provide("isSidebarOpen", isSidebarOpen);
 
+const handleResize = () => {
+  if (!import.meta.client) {
+    return;
+  }
+
+  isSidebarOpen.value = window.innerWidth >= 1300;
+};
+
 watch(route, () => {
   if (process.client && window.innerWidth < 1300) {
     isSidebarOpen.value = false;
   }
 });
 
-// const marginLeft = computed(() => (isSidebarOpen.value ? "264px" : "0"));
-
 onMounted(() => {
-  if (process.client) {
-    const handleResize = () => {
-      isSidebarOpen.value = window.innerWidth >= 1300;
-    };
-    handleResize(); // initial check
-    window.addEventListener("resize", handleResize);
-    onBeforeUnmount(() => {
-      window.removeEventListener("resize", handleResize);
-    });
+  handleResize();
+  window.addEventListener("resize", handleResize);
+});
+
+onBeforeUnmount(() => {
+  if (!import.meta.client) {
+    return;
   }
+
+  window.removeEventListener("resize", handleResize);
 });
 </script>
 
 <template>
   <div class="app">
     <Sidebar />
-    <main :style="{ marginLeft: marginLeft }">
+    <main>
       <Header :title="pageTitle" />
       <slot />
     </main>
