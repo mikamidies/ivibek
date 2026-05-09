@@ -22,10 +22,10 @@ jobs:
         run: |
           if [ "${GITHUB_REF_NAME}" = "master" ]; then
             echo "IMAGE_TAG=latest" >> $GITHUB_ENV
-            echo "DEPLOY_DIR=/var/www/nuxt/prod" >> $GITHUB_ENV
+            echo "DEPLOY_DIR=/var/www/ivybek/student.ivybek.com/prod" >> $GITHUB_ENV
           else
             echo "IMAGE_TAG=dev" >> $GITHUB_ENV
-            echo "DEPLOY_DIR=/var/www/nuxt/dev" >> $GITHUB_ENV
+            echo "DEPLOY_DIR=/var/www/ivybek/student.ivybek.com/dev" >> $GITHUB_ENV
           fi
 
       - name: Login to GHCR
