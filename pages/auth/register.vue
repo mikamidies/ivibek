@@ -35,6 +35,7 @@ const dateOfBirth = ref(null); // ✅ Изменили с "" на null для a-
 const countryId = ref(null); // ✅ Изменили с 1 на null
 const agree = ref(false);
 const loading = ref(false);
+const countriesLoading = ref(false);
 const errors = ref({
   username: "",
   fullName: "",
@@ -48,16 +49,35 @@ const errors = ref({
 
 // ✅ Добавили массив для стран
 const countries = ref([]);
+let countrySearchTimeout = null;
 
 // ✅ Загружаем страны при монтировании
 onMounted(async () => {
+  await loadCountries();
+});
+
+const loadCountries = async (search = "") => {
+  countriesLoading.value = true;
+
   try {
-    countries.value = await fetchCountries();
+    countries.value = await fetchCountries(search);
   } catch (error) {
     console.error("Error loading countries:", error);
     message.error("Не удалось загрузить список стран");
+  } finally {
+    countriesLoading.value = false;
   }
-});
+};
+
+const handleCountrySearch = (value) => {
+  if (countrySearchTimeout) {
+    clearTimeout(countrySearchTimeout);
+  }
+
+  countrySearchTimeout = setTimeout(() => {
+    loadCountries(value.trim());
+  }, 300);
+};
 
 const resetErrors = () => {
   errors.value = {
@@ -241,10 +261,9 @@ const handleRegister = async () => {
                   class="login__input"
                   :status="errors.countryId ? 'error' : ''"
                   :disabled="loading"
-                  :filter-option="
-                    (input, option) =>
-                      option.label.toLowerCase().includes(input.toLowerCase())
-                  "
+                  :loading="countriesLoading"
+                  :filter-option="false"
+                  @search="handleCountrySearch"
                   @change="errors.countryId = ''"
                 >
                   <a-select-option

@@ -15,8 +15,11 @@ export const useCommon = () => {
     }
   };
 
-  const fetchCountries = async (): Promise<ChoiceItem[]> => {
-    return fetchChoiceList("/api/v1/common/country/choice-list?search=", "countries");
+  const fetchCountries = async (search = ""): Promise<ChoiceItem[]> => {
+    return fetchChoiceList(
+      `/api/v1/common/country/choice-list?search=${encodeURIComponent(search)}`,
+      "countries"
+    );
   };
 
   const fetchUniversities = async (): Promise<ChoiceItem[]> => {
