@@ -22,7 +22,7 @@ interface MajorCareerGroup {
 
 export const useMajorsCareers = () => {
   const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const apiBase = useApiBaseUrl();
 
   const fetchMajorsCareers = async (): Promise<MajorCareer[]> => {
     try {
@@ -31,7 +31,7 @@ export const useMajorsCareers = () => {
       }
 
       const data = await $fetch<any>(
-        `${API_BASE}/api/v1/student/majors-careers`,
+        `${apiBase}/api/v1/student/majors-careers`,
         {
           method: "GET",
           headers: {
@@ -65,7 +65,7 @@ export const useMajorsCareers = () => {
       }
 
       const data = await $fetch<any>(
-        `${API_BASE}/api/v1/student/majors-careers`,
+        `${apiBase}/api/v1/student/majors-careers`,
         {
           method: "GET",
           headers: {
@@ -89,7 +89,7 @@ export const useMajorsCareers = () => {
   const fetchMajorCareerById = async (id: number): Promise<MajorCareer> => {
     try {
       const data = await $fetch<MajorCareer>(
-        `${API_BASE}/api/v1/student/majors-careers/${id}`,
+        `${apiBase}/api/v1/student/majors-careers/${id}`,
         {
           method: "GET",
           headers: {
@@ -108,7 +108,7 @@ export const useMajorsCareers = () => {
   ): Promise<MajorCareer> => {
     try {
       const data = await $fetch<MajorCareer>(
-        `${API_BASE}/api/v1/student/majors-careers`,
+        `${apiBase}/api/v1/student/majors-careers`,
         {
           method: "POST",
           headers: {
@@ -130,7 +130,7 @@ export const useMajorsCareers = () => {
   ): Promise<MajorCareer> => {
     try {
       const data = await $fetch<MajorCareer>(
-        `${API_BASE}/api/v1/student/majors-careers/${id}`,
+        `${apiBase}/api/v1/student/majors-careers/${id}`,
         {
           method: "PUT",
           headers: {

@@ -18,7 +18,7 @@ interface SendMessagePayload {
 
 export const useRecLetters = () => {
   const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const apiBase = useApiBaseUrl();
 
   const createChat = async (message: string, title?: string) => {
     if (!accessToken.value) {
@@ -32,7 +32,7 @@ export const useRecLetters = () => {
 
     try {
       const data: any = await $fetch(
-        `${API_BASE}/api/v1/student/rec-letter-ai-orders/place`,
+        `${apiBase}/api/v1/student/rec-letter-ai-orders/place`,
         {
           method: "POST",
           headers: {
@@ -70,7 +70,7 @@ export const useRecLetters = () => {
 
     try {
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/rec-letter-ai-orders/${uuid}/sendMessage`,
+        `${apiBase}/api/v1/student/rec-letter-ai-orders/${uuid}/sendMessage`,
         {
           method: "POST",
           headers: {
@@ -99,7 +99,7 @@ export const useRecLetters = () => {
 
     try {
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/rec-letter-ai-orders`,
+        `${apiBase}/api/v1/student/rec-letter-ai-orders`,
         {
           method: "GET",
           headers: {
@@ -129,7 +129,7 @@ export const useRecLetters = () => {
 
     try {
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/rec-letter-ai-orders/${uuid}`,
+        `${apiBase}/api/v1/student/rec-letter-ai-orders/${uuid}`,
         {
           method: "GET",
           headers: {

@@ -1,4 +1,5 @@
 export const useTranslations = () => {
+  const apiBase = useApiBaseUrl();
   const translations = useState<Record<string, string>>(
     "translations",
     () => ({})
@@ -27,7 +28,7 @@ export const useTranslations = () => {
 
     try {
       const data = await $fetch<Record<string, string>>(
-        "https://api.ivybek.com/api/v1/common/translations?type=STUDENT"
+        `${apiBase}/api/v1/common/translations?type=STUDENT`
       );
 
       translations.value = data || {};

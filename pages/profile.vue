@@ -17,6 +17,7 @@ const {
 
 const { fetchCountries } = useCommon();
 const { t } = useTranslations();
+const apiBase = useApiBaseUrl();
 
 const loading = ref(false);
 const uploadLoading = ref(false);
@@ -81,7 +82,7 @@ const handleOk = async () => {
       timezone: form.value.timezone,
     };
 
-    await $fetch(`https://api.ivybek.com/api/v1/student/profile`, {
+    await $fetch(`${apiBase}/api/v1/student/profile`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${accessToken.value}`,

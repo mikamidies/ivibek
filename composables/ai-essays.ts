@@ -18,7 +18,7 @@ interface SendMessagePayload {
 
 export const useAiEssays = () => {
   const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const apiBase = useApiBaseUrl();
 
   const createChat = async (message: string, title?: string) => {
     if (!accessToken.value) {
@@ -32,7 +32,7 @@ export const useAiEssays = () => {
 
     try {
       const data: any = await $fetch(
-        `${API_BASE}/api/v1/student/essay-ai-orders/place`,
+        `${apiBase}/api/v1/student/essay-ai-orders/place`,
         {
           method: "POST",
           headers: {
@@ -70,7 +70,7 @@ export const useAiEssays = () => {
 
     try {
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/essay-ai-orders/${uuid}/sendMessage`,
+        `${apiBase}/api/v1/student/essay-ai-orders/${uuid}/sendMessage`,
         {
           method: "POST",
           headers: {
@@ -97,7 +97,7 @@ export const useAiEssays = () => {
     }
 
     try {
-      const data = await $fetch(`${API_BASE}/api/v1/student/essay-ai-orders`, {
+      const data = await $fetch(`${apiBase}/api/v1/student/essay-ai-orders`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
@@ -125,7 +125,7 @@ export const useAiEssays = () => {
 
     try {
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/essay-ai-orders/${uuid}`,
+        `${apiBase}/api/v1/student/essay-ai-orders/${uuid}`,
         {
           method: "GET",
           headers: {

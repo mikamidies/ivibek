@@ -99,7 +99,7 @@ interface UpcomingMeetingsResponse {
 
 export const useMeetings = () => {
   const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const apiBase = useApiBaseUrl();
 
   const fetchMeetings = async (
     page = 0,
@@ -107,7 +107,7 @@ export const useMeetings = () => {
   ): Promise<PaginatedMeetingsResponse> => {
     try {
       const data = await $fetch<PaginatedMeetingsResponse>(
-        `${API_BASE}/api/v1/student/meetings`,
+        `${apiBase}/api/v1/student/meetings`,
         {
           method: "GET",
           headers: {
@@ -129,7 +129,7 @@ export const useMeetings = () => {
   const fetchMeetingById = async (id: number): Promise<MeetingDetail> => {
     try {
       const data = await $fetch<MeetingDetail>(
-        `${API_BASE}/api/v1/student/meetings/${id}`,
+        `${apiBase}/api/v1/student/meetings/${id}`,
         {
           method: "GET",
           headers: {
@@ -146,7 +146,7 @@ export const useMeetings = () => {
 
   const createMeeting = async (payload: CreateMeetingPayload) => {
     try {
-      const data = await $fetch(`${API_BASE}/api/v1/student/meetings`, {
+      const data = await $fetch(`${apiBase}/api/v1/student/meetings`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
@@ -164,7 +164,7 @@ export const useMeetings = () => {
   const fetchUpcomingMeetings = async (): Promise<UpcomingMeetingsResponse> => {
     try {
       const data = await $fetch<UpcomingMeetingsResponse>(
-        `${API_BASE}/api/v1/student/meetings/upcoming`,
+        `${apiBase}/api/v1/student/meetings/upcoming`,
         {
           method: "GET",
           headers: {

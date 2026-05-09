@@ -15,7 +15,7 @@ interface PaginatedResponse<T> {
 }
 
 export const useMentors = () => {
-  const API_BASE = "https://api.ivybek.com";
+  const apiBase = useApiBaseUrl();
 
   const fetchMentors = async (
     universityId?: number | null,
@@ -25,7 +25,7 @@ export const useMentors = () => {
     try {
       const token = useCookie("access_token");
 
-      let url = `${API_BASE}/api/v1/student/mentors?`;
+      let url = `${apiBase}/api/v1/student/mentors?`;
 
       const params = [];
       if (universityId) params.push(`universityId=${universityId}`);
@@ -53,7 +53,7 @@ export const useMentors = () => {
     try {
       const token = useCookie("access_token");
 
-      const data = await $fetch(`${API_BASE}/api/v1/student/mentors/${id}`, {
+      const data = await $fetch(`${apiBase}/api/v1/student/mentors/${id}`, {
         headers: {
           Authorization: `Bearer ${token.value}`,
         },
@@ -75,7 +75,7 @@ export const useMentors = () => {
       const token = useCookie("access_token");
 
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/mentors/${mentorId}/timeslots?dateFrom=${dateFrom}&dateTo=${dateTo}`,
+        `${apiBase}/api/v1/student/mentors/${mentorId}/timeslots?dateFrom=${dateFrom}&dateTo=${dateTo}`,
         {
           headers: {
             Authorization: `Bearer ${token.value}`,

@@ -40,7 +40,7 @@ interface PersonalDevelopmentGroup {
 
 export const usePersonalDevelopment = () => {
   const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const apiBase = useApiBaseUrl();
 
   const fetchPersonalDevelopments = async (): Promise<
     PersonalDevelopment[]
@@ -51,7 +51,7 @@ export const usePersonalDevelopment = () => {
       }
 
       const data = await $fetch<any>(
-        `${API_BASE}/api/v1/student/personalDevelopments`,
+        `${apiBase}/api/v1/student/personalDevelopments`,
         {
           method: "GET",
           headers: {
@@ -87,7 +87,7 @@ export const usePersonalDevelopment = () => {
       }
 
       const data = await $fetch<any>(
-        `${API_BASE}/api/v1/student/personalDevelopments`,
+        `${apiBase}/api/v1/student/personalDevelopments`,
         {
           method: "GET",
           headers: {
@@ -113,7 +113,7 @@ export const usePersonalDevelopment = () => {
   ): Promise<PersonalDevelopment> => {
     try {
       const data = await $fetch<PersonalDevelopment>(
-        `${API_BASE}/api/v1/student/personalDevelopments/${id}`,
+        `${apiBase}/api/v1/student/personalDevelopments/${id}`,
         {
           method: "GET",
           headers: {
@@ -132,7 +132,7 @@ export const usePersonalDevelopment = () => {
   ): Promise<PersonalDevelopment> => {
     try {
       const data = await $fetch<PersonalDevelopment>(
-        `${API_BASE}/api/v1/student/personalDevelopments`,
+        `${apiBase}/api/v1/student/personalDevelopments`,
         {
           method: "POST",
           headers: {
@@ -154,7 +154,7 @@ export const usePersonalDevelopment = () => {
   ): Promise<PersonalDevelopment> => {
     try {
       const data = await $fetch<PersonalDevelopment>(
-        `${API_BASE}/api/v1/student/personalDevelopments/${id}`,
+        `${apiBase}/api/v1/student/personalDevelopments/${id}`,
         {
           method: "PUT",
           headers: {

@@ -16,13 +16,12 @@ type RequestOptions = Record<string, any> & {
   headers?: Record<string, string>;
 };
 
-const API_BASE = "https://api.ivybek.com";
-
 export const useApiClient = () => {
   const { accessToken } = useAuth();
+  const apiBase = useApiBaseUrl();
 
   const buildUrl = (path: string) =>
-    path.startsWith("http") ? path : `${API_BASE}${path}`;
+    path.startsWith("http") ? path : `${apiBase}${path}`;
 
   const request = async <T>(
     path: string,
@@ -99,7 +98,7 @@ export const useApiClient = () => {
     );
 
   return {
-    apiBase: API_BASE,
+    apiBase,
     request,
     fetchList,
     postJson,

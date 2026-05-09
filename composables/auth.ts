@@ -42,7 +42,7 @@ export const useAuth = () => {
     sameSite: "lax",
   });
 
-  const API_BASE = "https://api.ivybek.com";
+  const apiBase = useApiBaseUrl();
 
   const logout = async () => {
     accessToken.value = null;
@@ -62,7 +62,7 @@ export const useAuth = () => {
   ) => {
     try {
       const data: AuthResponse = await $fetch(
-        `${API_BASE}/api/v1/student/auth/login`,
+        `${apiBase}/api/v1/student/auth/login`,
         {
           method: "POST",
           body: { username, password },
@@ -99,7 +99,7 @@ export const useAuth = () => {
   }) => {
     try {
       const data: AuthResponse = await $fetch(
-        `${API_BASE}/api/v1/student/auth/register`,
+        `${apiBase}/api/v1/student/auth/register`,
         {
           method: "POST",
           body: formData,
@@ -141,7 +141,7 @@ export const useAuth = () => {
     refreshPromise = (async () => {
       try {
         const data: AuthResponse = await $fetch(
-          `${API_BASE}/api/v1/common/auth/refresh`,
+          `${apiBase}/api/v1/common/auth/refresh`,
           {
             method: "POST",
             body: { refreshToken: refreshToken.value },
@@ -179,7 +179,7 @@ export const useAuth = () => {
     }
 
     try {
-      const data = await $fetch(`${API_BASE}/api/v1/student/profile`, {
+      const data = await $fetch(`${apiBase}/api/v1/student/profile`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
@@ -207,7 +207,7 @@ export const useAuth = () => {
     }
 
     try {
-      await $fetch(`${API_BASE}/api/v1/student/profile`, {
+      await $fetch(`${apiBase}/api/v1/student/profile`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${accessToken.value}`,

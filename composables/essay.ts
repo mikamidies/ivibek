@@ -49,7 +49,7 @@ interface EditEssayPayload {
 
 export const useEssay = () => {
   const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const apiBase = useApiBaseUrl();
 
   const calculatePrice = async (payload: PriceCalculatePayload) => {
     if (!accessToken.value) {
@@ -58,7 +58,7 @@ export const useEssay = () => {
 
     try {
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/essay-orders/price/calculate`,
+        `${apiBase}/api/v1/student/essay-orders/price/calculate`,
         {
           method: "POST",
           headers: {
@@ -86,7 +86,7 @@ export const useEssay = () => {
 
     try {
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/essay-orders/place`,
+        `${apiBase}/api/v1/student/essay-orders/place`,
         {
           method: "POST",
           headers: {
@@ -112,7 +112,7 @@ export const useEssay = () => {
     }
 
     try {
-      const data = await $fetch(`${API_BASE}/api/v1/student/essay-orders`, {
+      const data = await $fetch(`${apiBase}/api/v1/student/essay-orders`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
@@ -138,7 +138,7 @@ export const useEssay = () => {
     }
     try {
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/essay-orders/${id}/`,
+        `${apiBase}/api/v1/student/essay-orders/${id}/`,
         {
           method: "GET",
           headers: {
@@ -162,7 +162,7 @@ export const useEssay = () => {
 
     try {
       const data = await $fetch(
-        `${API_BASE}/api/v1/student/essay-orders/${id}/edit`,
+        `${apiBase}/api/v1/student/essay-orders/${id}/edit`,
         {
           method: "PUT",
           headers: {
@@ -189,7 +189,7 @@ export const useEssay = () => {
 
     try {
       const response = await $fetch<PaginatedResponse<any>>(
-        `${API_BASE}/api/v1/student/essay-orders/wordLimits`,
+        `${apiBase}/api/v1/student/essay-orders/wordLimits`,
         {
           method: "GET",
           headers: {
@@ -218,7 +218,7 @@ export const useEssay = () => {
 
     try {
       const response = await $fetch<PaginatedResponse<any>>(
-        `${API_BASE}/api/v1/student/essay-orders/deadlines`,
+        `${apiBase}/api/v1/student/essay-orders/deadlines`,
         {
           method: "GET",
           headers: {

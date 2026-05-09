@@ -56,12 +56,12 @@ interface SidebarResponse {
 
 export const useSidebar = () => {
   const { accessToken } = useAuth();
-  const API_BASE = "https://api.ivybek.com";
+  const apiBase = useApiBaseUrl();
 
   const fetchSidebarData = async (): Promise<SidebarResponse> => {
     try {
       const data = await $fetch<SidebarResponse>(
-        `${API_BASE}/api/v1/student/sidebar`,
+        `${apiBase}/api/v1/student/sidebar`,
         {
           method: "GET",
           headers: {

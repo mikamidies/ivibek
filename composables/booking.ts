@@ -20,8 +20,6 @@ interface BookingResponse {
 }
 
 export const useBooking = () => {
-  const API_BASE = "https://api.ivybek.com";
-
   const fetchAvailableSlots = async (
     mentorId: number,
     startDate?: string,
