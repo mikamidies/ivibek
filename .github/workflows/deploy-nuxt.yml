@@ -51,7 +51,7 @@ jobs:
             set -e
             echo "$GHCR_TOKEN" | docker login ghcr.io -u Dadamuhames --password-stdin
             cd ${{ env.DEPLOY_DIR }}
-            docker compose pull
+            docker compose pull --quiet
             docker compose up -d --force-recreate
             docker image prune -f
         env:
