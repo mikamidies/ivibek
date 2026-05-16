@@ -21,8 +21,10 @@ const apiBase = useApiBaseUrl();
 
 const loading = ref(false);
 const uploadLoading = ref(false);
+const countriesLoading = ref(false);
 
 const countries = ref([]);
+let countrySearchTimeout = null;
 
 const form = ref({
   fullName: "",
@@ -34,6 +36,14 @@ const form = ref({
 });
 
 const about = ref("");
+
+await useAsyncData("profile-user", async () => {
+  if (accessToken.value && !user.value) {
+    await fetchUser();
+  }
+
+  return user.value;
+});
 
 watch(
   user,
@@ -60,13 +70,29 @@ const visibleDesc = ref(false);
 
 const showModal = async () => {
   visible.value = true;
+  await loadCountries();
+};
+
+const loadCountries = async (search = "") => {
+  countriesLoading.value = true;
 
   try {
-    const countriesData = await fetchCountries();
-    countries.value = countriesData;
+    countries.value = await fetchCountries(search);
   } catch (error) {
     console.error("Error loading countries:", error);
+  } finally {
+    countriesLoading.value = false;
   }
+};
+
+const handleCountrySearch = (value) => {
+  if (countrySearchTimeout) {
+    clearTimeout(countrySearchTimeout);
+  }
+
+  countrySearchTimeout = setTimeout(() => {
+    loadCountries(value.trim());
+  }, 300);
 };
 
 const handleOk = async () => {
@@ -179,7 +205,7 @@ const timezones = [
       <div class="profile__top-left">
         <div class="profile__img">
           <NuxtImg
-            :src="user.image || '/images/default-person.jpg'"
+            :src="user?.image || '/images/default-person.jpg'"
             alt="person"
             width="80"
             height="80"
@@ -296,47 +322,47 @@ const timezones = [
     </template>
     <div class="form__wrapper">
       <a-form :model="form" layout="vertical">
-        <a-form-item :label="t('profile.full-name')" name="fullName">
+        <a-form-item :label="t('register.full-name')" name="fullName">
           <a-input
             v-model:value="form.fullName"
-            :placeholder="t('profile.full-name')"
+            :placeholder="t('register.full-name')"
           />
         </a-form-item>
 
-        <a-form-item :label="t('profile.email')" name="email">
+        <a-form-item :label="t('register.email')" name="email">
           <a-input
             v-model:value="form.email"
             type="email"
-            :placeholder="t('profile.email')"
+            :placeholder="t('register.email')"
           />
         </a-form-item>
 
-        <a-form-item :label="t('profile.date-of-birth')" name="dateOfBirth">
+        <a-form-item :label="t('register.date-of-birth')" name="dateOfBirth">
           <a-date-picker
             v-model:value="form.dateOfBirth"
             style="width: 100%"
             format="DD/MM/YYYY"
+            :placeholder="t('register.date-of-birth')"
           />
         </a-form-item>
 
-        <a-form-item :label="t('profile.gender')" name="gender">
+        <a-form-item :label="t('register.gender')" name="gender">
           <a-select
             v-model:value="form.gender"
-            :placeholder="t('profile.choose-gender')"
+            :placeholder="t('register.gender')"
             :options="genderOptions"
           />
         </a-form-item>
 
-        <a-form-item :label="t('profile.country')" name="countryId">
+        <a-form-item :label="t('register.country')" name="countryId">
           <a-select
             v-model:value="form.countryId"
             show-search
-            :placeholder="t('profile.select-country')"
-            :filter-option="
-              (input, option) =>
-                option.label.toLowerCase().includes(input.toLowerCase())
-            "
+            :placeholder="t('register.country')"
+            :loading="countriesLoading"
+            :filter-option="false"
             allow-clear
+            @search="handleCountrySearch"
           >
             <a-select-option
               v-for="country in countries"
@@ -349,11 +375,11 @@ const timezones = [
           </a-select>
         </a-form-item>
 
-        <a-form-item :label="t('profile.timezone')" name="timezone">
+        <a-form-item :label="t('register.timezone')" name="timezone">
           <a-select
             v-model:value="form.timezone"
             show-search
-            placeholder="Select timezone"
+            :placeholder="t('register.timezone')"
             :options="timezones"
             allow-clear
           />

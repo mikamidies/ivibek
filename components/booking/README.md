@@ -99,7 +99,7 @@ pages/
 ```typescript
 const fetchAvailableSlots = async (mentorId: number) => {
   const token = useCookie("access_token");
-  const url = `${API_BASE}/api/v1/student/bookings/available-slots?mentorId=${mentorId}`;
+  const url = `${apiBase}/api/v1/student/bookings/available-slots?mentorId=${mentorId}`;
 
   const data = await $fetch<string[]>(url, {
     headers: {

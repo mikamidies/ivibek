@@ -22,9 +22,9 @@ export const useCommon = () => {
     );
   };
 
-  const fetchUniversities = async (): Promise<ChoiceItem[]> => {
+  const fetchUniversities = async (search = ""): Promise<ChoiceItem[]> => {
     return fetchChoiceList(
-      "/api/v1/common/university/choice-list?search=",
+      `/api/v1/common/university/choice-list?search=${encodeURIComponent(search)}`,
       "universities"
     );
   };

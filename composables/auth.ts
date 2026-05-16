@@ -58,7 +58,7 @@ export const useAuth = () => {
   const login = async (
     username: string,
     password: string,
-    remember: boolean = false
+    remember: boolean = false,
   ) => {
     try {
       const data: AuthResponse = await $fetch(
@@ -66,7 +66,7 @@ export const useAuth = () => {
         {
           method: "POST",
           body: { username, password },
-        }
+        },
       );
 
       accessToken.value = data.accessToken;
@@ -103,7 +103,7 @@ export const useAuth = () => {
         {
           method: "POST",
           body: formData,
-        }
+        },
       );
 
       accessToken.value = data.accessToken;
@@ -145,7 +145,7 @@ export const useAuth = () => {
           {
             method: "POST",
             body: { refreshToken: refreshToken.value },
-          }
+          },
         );
 
         accessToken.value = data.accessToken;
@@ -237,7 +237,7 @@ export const useAuth = () => {
       const formData = new FormData();
       formData.append("file", imageFile);
 
-      const response = await fetch(`${API_BASE}/api/v1/common/files/upload`, {
+      const response = await fetch(`${apiBase}/api/v1/common/files/upload`, {
         method: "POST",
         body: formData,
       });
@@ -254,7 +254,7 @@ export const useAuth = () => {
         throw new Error("Failed to get image path");
       }
 
-      await $fetch(`${API_BASE}/api/v1/student/profile/updateImage`, {
+      await $fetch(`${apiBase}/api/v1/student/profile/updateImage`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
@@ -283,7 +283,7 @@ export const useAuth = () => {
     }
 
     try {
-      await $fetch(`${API_BASE}/api/v1/student/profile/updateAbout`, {
+      await $fetch(`${apiBase}/api/v1/student/profile/updateAbout`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${accessToken.value}`,
@@ -306,10 +306,10 @@ export const useAuth = () => {
   const resetPassword = async (
     username: string,
     newPassword: string,
-    confirmPassword: string
+    confirmPassword: string,
   ) => {
     try {
-      await $fetch(`${API_BASE}/api/v1/student/auth/reset-password`, {
+      await $fetch(`${apiBase}/api/v1/student/auth/reset-password`, {
         method: "POST",
         body: { username, newPassword, confirmPassword },
       });

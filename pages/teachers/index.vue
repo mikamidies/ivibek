@@ -4,237 +4,273 @@ const { fetchMentors } = useMentors();
 const { fetchUniversities, fetchFaculties } = useCommon();
 const { t } = useTranslations();
 
-const universities = await fetchUniversities();
-const faculties = await fetchFaculties();
+const universities = ref([]);
+const universitiesLoading = ref(false);
+const faculties = ref([]);
 
 const selectedUniversity = ref(null);
 const selectedFaculty = ref(null);
 const searchQuery = ref("");
 const mentors = ref([]);
+let universitySearchTimeout = null;
 
 onMounted(async () => {
-  mentors.value = await fetchMentors();
+    await loadUniversities();
+    faculties.value = await fetchFaculties();
+    mentors.value = await fetchMentors();
 });
 
 const debouncedSearch = ref(searchQuery.value);
 let searchTimeout;
 
+const loadUniversities = async (search = "") => {
+    universitiesLoading.value = true;
+
+    try {
+        universities.value = await fetchUniversities(search);
+    } finally {
+        universitiesLoading.value = false;
+    }
+};
+
+const handleUniversitySearch = (value) => {
+    if (universitySearchTimeout) {
+        clearTimeout(universitySearchTimeout);
+    }
+
+    universitySearchTimeout = setTimeout(() => {
+        loadUniversities(value.trim());
+    }, 300);
+};
+
 watch(searchQuery, (newValue) => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    debouncedSearch.value = newValue;
-  }, 500);
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        debouncedSearch.value = newValue;
+    }, 500);
 });
 
 watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
-  mentors.value = await fetchMentors(
-    selectedUniversity.value,
-    selectedFaculty.value,
-    debouncedSearch.value
-  );
+    mentors.value = await fetchMentors(
+        selectedUniversity.value,
+        selectedFaculty.value,
+        debouncedSearch.value,
+    );
 });
 </script>
 
 <template>
-  <div class="booking-page">
-    <PageBanner
-      :titleProps="t('teachers.teachers')"
-      backgroundProps="#00A155"
-      iconProps="/page-icons/tasks.png"
-    />
-    <div class="teachers__body">
-      <div class="teachers__top">
-        <div class="teachers__top-left">
-          <a-select
-            v-model:value="selectedUniversity"
-            :placeholder="t('teachers.choose-university')"
-          >
-            <a-select-option :value="null">{{
-              t("teachers.all-universities")
-            }}</a-select-option>
-            <a-select-option
-              v-for="university in universities"
-              :key="university.id"
-              :value="university.id"
-            >
-              {{ university.name }}
-            </a-select-option>
-          </a-select>
-          <a-select
-            v-model:value="selectedFaculty"
-            :placeholder="t('teachers.choose-faculty')"
-          >
-            <a-select-option :value="null">{{
-              t("teachers.all-faculties")
-            }}</a-select-option>
-            <a-select-option
-              v-for="faculty in faculties"
-              :key="faculty.id"
-              :value="faculty.id"
-            >
-              {{ faculty.name }}
-            </a-select-option>
-          </a-select>
-        </div>
-        <div class="teachers__top-right">
-          <a-input
-            v-model:value="searchQuery"
-            :placeholder="t('teachers.search')"
-            class="search__input"
-          />
-          <Icon name="lucide:search" style="width: 16px; height: 16px" />
-        </div>
-      </div>
-      <div class="teachers__items">
-        <div v-if="!mentors.length" class="empty__state">
-          <Icon name="lucide:file-text" />
-          <p>{{ t("teachers.no-teachers") }}</p>
-        </div>
-        <div
-          v-else
-          class="teachers__item"
-          v-for="item in mentors"
-          :key="item.id"
-        >
-          <NuxtLink :to="`/teachers/${item.id}`">
-            <div class="teachers__item-top">
-              <div class="teachers__item-img">
-                <NuxtImg
-                  :src="item.image || '/images/default-person.jpg'"
-                  alt="Teacher"
-                  width="56"
-                  height="56"
-                />
-              </div>
-              <div class="teachers__item-info">
-                <h5 class="teachers__item-name">{{ item.fullName }}</h5>
-                <span class="teachers__item-sub">
-                  {{ item.university.name }}
-                </span>
-              </div>
+    <div class="booking-page">
+        <PageBanner
+            :titleProps="t('teachers.teachers')"
+            backgroundProps="#00A155"
+            iconProps="/page-icons/tasks.png"
+        />
+        <div class="teachers__body">
+            <div class="teachers__top">
+                <div class="teachers__top-left">
+                    <a-select
+                        v-model:value="selectedUniversity"
+                        show-search
+                        :placeholder="t('teachers.choose-university')"
+                        :loading="universitiesLoading"
+                        :filter-option="false"
+                        @search="handleUniversitySearch"
+                    >
+                        <a-select-option :value="null">{{
+                            t("common.select-universities")
+                        }}</a-select-option>
+                        <a-select-option
+                            v-for="university in universities"
+                            :key="university.id"
+                            :value="university.id"
+                        >
+                            {{ university.name }}
+                        </a-select-option>
+                    </a-select>
+                    <a-select
+                        v-model:value="selectedFaculty"
+                        :placeholder="t('teachers.choose-faculty')"
+                    >
+                        <a-select-option :value="null">{{
+                            t("common.select-faculties")
+                        }}</a-select-option>
+                        <a-select-option
+                            v-for="faculty in faculties"
+                            :key="faculty.id"
+                            :value="faculty.id"
+                        >
+                            {{ faculty.name }}
+                        </a-select-option>
+                    </a-select>
+                </div>
+                <div class="teachers__top-right">
+                    <a-input
+                        v-model:value="searchQuery"
+                        :placeholder="t('common.search')"
+                        class="search__input"
+                    />
+                    <Icon
+                        name="lucide:search"
+                        style="width: 16px; height: 16px"
+                    />
+                </div>
             </div>
-            <div class="teachers__item-bottom">
-              <p class="teachers__item-status">
-                {{ item.faculty.name }}
-              </p>
+            <div class="teachers__items">
+                <div v-if="!mentors.length" class="empty__state">
+                    <Icon name="lucide:file-text" />
+                    <p>{{ t("teachers.no-teachers") }}</p>
+                </div>
+                <div
+                    v-else
+                    class="teachers__item"
+                    v-for="item in mentors"
+                    :key="item.id"
+                >
+                    <NuxtLink :to="`/teachers/${item.id}`">
+                        <div class="teachers__item-top">
+                            <div class="teachers__item-img">
+                                <NuxtImg
+                                    :src="
+                                        item.image ||
+                                        '/images/default-person.jpg'
+                                    "
+                                    alt="Teacher"
+                                    width="56"
+                                    height="56"
+                                />
+                            </div>
+                            <div class="teachers__item-info">
+                                <h5 class="teachers__item-name">
+                                    {{ item.fullName }}
+                                </h5>
+                                <span class="teachers__item-sub">
+                                    {{ item.university.name }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="teachers__item-bottom">
+                            <p class="teachers__item-status">
+                                {{ item.faculty.name }}
+                            </p>
+                        </div>
+                    </NuxtLink>
+                </div>
             </div>
-          </NuxtLink>
         </div>
-      </div>
     </div>
-  </div>
 </template>
 
 <style scoped>
 .empty__state {
-  grid-column: 1/4;
+    grid-column: 1/4;
 }
 .booking-page {
-  padding: 24px 24px 120px 24px;
-  background: var(--border);
-  height: 100vh;
-  overflow: auto;
+    padding: 24px 24px 120px 24px;
+    background: var(--border);
+    height: 100vh;
+    overflow: auto;
 }
 .teachers__body {
-  padding: 24px;
-  background: #ffffff;
-  border-radius: 16px;
-  margin-top: 16px;
+    padding: 24px;
+    background: #ffffff;
+    border-radius: 16px;
+    margin-top: 16px;
 }
 .teachers__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  row-gap: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    row-gap: 16px;
 }
 
 .teachers__top-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 .teachers__top-right {
-  position: relative;
-  border-radius: 8px;
-  padding: 0;
+    position: relative;
+    border-radius: 8px;
+    padding: 0;
 }
 .teachers__top-left :deep(.ant-select) {
-  width: 420px;
+    width: 420px;
 }
 .search__input {
-  width: 420px;
-  border: 0;
-  padding: 10px 12px;
+    width: 420px;
+    border: 0;
+    padding: 10px 12px;
 }
 .teachers__top-right span {
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  color: var(--light-grey);
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    color: var(--light-grey);
 }
 .teachers__items {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
 }
 .teachers__item {
-  border: 1px solid var(--border-darker);
-  border-radius: 16px;
-  padding: 24px;
+    border: 1px solid var(--border-darker);
+    border-radius: 16px;
+    padding: 24px;
 }
 .teachers__item-top {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
 }
 .teachers__item-img {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 .teachers__item-img img {
-  object-fit: cover;
+    object-fit: cover;
 }
 .teachers__item-info {
-  flex-grow: 1;
+    flex-grow: 1;
 }
 .teachers__item-name {
-  font-weight: 600;
-  font-size: 20px;
-  line-height: 28px;
-  margin-bottom: 4px;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 28px;
+    margin-bottom: 4px;
 }
 .teachers__item-sub {
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--light-grey);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--light-grey);
 }
 .teachers__item-status {
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
-  background: var(--light-green);
-  display: inline-flex;
-  color: var(--green);
-  padding: 4px 8px;
-  border-radius: 8px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    background: var(--light-green);
+    display: inline-flex;
+    color: var(--green);
+    padding: 4px 8px;
+    border-radius: 8px;
 }
 @media screen and (max-width: 1300px) {
-  .teachers__top-left :deep(.ant-select) {
-    width: 100% !important;
-  }
-  .search__input {
-    width: 100% !important;
-  }
-  .teachers__items {
-    grid-template-columns: repeat(2, 1fr);
-  }
+    .teachers__top-left :deep(.ant-select) {
+        width: 100% !important;
+    }
+    .search__input {
+        width: 100% !important;
+    }
+    .teachers__items {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 </style>

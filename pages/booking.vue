@@ -49,26 +49,30 @@ const { t } = useTranslations();
 
 const meetings = ref([]);
 const meetingsLoading = ref(false);
+const universities = ref([]);
+const universitiesLoading = ref(false);
+const faculties = ref([]);
+let universitySearchTimeout = null;
 
 const loadMeetings = async () => {
-  meetingsLoading.value = true;
-  try {
-    const response = await fetchMeetings(0, 100);
-    meetings.value = response.content;
-  } catch (error) {
-    console.error("Failed to load meetings:", error);
-    message.error(t("booking.failed-load-meetings"));
-  } finally {
-    meetingsLoading.value = false;
-  }
+    meetingsLoading.value = true;
+    try {
+        const response = await fetchMeetings(0, 100);
+        meetings.value = response.content;
+    } catch (error) {
+        console.error("Failed to load meetings:", error);
+        message.error(t("booking.failed-load-meetings"));
+    } finally {
+        meetingsLoading.value = false;
+    }
 };
 
 onMounted(async () => {
-  mentors.value = await fetchMentors();
-  await loadMeetings();
+    await loadUniversities();
+    faculties.value = await fetchFaculties();
+    mentors.value = await fetchMentors();
+    await loadMeetings();
 });
-const universities = await fetchUniversities();
-const faculties = await fetchFaculties();
 const selectedUniversity = ref(null);
 const selectedFaculty = ref(null);
 const searchQuery = ref("");
@@ -78,27 +82,47 @@ const availableSlots = ref([]);
 const debouncedSearch = ref(searchQuery.value);
 let searchTimeout;
 
+const loadUniversities = async (search = "") => {
+    universitiesLoading.value = true;
+
+    try {
+        universities.value = await fetchUniversities(search);
+    } finally {
+        universitiesLoading.value = false;
+    }
+};
+
+const handleUniversitySearch = (value) => {
+    if (universitySearchTimeout) {
+        clearTimeout(universitySearchTimeout);
+    }
+
+    universitySearchTimeout = setTimeout(() => {
+        loadUniversities(value.trim());
+    }, 300);
+};
+
 watch(searchQuery, (newValue) => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    debouncedSearch.value = newValue;
-  }, 500);
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        debouncedSearch.value = newValue;
+    }, 500);
 });
 
 watch([selectedUniversity, selectedFaculty, debouncedSearch], async () => {
-  mentors.value = await fetchMentors(
-    selectedUniversity.value,
-    selectedFaculty.value,
-    debouncedSearch.value,
-  );
+    mentors.value = await fetchMentors(
+        selectedUniversity.value,
+        selectedFaculty.value,
+        debouncedSearch.value,
+    );
 });
 
 const visible = ref(false);
 const showModal = () => {
-  visible.value = true;
+    visible.value = true;
 };
 const handleOk = () => {
-  visible.value = false;
+    visible.value = false;
 };
 
 const bookModalVisible = ref(false);
@@ -108,71 +132,71 @@ const mentorLoading = ref(false);
 const currentWeekRange = ref({ dateFrom: "", dateTo: "" });
 
 const selectMentor = async (mentorId) => {
-  mentorLoading.value = true;
-  try {
-    const mentorData = await fetchMentorById(mentorId);
-    selectedMentor.value = mentorData;
+    mentorLoading.value = true;
+    try {
+        const mentorData = await fetchMentorById(mentorId);
+        selectedMentor.value = mentorData;
 
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
 
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + diff);
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + diff);
 
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
 
-    const dateFrom = monday.toISOString().split("T")[0];
-    const dateTo = sunday.toISOString().split("T")[0];
+        const dateFrom = monday.toISOString().split("T")[0];
+        const dateTo = sunday.toISOString().split("T")[0];
 
-    currentWeekRange.value = { dateFrom, dateTo };
+        currentWeekRange.value = { dateFrom, dateTo };
 
-    await loadTimeslots(mentorId, dateFrom, dateTo);
+        await loadTimeslots(mentorId, dateFrom, dateTo);
 
-    bookModalVisible.value = true;
-    visible.value = false;
-  } catch (error) {
-    console.error("Failed to load mentor details:", error);
-  } finally {
-    mentorLoading.value = false;
-  }
+        bookModalVisible.value = true;
+        visible.value = false;
+    } catch (error) {
+        console.error("Failed to load mentor details:", error);
+    } finally {
+        mentorLoading.value = false;
+    }
 };
 
 const loadTimeslots = async (mentorId, dateFrom, dateTo) => {
-  try {
-    const timeslotsData = await fetchMentorTimeslots(
-      mentorId,
-      dateFrom,
-      dateTo,
-    );
+    try {
+        const timeslotsData = await fetchMentorTimeslots(
+            mentorId,
+            dateFrom,
+            dateTo,
+        );
 
-    const slots = [];
-    if (Array.isArray(timeslotsData)) {
-      timeslotsData.forEach((item) => {
-        if (item.date && Array.isArray(item.times)) {
-          item.times.forEach((time) => {
-            const timeWithoutSeconds = time.substring(0, 5);
-            slots.push(`${item.date}T${timeWithoutSeconds}`);
-          });
+        const slots = [];
+        if (Array.isArray(timeslotsData)) {
+            timeslotsData.forEach((item) => {
+                if (item.date && Array.isArray(item.times)) {
+                    item.times.forEach((time) => {
+                        const timeWithoutSeconds = time.substring(0, 5);
+                        slots.push(`${item.date}T${timeWithoutSeconds}`);
+                    });
+                }
+            });
         }
-      });
-    }
 
-    availableSlots.value = slots;
-  } catch (error) {
-    console.error("Failed to load timeslots:", error);
-    availableSlots.value = [];
-  }
+        availableSlots.value = slots;
+    } catch (error) {
+        console.error("Failed to load timeslots:", error);
+        availableSlots.value = [];
+    }
 };
 
 const handleBookOk = () => {
-  if (selectedSlots.value.length === 0) {
-    message.warning(t("booking.select-slot"));
-    return;
-  }
-  paymentModalVisible.value = true;
-  bookModalVisible.value = false;
+    if (selectedSlots.value.length === 0) {
+        message.warning(t("booking.select-slot"));
+        return;
+    }
+    paymentModalVisible.value = true;
+    bookModalVisible.value = false;
 };
 
 const paymentModalVisible = ref(false);
@@ -180,13 +204,72 @@ const meetingDescription = ref("");
 const bookingLoading = ref(false);
 
 const handlePaymentOk = async () => {
-  if (selectedSlots.value.length === 0) {
-    message.error(t("booking.select-slot"));
-    return;
-  }
+    if (selectedSlots.value.length === 0) {
+        message.error(t("booking.select-slot"));
+        return;
+    }
 
-  bookingLoading.value = true;
-  try {
+    bookingLoading.value = true;
+    try {
+        const sortedSlots = [...selectedSlots.value].sort();
+        const firstSlot = sortedSlots[0];
+        const lastSlot = sortedSlots[sortedSlots.length - 1];
+
+        const [date, firstTime] = firstSlot.split("_");
+        const [, lastTime] = lastSlot.split("_");
+
+        const timeFrom = firstTime;
+        const lastHour = parseInt(lastTime.split(":")[0]);
+        const timeTo = `${(lastHour + 1).toString().padStart(2, "0")}:00`;
+
+        const payload = {
+            mentorId: selectedMentor.value.id,
+            date: date,
+            timeFrom: timeFrom,
+            timeTo: timeTo,
+            description: meetingDescription.value || "",
+        };
+
+        await createMeeting(payload);
+        message.success("Meeting booked successfully!");
+
+        paymentModalVisible.value = false;
+        bookModalVisible.value = false;
+        meetingDescription.value = "";
+        selectedSlots.value = [];
+        selectedMentor.value = null;
+        availableSlots.value = [];
+
+        await loadMeetings();
+    } catch (error) {
+        message.error(
+            "Failed to book meeting: " + (error?.message || "Unknown error"),
+        );
+    } finally {
+        bookingLoading.value = false;
+    }
+};
+
+const handleWeekChange = async ({ dateFrom, dateTo }) => {
+    if (selectedMentor.value?.id) {
+        currentWeekRange.value = { dateFrom, dateTo };
+        await loadTimeslots(selectedMentor.value.id, dateFrom, dateTo);
+    }
+};
+
+const calculateTotalPrice = () => {
+    const hourlyRate = selectedMentor.value?.pricing?.meetingHourPrice || 24;
+    return selectedSlots.value.length * hourlyRate;
+};
+
+const formatSlotForDisplay = (slot) => {
+    const [date, time] = slot.split("_");
+    return `${date} at ${time}`;
+};
+
+const formatTimeRange = () => {
+    if (selectedSlots.value.length === 0) return "";
+
     const sortedSlots = [...selectedSlots.value].sort();
     const firstSlot = sortedSlots[0];
     const lastSlot = sortedSlots[sortedSlots.length - 1];
@@ -194,69 +277,10 @@ const handlePaymentOk = async () => {
     const [date, firstTime] = firstSlot.split("_");
     const [, lastTime] = lastSlot.split("_");
 
-    const timeFrom = firstTime;
     const lastHour = parseInt(lastTime.split(":")[0]);
-    const timeTo = `${(lastHour + 1).toString().padStart(2, "0")}:00`;
+    const endTime = `${(lastHour + 1).toString().padStart(2, "0")}:00`;
 
-    const payload = {
-      mentorId: selectedMentor.value.id,
-      date: date,
-      timeFrom: timeFrom,
-      timeTo: timeTo,
-      description: meetingDescription.value || "",
-    };
-
-    await createMeeting(payload);
-    message.success("Meeting booked successfully!");
-
-    paymentModalVisible.value = false;
-    bookModalVisible.value = false;
-    meetingDescription.value = "";
-    selectedSlots.value = [];
-    selectedMentor.value = null;
-    availableSlots.value = [];
-
-    await loadMeetings();
-  } catch (error) {
-    message.error(
-      "Failed to book meeting: " + (error?.message || "Unknown error"),
-    );
-  } finally {
-    bookingLoading.value = false;
-  }
-};
-
-const handleWeekChange = async ({ dateFrom, dateTo }) => {
-  if (selectedMentor.value?.id) {
-    currentWeekRange.value = { dateFrom, dateTo };
-    await loadTimeslots(selectedMentor.value.id, dateFrom, dateTo);
-  }
-};
-
-const calculateTotalPrice = () => {
-  const hourlyRate = selectedMentor.value?.pricing?.meetingHourPrice || 24;
-  return selectedSlots.value.length * hourlyRate;
-};
-
-const formatSlotForDisplay = (slot) => {
-  const [date, time] = slot.split("_");
-  return `${date} at ${time}`;
-};
-
-const formatTimeRange = () => {
-  if (selectedSlots.value.length === 0) return "";
-
-  const sortedSlots = [...selectedSlots.value].sort();
-  const firstSlot = sortedSlots[0];
-  const lastSlot = sortedSlots[sortedSlots.length - 1];
-
-  const [date, firstTime] = firstSlot.split("_");
-  const [, lastTime] = lastSlot.split("_");
-
-  const lastHour = parseInt(lastTime.split(":")[0]);
-  const endTime = `${(lastHour + 1).toString().padStart(2, "0")}:00`;
-
-  return `${date} from ${firstTime} to ${endTime}`;
+    return `${date} from ${firstTime} to ${endTime}`;
 };
 
 const sessionModalVisible = ref(false);
@@ -264,794 +288,828 @@ const selectedMeeting = ref(null);
 const meetingDetailLoading = ref(false);
 
 const viewMeetingDetails = async (meetingId) => {
-  meetingDetailLoading.value = true;
-  try {
-    const meetingData = await fetchMeetingById(meetingId);
-    selectedMeeting.value = meetingData;
-    sessionModalVisible.value = true;
-  } catch (error) {
-    console.error("Failed to load meeting details:", error);
-    message.error("Failed to load meeting details");
-  } finally {
-    meetingDetailLoading.value = false;
-  }
+    meetingDetailLoading.value = true;
+    try {
+        const meetingData = await fetchMeetingById(meetingId);
+        selectedMeeting.value = meetingData;
+        sessionModalVisible.value = true;
+    } catch (error) {
+        console.error("Failed to load meeting details:", error);
+        message.error("Failed to load meeting details");
+    } finally {
+        meetingDetailLoading.value = false;
+    }
 };
 
 const handleSessionOk = () => {
-  sessionModalVisible.value = false;
-  selectedMeeting.value = null;
+    sessionModalVisible.value = false;
+    selectedMeeting.value = null;
 };
 </script>
 
 <template>
-  <div class="booking-page">
-    <PageBanner
-      :titleProps="t('booking.booking')"
-      backgroundProps="#0092B8"
-      iconProps="/page-icons/booking.png"
-    />
+    <div class="booking-page">
+        <PageBanner
+            :titleProps="t('booking.booking')"
+            backgroundProps="#0092B8"
+            iconProps="/page-icons/booking.png"
+        />
 
-    <div class="booking__body">
-      <div class="booking__header">
-        <h2 class="section__title">{{ t("booking.overview") }}</h2>
+        <div class="booking__body">
+            <div class="booking__header">
+                <h2 class="section__title">{{ t("booking.overview") }}</h2>
 
-        <a-button class="add__btn" @click="showModal">
-          <Icon name="lucide:plus" /> {{ t("booking.add") }}
-        </a-button>
-      </div>
-      <div class="booking__content">
-        <a-spin :spinning="meetingsLoading">
-          <table v-if="meetings.length > 0">
-            <thead>
-              <tr>
-                <th>{{ t("booking.mentor") }}</th>
-                <th>{{ t("booking.university") }}</th>
-                <th>{{ t("booking.date") }}</th>
-                <th>{{ t("booking.time") }}</th>
-                <th>{{ t("booking.status") }}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="meeting in meetings" :key="meeting.id">
-                <td class="mentor">
-                  <NuxtImg
-                    :src="meeting.mentor.image || '/images/default-person.jpg'"
-                    alt="Mentor"
-                    width="24px"
-                    height="24px"
-                  />
-                  {{ meeting.mentor.fullName || "N/A" }}
-                </td>
-                <td>{{ meeting.mentor.university.name || "N/A" }}</td>
-                <td>{{ meeting.date }}</td>
-                <td>{{ meeting.timeFrom }} - {{ meeting.timeTo }}</td>
-                <td>
-                  <span
-                    class="status"
-                    :class="{
-                      'status-pending': meeting.status === 'PENDING_PAYMENT',
-                      'status-confirmed': meeting.status === 'CONFIRMED',
-                      'status-completed': meeting.status === 'COMPLETED',
-                      'status-cancelled': meeting.status === 'CANCELLED',
-                    }"
-                  >
-                    {{
-                      meeting.status
-                        .replace("_", " ")
-                        .toLowerCase()
-                        .replace(/\b\w/g, (c) => c.toUpperCase())
-                    }}
-                  </span>
-                </td>
-                <td class="ender">
-                  <button
-                    class="view__btn"
-                    @click="viewMeetingDetails(meeting.id)"
-                    :disabled="meetingDetailLoading"
-                  >
-                    <Icon name="lucide:eye" />
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div v-else-if="!meetings.length" class="empty__state">
-            <Icon name="lucide:file-text" />
-            <p>{{ t("booking.no-bookings") }}</p>
-          </div>
-        </a-spin>
-      </div>
-    </div>
-  </div>
-
-  <a-modal v-model:visible="visible" @ok="handleOk">
-    <div class="modal__header">
-      <h2 class="section__title">{{ t("booking.add-booking") }}</h2>
-    </div>
-    <div class="modal__body">
-      <div class="modal__top">
-        <div class="modal__search">
-          <a-input
-            v-model:value="searchQuery"
-            :placeholder="t('booking.search-name')"
-          />
-          <Icon name="lucide:search" />
+                <a-button class="add__btn" @click="showModal">
+                    <Icon name="lucide:plus" /> {{ t("common.add") }}
+                </a-button>
+            </div>
+            <div class="booking__content">
+                <a-spin :spinning="meetingsLoading">
+                    <table v-if="meetings.length > 0">
+                        <thead>
+                            <tr>
+                                <th>{{ t("booking.mentor") }}</th>
+                                <th>{{ t("booking.university") }}</th>
+                                <th>{{ t("booking.date") }}</th>
+                                <th>{{ t("booking.time") }}</th>
+                                <th>{{ t("booking.status") }}</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="meeting in meetings" :key="meeting.id">
+                                <td class="mentor">
+                                    <NuxtImg
+                                        :src="
+                                            meeting.mentor.image ||
+                                            '/images/default-person.jpg'
+                                        "
+                                        alt="Mentor"
+                                        width="24px"
+                                        height="24px"
+                                    />
+                                    {{ meeting.mentor.fullName || "N/A" }}
+                                </td>
+                                <td>
+                                    {{
+                                        meeting.mentor.university.name || "N/A"
+                                    }}
+                                </td>
+                                <td>{{ meeting.date }}</td>
+                                <td>
+                                    {{ meeting.timeFrom }} -
+                                    {{ meeting.timeTo }}
+                                </td>
+                                <td>
+                                    <span
+                                        class="status"
+                                        :class="{
+                                            'status-pending':
+                                                meeting.status ===
+                                                'PENDING_PAYMENT',
+                                            'status-confirmed':
+                                                meeting.status === 'CONFIRMED',
+                                            'status-completed':
+                                                meeting.status === 'COMPLETED',
+                                            'status-cancelled':
+                                                meeting.status === 'CANCELLED',
+                                        }"
+                                    >
+                                        {{
+                                            meeting.status
+                                                .replace("_", " ")
+                                                .toLowerCase()
+                                                .replace(/\b\w/g, (c) =>
+                                                    c.toUpperCase(),
+                                                )
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="ender">
+                                    <button
+                                        class="view__btn"
+                                        @click="viewMeetingDetails(meeting.id)"
+                                        :disabled="meetingDetailLoading"
+                                    >
+                                        <Icon name="lucide:eye" />
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div v-else-if="!meetings.length" class="empty__state">
+                        <Icon name="lucide:file-text" />
+                        <p>{{ t("booking.no-bookings") }}</p>
+                    </div>
+                </a-spin>
+            </div>
         </div>
-        <a-select
-          v-model:value="selectedUniversity"
-          :placeholder="t('booking.filter-university')"
-        >
-          <a-select-option :value="null">{{
-            t("booking.all-universities")
-          }}</a-select-option>
-          <a-select-option
-            v-for="university in universities"
-            :key="university.id"
-            :value="university.id"
-          >
-            {{ university.name }}
-          </a-select-option>
-        </a-select>
-        <a-select
-          v-model:value="selectedFaculty"
-          :placeholder="t('booking.filter-faculty')"
-        >
-          <a-select-option :value="null">{{
-            t("booking.all-faculties")
-          }}</a-select-option>
-          <a-select-option
-            v-for="faculty in faculties"
-            :key="faculty.id"
-            :value="faculty.id"
-          >
-            {{ faculty.name }}
-          </a-select-option>
-        </a-select>
-      </div>
-      <div class="modal__mid">
-        <div v-if="!mentors.length" class="empty__state">
-          <Icon name="lucide:file-text" />
-          <p>{{ t("booking.no-teachers") }}</p>
-        </div>
-        <div
-          v-else
-          class="modal__item"
-          v-for="item in mentors"
-          :key="item.id"
-          @click="selectMentor(item.id)"
-        >
-          <div class="modal__item-img">
-            <NuxtImg
-              :src="item?.image || '/images/default-person.jpg'"
-              alt="Harvard University"
-              width="56px"
-              height="56px"
-            />
-          </div>
-          <div class="modal__item-content">
-            <h3 class="modal__item-title">{{ item.fullName }}</h3>
-            <p class="modal__item-desc">
-              <Icon name="lucide:graduation-cap" />
-              {{ item.university.name }}
-            </p>
-            <p class="modal__item-desc">
-              <Icon name="lucide:briefcase" />
-              {{ item.faculty.name }}
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
-  </a-modal>
 
-  <a-modal
-    class="book-modal"
-    v-model:visible="bookModalVisible"
-    @ok="handleBookOk"
-    :okText="'Continue'"
-    :cancelText="'Cancel'"
-    :okButtonProps="{ disabled: selectedSlots.length === 0 }"
-  >
-    <div class="modal__header">
-      <div class="modal__header-left">
-        <a-button
-          type="text"
-          @click="((bookModalVisible = false), (visible = true))"
-        >
-          <Icon name="lucide:arrow-left" />
-        </a-button>
-        <h2 class="section__title">
-          {{ t("booking.book_sesh") }} {{ selectedMentor?.info.fullName }}
-        </h2>
-      </div>
-    </div>
-    <div class="modal__info">
-      <div class="modal__desc" v-if="selectedMentor?.about">
-        <h4>{{ t("booking.about_teacher") }}</h4>
-        <p>
-          {{ selectedMentor?.about }}
-        </p>
-      </div>
-      <div class="modal__details">
-        <h4>{{ t("booking.contact_info") }}</h4>
-        <div class="modal__details-items">
-          <div class="modal__details-item">
-            <Icon name="lucide:mail" />
-            <p>{{ selectedMentor?.info.email }}</p>
-          </div>
-          <!-- <div class="modal__details-item">
+    <a-modal v-model:visible="visible" @ok="handleOk">
+        <div class="modal__header">
+            <h2 class="section__title">{{ t("booking.add-booking") }}</h2>
+        </div>
+        <div class="modal__body">
+            <div class="modal__top">
+                <div class="modal__search">
+                    <a-input
+                        v-model:value="searchQuery"
+                        :placeholder="t('common.search')"
+                    />
+                    <Icon name="lucide:search" />
+                </div>
+                <a-select
+                    v-model:value="selectedUniversity"
+                    show-search
+                    :placeholder="t('booking.filter-university')"
+                    :loading="universitiesLoading"
+                    :filter-option="false"
+                    @search="handleUniversitySearch"
+                >
+                    <a-select-option :value="null">{{
+                        t("common.select-universities")
+                    }}</a-select-option>
+                    <a-select-option
+                        v-for="university in universities"
+                        :key="university.id"
+                        :value="university.id"
+                    >
+                        {{ university.name }}
+                    </a-select-option>
+                </a-select>
+                <a-select
+                    v-model:value="selectedFaculty"
+                    :placeholder="t('booking.filter-faculty')"
+                >
+                    <a-select-option :value="null">{{
+                        t("common.select-faculties")
+                    }}</a-select-option>
+                    <a-select-option
+                        v-for="faculty in faculties"
+                        :key="faculty.id"
+                        :value="faculty.id"
+                    >
+                        {{ faculty.name }}
+                    </a-select-option>
+                </a-select>
+            </div>
+            <div class="modal__mid">
+                <div v-if="!mentors.length" class="empty__state">
+                    <Icon name="lucide:file-text" />
+                    <p>{{ t("booking.no-teachers") }}</p>
+                </div>
+                <div
+                    v-else
+                    class="modal__item"
+                    v-for="item in mentors"
+                    :key="item.id"
+                    @click="selectMentor(item.id)"
+                >
+                    <div class="modal__item-img">
+                        <NuxtImg
+                            :src="item?.image || '/images/default-person.jpg'"
+                            alt="Harvard University"
+                            width="56px"
+                            height="56px"
+                        />
+                    </div>
+                    <div class="modal__item-content">
+                        <h3 class="modal__item-title">{{ item.fullName }}</h3>
+                        <p class="modal__item-desc">
+                            <Icon name="lucide:graduation-cap" />
+                            {{ item.university.name }}
+                        </p>
+                        <p class="modal__item-desc">
+                            <Icon name="lucide:briefcase" />
+                            {{ item.faculty.name }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </a-modal>
+
+    <a-modal
+        class="book-modal"
+        v-model:visible="bookModalVisible"
+        @ok="handleBookOk"
+        :okText="'Continue'"
+        :cancelText="'Cancel'"
+        :okButtonProps="{ disabled: selectedSlots.length === 0 }"
+    >
+        <div class="modal__header">
+            <div class="modal__header-left">
+                <a-button
+                    type="text"
+                    @click="((bookModalVisible = false), (visible = true))"
+                >
+                    <Icon name="lucide:arrow-left" />
+                </a-button>
+                <h2 class="section__title">
+                    {{ t("booking.book_sesh") }}
+                    {{ selectedMentor?.info.fullName }}
+                </h2>
+            </div>
+        </div>
+        <div class="modal__info">
+            <div class="modal__desc" v-if="selectedMentor?.about">
+                <h4>{{ t("booking.about_teacher") }}</h4>
+                <p>
+                    {{ selectedMentor?.about }}
+                </p>
+            </div>
+            <div class="modal__details">
+                <h4>{{ t("booking.contact_info") }}</h4>
+                <div class="modal__details-items">
+                    <div class="modal__details-item">
+                        <Icon name="lucide:mail" />
+                        <p>{{ selectedMentor?.info.email }}</p>
+                    </div>
+                    <!-- <div class="modal__details-item">
             <Icon name="lucide:phone" />
             <p>{{ selectedMentor?.info.phone }}</p>
           </div> -->
-          <div class="modal__details-item">
-            <Icon name="lucide:map-pin" />
-            <p>{{ selectedMentor?.info.country.name }}</p>
-          </div>
-          <div class="modal__details-item">
-            <Icon name="lucide:calendar" />
-            <p>{{ selectedMentor?.info.dateOfBirth }}</p>
-          </div>
-          <div class="modal__details-item">
-            <Icon name="lucide:building-2" />
-            <p>{{ selectedMentor?.info.university.name }}</p>
-          </div>
-          <div class="modal__details-item">
-            <Icon name="lucide:graduation-cap" />
-            <p>{{ selectedMentor?.info.faculty.name }}</p>
-          </div>
-          <div class="modal__details-item">
-            <Icon name="lucide:user" />
-            <p>{{ selectedMentor?.info.gender }}</p>
-          </div>
+                    <div class="modal__details-item">
+                        <Icon name="lucide:map-pin" />
+                        <p>{{ selectedMentor?.info.country.name }}</p>
+                    </div>
+                    <div class="modal__details-item">
+                        <Icon name="lucide:calendar" />
+                        <p>{{ selectedMentor?.info.dateOfBirth }}</p>
+                    </div>
+                    <div class="modal__details-item">
+                        <Icon name="lucide:building-2" />
+                        <p>{{ selectedMentor?.info.university.name }}</p>
+                    </div>
+                    <div class="modal__details-item">
+                        <Icon name="lucide:graduation-cap" />
+                        <p>{{ selectedMentor?.info.faculty.name }}</p>
+                    </div>
+                    <div class="modal__details-item">
+                        <Icon name="lucide:user" />
+                        <p>{{ selectedMentor?.info.gender }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-    <div class="modal__price">
-      <div class="modal__price-hourly">
-        <p>$ {{ selectedMentor?.pricing.meetingHourPrice }}</p>
-        <span>
-          {{ t("booking.hourly") }}
-        </span>
-      </div>
-    </div>
-    <div class="modal__calendar">
-      <WeeklyCalendar
-        :mentor-id="selectedMentor?.id"
-        :available-slots="availableSlots"
-        v-model:selectedSlots="selectedSlots"
-        @week-change="handleWeekChange"
-      />
-    </div>
-  </a-modal>
+        <div class="modal__price">
+            <div class="modal__price-hourly">
+                <p>$ {{ selectedMentor?.pricing.meetingHourPrice }}</p>
+                <span>
+                    {{ t("booking.hourly") }}
+                </span>
+            </div>
+        </div>
+        <div class="modal__calendar">
+            <WeeklyCalendar
+                :mentor-id="selectedMentor?.id"
+                :available-slots="availableSlots"
+                v-model:selectedSlots="selectedSlots"
+                @week-change="handleWeekChange"
+            />
+        </div>
+    </a-modal>
 
-  <a-modal
-    class="payment-modal"
-    v-model:visible="paymentModalVisible"
-    :ok-button-props="{ loading: bookingLoading }"
-    @ok="handlePaymentOk"
-    :okText="'Confirm Booking'"
-    :cancelText="'Cancel'"
-  >
-    <div class="modal__header-left">
-      <a-button
-        type="text"
-        @click="
-          ((paymentModalVisible = false),
-          (bookModalVisible = true),
-          (meetingDescription = ''))
-        "
-      >
-        <Icon name="lucide:arrow-left" />
-      </a-button>
-      <h2 class="section__title">
-        {{ t("booking.book_sesh") }} {{ selectedMentor?.info.fullName }}
-      </h2>
-    </div>
-    <div class="modal__body">
-      <div class="modal__description">
-        <p class="modal__label">{{ t("booking.description-teacher") }}</p>
-        <a-textarea
-          v-model:value="meetingDescription"
-          rows="4"
-          :placeholder="t('booking.describe-purpose')"
-        />
-      </div>
-      <div class="modal__prices">
-        <div class="modal__price-item">
-          <p>{{ t("booking.teacher-price") }}</p>
-          <span>${{ selectedMentor?.hourlyRate || 24 }}</span>
-        </div>
-        <div class="modal__price-item">
-          <p>{{ t("booking.selected-slots") }}</p>
-          <span
-            >{{ selectedSlots.length }} hour{{
-              selectedSlots.length > 1 ? "s" : ""
-            }}</span
-          >
-        </div>
-        <div class="modal__price-item" v-if="selectedSlots.length > 0">
-          <p>
-            {{ t("booking.date") }}
-          </p>
-          <span>{{ formatTimeRange() }}</span>
-        </div>
-        <div class="modal__price-total-item">
-          <p>
-            {{ t("booking.price") }}
-          </p>
-          <span>${{ calculateTotalPrice() }}</span>
-        </div>
-      </div>
-    </div>
-  </a-modal>
-
-  <a-modal
-    class="session__modal"
-    v-model:visible="sessionModalVisible"
-    @ok="handleSessionOk"
-    :okText="'Close'"
-  >
-    <a-spin :spinning="meetingDetailLoading">
-      <div class="modal__header">
-        <h2 class="section__title">
-          {{ t("booking.sesh_details") }}
-        </h2>
-      </div>
-      <div class="modal__body" v-if="selectedMeeting">
-        <div class="meeting-modal__top">
-          <div class="modal__session-info">
-            <div class="modal__info-item">
-              <span
-                class="status"
-                :class="{
-                  'status-pending':
-                    selectedMeeting.status === 'PENDING_PAYMENT',
-                  'status-confirmed': selectedMeeting.status === 'CONFIRMED',
-                  'status-completed': selectedMeeting.status === 'COMPLETED',
-                  'status-cancelled': selectedMeeting.status === 'CANCELLED',
-                }"
-              >
-                {{
-                  selectedMeeting.status
-                    .replace("_", " ")
-                    .toLowerCase()
-                    .replace(/\b\w/g, (c) => c.toUpperCase())
-                }}
-              </span>
-            </div>
-            <div class="modal__info-item">
-              <p>{{ selectedMeeting.date }}</p>
-            </div>
-            <div class="modal__info-item">
-              <p>
-                {{ selectedMeeting.timeFrom }} - {{ selectedMeeting.timeTo }}
-              </p>
-            </div>
-          </div>
-          <div class="meeting-modal__teacher">
-            <div class="modal__item-img">
-              <NuxtImg
-                :src="
-                  selectedMeeting.mentor.image || '/images/default-person.jpg'
+    <a-modal
+        class="payment-modal"
+        v-model:visible="paymentModalVisible"
+        :ok-button-props="{ loading: bookingLoading }"
+        @ok="handlePaymentOk"
+        :okText="'Confirm Booking'"
+        :cancelText="'Cancel'"
+    >
+        <div class="modal__header-left">
+            <a-button
+                type="text"
+                @click="
+                    ((paymentModalVisible = false),
+                    (bookModalVisible = true),
+                    (meetingDescription = ''))
                 "
-                :alt="selectedMeeting.mentor.fullName"
-                width="56px"
-                height="56px"
-              />
-            </div>
-            <div class="modal__item-content">
-              <h3 class="modal__item-title">
-                {{ selectedMeeting.mentor.fullName }}
-              </h3>
-              <p class="modal__item-desc">
-                <Icon name="lucide:graduation-cap" />
-                {{ selectedMeeting.mentor.university.name }}
-              </p>
-              <p class="modal__item-desc no__margin">
-                <Icon name="lucide:briefcase" />
-                {{ selectedMeeting.mentor.faculty.name }}
-              </p>
-            </div>
-          </div>
+            >
+                <Icon name="lucide:arrow-left" />
+            </a-button>
+            <h2 class="section__title">
+                {{ t("booking.book_sesh") }} {{ selectedMentor?.info.fullName }}
+            </h2>
         </div>
-        <div class="modal__response" v-if="selectedMeeting.meetingLink">
-          <h4>
-            {{ t("booking.meet_link") }}
-          </h4>
-          <a :href="selectedMeeting.meetingLink.link" target="_blank">{{
-            selectedMeeting.meetingLink.link
-          }}</a>
+        <div class="modal__body">
+            <div class="modal__description">
+                <p class="modal__label">
+                    {{ t("booking.description-teacher") }}
+                </p>
+                <a-textarea
+                    v-model:value="meetingDescription"
+                    rows="4"
+                    :placeholder="t('booking.describe-purpose')"
+                />
+            </div>
+            <div class="modal__prices">
+                <div class="modal__price-item">
+                    <p>{{ t("booking.teacher-price") }}</p>
+                    <span>${{ selectedMentor?.hourlyRate || 24 }}</span>
+                </div>
+                <div class="modal__price-item">
+                    <p>{{ t("booking.selected-slots") }}</p>
+                    <span
+                        >{{ selectedSlots.length }} hour{{
+                            selectedSlots.length > 1 ? "s" : ""
+                        }}</span
+                    >
+                </div>
+                <div class="modal__price-item" v-if="selectedSlots.length > 0">
+                    <p>
+                        {{ t("booking.date") }}
+                    </p>
+                    <span>{{ formatTimeRange() }}</span>
+                </div>
+                <div class="modal__price-total-item">
+                    <p>
+                        {{ t("booking.price") }}
+                    </p>
+                    <span>${{ calculateTotalPrice() }}</span>
+                </div>
+            </div>
         </div>
-      </div>
-    </a-spin>
-  </a-modal>
+    </a-modal>
+
+    <a-modal
+        class="session__modal"
+        v-model:visible="sessionModalVisible"
+        @ok="handleSessionOk"
+        :okText="'Close'"
+    >
+        <a-spin :spinning="meetingDetailLoading">
+            <div class="modal__header">
+                <h2 class="section__title">
+                    {{ t("booking.sesh_details") }}
+                </h2>
+            </div>
+            <div class="modal__body" v-if="selectedMeeting">
+                <div class="meeting-modal__top">
+                    <div class="modal__session-info">
+                        <div class="modal__info-item">
+                            <span
+                                class="status"
+                                :class="{
+                                    'status-pending':
+                                        selectedMeeting.status ===
+                                        'PENDING_PAYMENT',
+                                    'status-confirmed':
+                                        selectedMeeting.status === 'CONFIRMED',
+                                    'status-completed':
+                                        selectedMeeting.status === 'COMPLETED',
+                                    'status-cancelled':
+                                        selectedMeeting.status === 'CANCELLED',
+                                }"
+                            >
+                                {{
+                                    selectedMeeting.status
+                                        .replace("_", " ")
+                                        .toLowerCase()
+                                        .replace(/\b\w/g, (c) =>
+                                            c.toUpperCase(),
+                                        )
+                                }}
+                            </span>
+                        </div>
+                        <div class="modal__info-item">
+                            <p>{{ selectedMeeting.date }}</p>
+                        </div>
+                        <div class="modal__info-item">
+                            <p>
+                                {{ selectedMeeting.timeFrom }} -
+                                {{ selectedMeeting.timeTo }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="meeting-modal__teacher">
+                        <div class="modal__item-img">
+                            <NuxtImg
+                                :src="
+                                    selectedMeeting.mentor.image ||
+                                    '/images/default-person.jpg'
+                                "
+                                :alt="selectedMeeting.mentor.fullName"
+                                width="56px"
+                                height="56px"
+                            />
+                        </div>
+                        <div class="modal__item-content">
+                            <h3 class="modal__item-title">
+                                {{ selectedMeeting.mentor.fullName }}
+                            </h3>
+                            <p class="modal__item-desc">
+                                <Icon name="lucide:graduation-cap" />
+                                {{ selectedMeeting.mentor.university.name }}
+                            </p>
+                            <p class="modal__item-desc no__margin">
+                                <Icon name="lucide:briefcase" />
+                                {{ selectedMeeting.mentor.faculty.name }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal__response" v-if="selectedMeeting.meetingLink">
+                    <h4>
+                        {{ t("booking.meet_link") }}
+                    </h4>
+                    <a
+                        :href="selectedMeeting.meetingLink.link"
+                        target="_blank"
+                        >{{ selectedMeeting.meetingLink.link }}</a
+                    >
+                </div>
+            </div>
+        </a-spin>
+    </a-modal>
 </template>
 
 <style scoped>
 .meeting-modal__top {
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
 }
 .modal__session-info {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 16px;
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
 }
 .meeting-modal__teacher {
-  display: flex;
-  align-items: center;
-  gap: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
 }
 .no__margin {
-  margin: 0 !important;
+    margin: 0 !important;
 }
 .modal__info-item h4 {
-  font-size: 14px;
-  line-height: 20px;
-  margin-bottom: 6px;
+    font-size: 14px;
+    line-height: 20px;
+    margin-bottom: 6px;
 }
 .modal__info-item p {
-  font-size: 12px;
-  line-height: 24px;
-  background: var(--border);
-  color: var(--essay-txt);
-  padding: 2px 8px;
-  border-radius: 8px;
+    font-size: 12px;
+    line-height: 24px;
+    background: var(--border);
+    color: var(--essay-txt);
+    padding: 2px 8px;
+    border-radius: 8px;
 }
 .modal__info-item span {
-  display: flex;
-  height: 100%;
-  align-items: center;
+    display: flex;
+    height: 100%;
+    align-items: center;
 }
 .modal__response {
-  padding: 0 12px;
-  margin-top: 24px;
+    padding: 0 12px;
+    margin-top: 24px;
 }
 .modal__response h4 {
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--light-grey);
-  margin-bottom: 8px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--light-grey);
+    margin-bottom: 8px;
 }
 .modal__response a {
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--blue);
-  word-break: break-all;
-  text-decoration: underline;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--blue);
+    word-break: break-all;
+    text-decoration: underline;
 }
 .booking-page {
-  padding: 24px 24px 120px 24px;
-  background: var(--border);
-  height: 100vh;
-  overflow: auto;
+    padding: 24px 24px 120px 24px;
+    background: var(--border);
+    height: 100vh;
+    overflow: auto;
 }
 .booking__body {
-  padding: 24px;
-  background: #ffffff;
-  border-radius: 16px;
-  margin-top: 16px;
+    padding: 24px;
+    background: #ffffff;
+    border-radius: 16px;
+    margin-top: 16px;
 }
 .booking__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 }
 tr td:last-child {
-  text-align: left;
+    text-align: left;
 }
 .university,
 .mentor {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 .university img,
 .mentor img {
-  object-fit: contain;
-  border-radius: 50%;
+    object-fit: contain;
+    border-radius: 50%;
 }
 .status {
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
 }
 .status-pending {
-  background: var(--light-yellow);
-  color: var(--yellow);
+    background: var(--light-yellow);
+    color: var(--yellow);
 }
 .status-confirmed {
-  background: var(--light-blue);
-  color: var(--blue);
+    background: var(--light-blue);
+    color: var(--blue);
 }
 .status-completed {
-  background: var(--light-green);
-  color: var(--green);
+    background: var(--light-green);
+    color: var(--green);
 }
 .status-cancelled {
-  background: #fee;
-  color: #c33;
+    background: #fee;
+    color: #c33;
 }
 .modal__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 }
 .modal__top {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
 }
 .modal__search {
-  position: relative;
-  width: 100%;
+    position: relative;
+    width: 100%;
 }
 .modal__search a-input {
-  width: 100%;
-  padding-right: 40px;
+    width: 100%;
+    padding-right: 40px;
 }
 .modal__search span {
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  color: var(--light-grey);
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    color: var(--light-grey);
 }
 .modal__mid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-height: 800px;
-  overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 800px;
+    overflow: auto;
 }
 .modal__item {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 24px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 .modal__item:hover {
-  background: var(--border);
+    background: var(--border);
 }
 .modal__item-img {
-  flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  overflow: hidden;
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
 }
 .modal__item-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 .modal__item-title {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 500;
-  margin-bottom: 6px;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+    margin-bottom: 6px;
 }
 .modal__item-desc {
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--light-grey);
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--light-grey);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 .modal__header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 .modal__header-left span {
-  width: 20px;
-  height: 20px;
+    width: 20px;
+    height: 20px;
 }
 .modal__header-left button {
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .modal__info {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 24px;
 }
 .modal__desc {
-  border: 1px solid var(--border);
-  padding: 24px;
-  border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    border-radius: 16px;
 }
 .modal__desc h4 {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 500;
-  margin-bottom: 12px;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+    margin-bottom: 12px;
 }
 .modal__desc p {
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--dark);
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--dark);
 }
 .modal__details {
-  border: 1px solid var(--border);
-  padding: 24px;
-  border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    border-radius: 16px;
 }
 .modal__details h4 {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 500;
-  margin-bottom: 16px;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+    margin-bottom: 16px;
 }
 .modal__details-items {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 24px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
 }
 .modal__details-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 .modal__details-item p {
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--dark);
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--dark);
 }
 .modal__details-item span {
-  width: 18px;
-  height: 18px;
-  color: var(--light-grey);
+    width: 18px;
+    height: 18px;
+    color: var(--light-grey);
 }
 .modal__price {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
 }
 .modal__price-hourly,
 .modal__price-essay {
-  padding: 24px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    padding: 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 .modal__price-hourly p,
 .modal__price-essay p {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 500;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
 }
 .modal__price-hourly span,
 .modal__price-essay span {
-  font-size: 14px;
-  line-height: 20px;
+    font-size: 14px;
+    line-height: 20px;
 }
 .modal__price-hourly {
-  background: var(--light-blue);
-  color: var(--blue);
+    background: var(--light-blue);
+    color: var(--blue);
 }
 .modal__price-essay {
-  background: var(--light-green);
-  color: var(--green);
+    background: var(--light-green);
+    color: var(--green);
 }
 :deep(.ant-modal) {
-  height: 100%;
+    height: 100%;
 }
 .modal__calendar {
-  border-top: 1px solid var(--border);
-  margin-top: 24px;
+    border-top: 1px solid var(--border);
+    margin-top: 24px;
 }
 .payment-modal .modal__header-left {
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 }
 .modal__body {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 .payment-modal .modal__body {
-  gap: 16px;
+    gap: 16px;
 }
 .modal__description .modal__label {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    margin-bottom: 8px;
 }
 .modal__prices {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  border: 1px solid var(--border);
-  padding: 16px;
-  border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border: 1px solid var(--border);
+    padding: 16px;
+    border-radius: 12px;
 }
 .modal__price-item,
 .modal__price-total-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
 }
 .modal__price-item::after,
 .modal__price-total-item::after {
-  content: "";
-  position: absolute;
-  bottom: 4px;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  border: 1px dashed var(--border);
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    border: 1px dashed var(--border);
 }
 .modal__price-total-item {
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 24px;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
 }
 .modal__price-item p {
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--light-grey);
-  background: white;
-  position: relative;
-  z-index: 2;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--light-grey);
+    background: white;
+    position: relative;
+    z-index: 2;
 }
 .modal__price-item span {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  background: white;
-  position: relative;
-  z-index: 2;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    background: white;
+    position: relative;
+    z-index: 2;
 }
 .modal__price-total-item {
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-  margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
 }
 .modal__price-total-item p {
-  color: var(--black);
-  font-weight: 400;
-  background: white;
-  position: relative;
-  z-index: 2;
+    color: var(--black);
+    font-weight: 400;
+    background: white;
+    position: relative;
+    z-index: 2;
 }
 .modal__price-total-item span {
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--blue);
-  background: white;
-  position: relative;
-  z-index: 2;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--blue);
+    background: white;
+    position: relative;
+    z-index: 2;
 }
 .slots-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
 }
 .slot-item {
-  display: block;
-  font-size: 12px;
-  line-height: 16px;
+    display: block;
+    font-size: 12px;
+    line-height: 16px;
 }
 </style>

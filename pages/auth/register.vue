@@ -24,6 +24,7 @@ useHead({
 
 const { register } = useAuth();
 const { fetchCountries } = useCommon(); // ✅ Добавили
+const { t } = useTranslations();
 
 const username = ref("");
 const email = ref("");
@@ -179,7 +180,7 @@ const handleRegister = async () => {
           decoding="sync"
           fetchpriority="high"
         />
-        <p class="login__type">Platform for Students</p>
+        <p class="login__type">{{ t("register.platform-type") }}</p>
       </div>
       <div class="login__body">
         <div class="login__logo">
@@ -194,9 +195,9 @@ const handleRegister = async () => {
         </div>
         <div class="login__somewhat">
           <div class="login__header">
-            <h4 class="login__title">Register</h4>
+            <h4 class="login__title">{{ t("register.title") }}</h4>
             <p class="login__sub">
-              Create your account. It's free and only takes a minute.
+              {{ t("register.subtitle") }}
             </p>
           </div>
           <form class="login__form" @submit.prevent="handleRegister">
@@ -204,7 +205,7 @@ const handleRegister = async () => {
               <div>
                 <a-input
                   v-model:value="username"
-                  placeholder="Username"
+                  :placeholder="t('register.username')"
                   class="login__input"
                   :status="errors.username ? 'error' : ''"
                   :disabled="loading"
@@ -217,7 +218,7 @@ const handleRegister = async () => {
               <div>
                 <a-input
                   v-model:value="fullName"
-                  placeholder="Full Name"
+                  :placeholder="t('register.full-name')"
                   class="login__input"
                   :status="errors.fullName ? 'error' : ''"
                   :disabled="loading"
@@ -231,7 +232,7 @@ const handleRegister = async () => {
                 <a-input
                   v-model:value="email"
                   type="email"
-                  placeholder="Email"
+                  :placeholder="t('register.email')"
                   class="login__input"
                   :status="errors.email ? 'error' : ''"
                   :disabled="loading"
@@ -244,12 +245,16 @@ const handleRegister = async () => {
               <div>
                 <a-select
                   v-model:value="gender"
-                  placeholder="Gender"
+                  :placeholder="t('register.gender')"
                   class="login__input"
                   :disabled="loading"
                 >
-                  <a-select-option value="MALE">Male</a-select-option>
-                  <a-select-option value="FEMALE">Female</a-select-option>
+                  <a-select-option value="MALE">{{
+                    t("register.gender-male")
+                  }}</a-select-option>
+                  <a-select-option value="FEMALE">{{
+                    t("register.gender-female")
+                  }}</a-select-option>
                 </a-select>
               </div>
 
@@ -257,7 +262,7 @@ const handleRegister = async () => {
                 <a-select
                   v-model:value="countryId"
                   show-search
-                  placeholder="Select Country"
+                  :placeholder="t('register.country')"
                   class="login__input"
                   :status="errors.countryId ? 'error' : ''"
                   :disabled="loading"
@@ -283,7 +288,7 @@ const handleRegister = async () => {
               <div>
                 <a-date-picker
                   v-model:value="dateOfBirth"
-                  placeholder="Date of Birth"
+                  :placeholder="t('register.date-of-birth')"
                   class="login__input"
                   :status="errors.dateOfBirth ? 'error' : ''"
                   :disabled="loading"
@@ -299,7 +304,7 @@ const handleRegister = async () => {
               <div>
                 <a-input-password
                   v-model:value="password"
-                  placeholder="Password"
+                  :placeholder="t('register.password')"
                   class="login__input"
                   :status="errors.password ? 'error' : ''"
                   :disabled="loading"
@@ -312,7 +317,7 @@ const handleRegister = async () => {
               <div>
                 <a-input-password
                   v-model:value="confirmPassword"
-                  placeholder="Confirm Password"
+                  :placeholder="t('register.confirm-password')"
                   class="login__input"
                   :status="errors.confirmPassword ? 'error' : ''"
                   :disabled="loading"
@@ -331,7 +336,7 @@ const handleRegister = async () => {
                   class="login__checkbox"
                   @change="errors.agree = ''"
                 >
-                  I agree to terms
+                  {{ t("register.agree") }}
                 </a-checkbox>
               </div>
               <p v-if="errors.agree" class="login__error">
@@ -344,12 +349,12 @@ const handleRegister = async () => {
                   html-type="submit"
                   :loading="loading"
                 >
-                  Register
+                  {{ t("register.submit") }}
                 </a-button>
                 <div class="login__link">
-                  <p>Already have an account?</p>
+                  <p>{{ t("register.have-account") }}</p>
                   <NuxtLink to="/auth/login" class="login__register">
-                    Sign in
+                    {{ t("register.sign-in") }}
                   </NuxtLink>
                 </div>
               </div>

@@ -10,8 +10,61 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: {
+        class: "ivibek-booting",
+      },
       title: "Ivybek",
       meta: [{ name: "description", content: "Ivybek - students consulting" }],
+      style: [
+        {
+          innerHTML: `
+html.ivibek-booting body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+html.ivibek-booting #__nuxt {
+  visibility: hidden;
+}
+html.ivibek-booting body::before,
+html.ivibek-booting body::after {
+  position: fixed;
+  z-index: 2147483647;
+  left: 50%;
+  pointer-events: none;
+}
+html.ivibek-booting body::before {
+  content: "";
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  margin: -26px 0 0 -18px;
+  border: 3px solid #dbeafe;
+  border-top-color: #2b7fff;
+  border-radius: 50%;
+  animation: ivibekBootSpin 0.8s linear infinite;
+}
+html.ivibek-booting body::after {
+  content: "Ivybek";
+  top: calc(50% + 24px);
+  transform: translateX(-50%);
+  color: #101828;
+  font: 600 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+@keyframes ivibekBootSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+          `,
+        },
+      ],
+      noscript: [
+        {
+          innerHTML:
+            '<style>html.ivibek-booting #__nuxt{visibility:visible}html.ivibek-booting body::before,html.ivibek-booting body::after{display:none}</style>',
+        },
+      ],
     },
   },
 
