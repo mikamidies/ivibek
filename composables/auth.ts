@@ -18,6 +18,7 @@ interface User {
   image: string | null;
   info: UserInfo;
   about: string | null;
+  role: "STUDENT" | "VIP_STUDENT" | "MENTOR" | "ADMIN";
   joinedAt: string;
 }
 
@@ -168,6 +169,37 @@ export const useAuth = () => {
     })();
 
     return refreshPromise;
+  };
+
+  const verifyInvite = async (inviteGuid: string) => {
+    if (!accessToken.value) {
+      return { success: false, error: "Not authorized" };
+    }
+
+    try {
+      const data: AuthResponse = await $fetch(
+        `${apiBase}/api/v1/student/verification/${encodeURIComponent(inviteGuid)}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        },
+      );
+
+      accessToken.value = data.accessToken;
+      refreshToken.value = data.refreshToken;
+      refreshPromise = null;
+
+      await fetchUser();
+
+      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.data?.message || "Verification failed",
+      };
+    }
   };
 
   const fetchUser = async () => {
@@ -332,6 +364,7 @@ export const useAuth = () => {
     login,
     register,
     refresh,
+    verifyInvite,
     fetchUser,
     updateProfile,
     updateProfileImage,

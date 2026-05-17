@@ -4,9 +4,18 @@ interface Honor {
   description: string;
   startDate: string;
   endDate: string;
+  categoryId?: number;
+}
+
+interface HonorCategory {
+  id: number;
+  name: string;
+  title?: string;
+  categoryName?: string;
 }
 
 interface CreateHonorPayload {
+  categoryId?: number;
   name: string;
   description: string;
   startDate: string;
@@ -16,9 +25,29 @@ interface CreateHonorPayload {
 export const useHonors = () => {
   const { fetchList, request, postJson, putJson } = useApiClient();
 
-  const fetchHonors = async (): Promise<Honor[]> => {
+  const fetchHonorCategories = async (): Promise<HonorCategory[]> => {
     try {
-      return await fetchList<Honor>("/api/v1/student/honors");
+      return await fetchList<HonorCategory>("/api/v1/student/honors/categories", {
+        params: {
+          page: 0,
+          pageSize: 100,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching honor categories:", error);
+      throw error;
+    }
+  };
+
+  const fetchHonors = async (categoryId: number): Promise<Honor[]> => {
+    try {
+      return await fetchList<Honor>("/api/v1/student/honors", {
+        params: {
+          categoryId,
+          page: 0,
+          pageSize: 100,
+        },
+      });
     } catch (error) {
       console.error("Error fetching honors:", error);
       throw error;
@@ -56,6 +85,7 @@ export const useHonors = () => {
   };
 
   return {
+    fetchHonorCategories,
     fetchHonors,
     fetchHonorById,
     createHonor,

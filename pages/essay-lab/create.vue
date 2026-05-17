@@ -21,7 +21,7 @@ const calculatedPrice = ref(null);
 const form = ref({
     mentorId: null,
     deadlineId: null,
-    essayType: null,
+    essayType: "PERSONAL",
     wordLimitId: null,
     title: "",
     body: "",

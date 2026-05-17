@@ -6,9 +6,18 @@ interface Activity {
   orgName: string;
   hoursPerWeek: string;
   weekPerYear: string;
+  categoryId?: number;
+}
+
+interface ActivityCategory {
+  id: number;
+  name: string;
+  title?: string;
+  categoryName?: string;
 }
 
 interface CreateActivityPayload {
+  categoryId?: number;
   name: string;
   description: string;
   schoolYear: number;
@@ -20,9 +29,32 @@ interface CreateActivityPayload {
 export const useActivities = () => {
   const { fetchList, request, postJson, putJson } = useApiClient();
 
-  const fetchActivities = async (): Promise<Activity[]> => {
+  const fetchActivityCategories = async (): Promise<ActivityCategory[]> => {
     try {
-      return await fetchList<Activity>("/api/v1/student/activities");
+      return await fetchList<ActivityCategory>(
+        "/api/v1/student/activities/categories",
+        {
+          params: {
+            page: 0,
+            pageSize: 100,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error fetching activity categories:", error);
+      throw error;
+    }
+  };
+
+  const fetchActivities = async (categoryId: number): Promise<Activity[]> => {
+    try {
+      return await fetchList<Activity>("/api/v1/student/activities", {
+        params: {
+          categoryId,
+          page: 0,
+          pageSize: 100,
+        },
+      });
     } catch (error) {
       console.error("Error fetching activities:", error);
       throw error;
@@ -65,6 +97,7 @@ export const useActivities = () => {
   };
 
   return {
+    fetchActivityCategories,
     fetchActivities,
     fetchActivityById,
     createActivity,

@@ -1,7 +1,24 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { accessToken, refresh } = useAuth();
+  const { accessToken, refresh, fetchUser, user } = useAuth();
 
   const publicPages = ["/auth/login", "/auth/register", "/auth/forgot"];
+  const studentPages = [
+    "/",
+    "/tasks",
+    "/booking",
+    "/essay-lab",
+    "/verification",
+    "/student/verification",
+    "/teachers",
+    "/profile",
+  ];
+
+  const normalizedPath =
+    to.path.length > 1 ? to.path.replace(/\/$/, "") : to.path;
+
+  const isStudentPage = studentPages.some((path) => {
+    return normalizedPath === path || normalizedPath.startsWith(`${path}/`);
+  });
 
   if (publicPages.includes(to.path)) {
     return;
@@ -17,5 +34,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (!refreshed || !accessToken.value) {
       return navigateTo("/auth/login");
     }
+  }
+
+  if (!user.value) {
+    await fetchUser();
+  }
+
+  if (user.value?.role !== "VIP_STUDENT" && !isStudentPage) {
+    return navigateTo("/");
   }
 });

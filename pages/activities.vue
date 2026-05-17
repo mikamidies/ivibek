@@ -1,37 +1,42 @@
 <script setup>
 import PageBanner from "@/components/PageBanner.vue";
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { message } from "ant-design-vue";
 
-const { fetchActivities, createActivity, updateActivity } = useActivities();
-const { fetchInternships, createInternship, updateInternship } =
-    useInternships();
+const {
+    fetchActivityCategories,
+    fetchActivities,
+    createActivity,
+    updateActivity,
+} = useActivities();
 const { t } = useTranslations();
 
-const activitiesActiveKey = ref([0]);
-const internshipsActiveKey = ref([0]);
+const activitiesActiveKeys = ref({});
 
 const {
-    data: activities,
+    data: activitySections,
     pending: loading,
     refresh: refreshActivities,
-} = await useAsyncData("activities", () => fetchActivities(), {
-    default: () => [],
-});
+} = await useAsyncData(
+    "activity-sections",
+    async () => {
+        const categories = await fetchActivityCategories();
 
-const {
-    data: internships,
-    pending: internshipsLoading,
-    refresh: refreshInternships,
-} = await useAsyncData("internships", () => fetchInternships(), {
-    default: () => [],
-});
+        return await Promise.all(
+            categories.map(async (category) => ({
+                category,
+                activities: await fetchActivities(category.id),
+            })),
+        );
+    },
+    {
+        default: () => [],
+    },
+);
 
 const visible = ref(false);
 const editVisible = ref(false);
-
-const intershipVisible = ref(false);
-const intershipEditVisible = ref(false);
+const selectedActivityCategoryId = ref(null);
 
 const createForm = ref({
     name: "",
@@ -52,27 +57,6 @@ const editForm = ref({
     weekPerYear: "",
 });
 
-const createInternshipForm = ref({
-    name: "",
-    description: "",
-    orgName: "",
-    position: "",
-    programProvider: "",
-    startDate: "",
-    endDate: "",
-});
-
-const editInternshipForm = ref({
-    id: null,
-    name: "",
-    description: "",
-    orgName: "",
-    position: "",
-    programProvider: "",
-    startDate: "",
-    endDate: "",
-});
-
 const createErrors = ref({
     name: "",
     description: "",
@@ -89,26 +73,6 @@ const editErrors = ref({
     orgName: "",
     hoursPerWeek: "",
     weekPerYear: "",
-});
-
-const createInternshipErrors = ref({
-    name: "",
-    description: "",
-    orgName: "",
-    position: "",
-    programProvider: "",
-    startDate: "",
-    endDate: "",
-});
-
-const editInternshipErrors = ref({
-    name: "",
-    description: "",
-    orgName: "",
-    position: "",
-    programProvider: "",
-    startDate: "",
-    endDate: "",
 });
 
 const resetErrors = (target) => {
@@ -138,10 +102,10 @@ const validateActivityForm = (form, errors) => {
 
     if (
         !Number.isInteger(form.value.schoolYear) ||
-        form.value.schoolYear < 1 ||
-        form.value.schoolYear > 13
+        form.value.schoolYear < 6 ||
+        form.value.schoolYear > 12
     ) {
-        errors.value.schoolYear = "School year must be between 1 and 13";
+        errors.value.schoolYear = "School year must be between 6 and 12";
     }
 
     if (!isPositiveNumber(form.value.hoursPerWeek)) {
@@ -159,49 +123,8 @@ const validateActivityForm = (form, errors) => {
     return !Object.values(errors.value).some(Boolean);
 };
 
-const validateInternshipForm = (form, errors) => {
-    resetErrors(errors);
-
-    if (!form.value.name.trim()) {
-        errors.value.name = "Internship name is required";
-    }
-
-    if (!form.value.orgName.trim()) {
-        errors.value.orgName = "Organization name is required";
-    }
-
-    if (!form.value.position.trim()) {
-        errors.value.position = "Position is required";
-    }
-
-    if (!form.value.programProvider.trim()) {
-        errors.value.programProvider = "Program provider is required";
-    }
-
-    if (!form.value.startDate) {
-        errors.value.startDate = "Start date is required";
-    }
-
-    if (!form.value.endDate) {
-        errors.value.endDate = "End date is required";
-    }
-
-    if (
-        form.value.startDate &&
-        form.value.endDate &&
-        form.value.endDate < form.value.startDate
-    ) {
-        errors.value.endDate = "End date must be on or after start date";
-    }
-
-    if (!form.value.description.trim()) {
-        errors.value.description = "Description is required";
-    }
-
-    return !Object.values(errors.value).some(Boolean);
-};
-
-const showModal = () => {
+const showModal = (categoryId) => {
+    selectedActivityCategoryId.value = categoryId;
     createForm.value = {
         name: "",
         description: "",
@@ -215,13 +138,21 @@ const showModal = () => {
 };
 
 const handleOk = async () => {
+    if (selectedActivityCategoryId.value === null) {
+        message.error("Activity category is required");
+        return;
+    }
+
     if (!validateActivityForm(createForm, createErrors)) {
         message.error("Please fix the form errors");
         return;
     }
 
     try {
-        await createActivity(createForm.value);
+        await createActivity({
+            ...createForm.value,
+            categoryId: selectedActivityCategoryId.value,
+        });
         message.success("Activity added successfully");
         visible.value = false;
         await refreshActivities();
@@ -266,85 +197,6 @@ const handleEditOk = async () => {
         message.error("Failed to update activity");
     }
 };
-
-const showInternshipModal = () => {
-    createInternshipForm.value = {
-        name: "",
-        description: "",
-        orgName: "",
-        position: "",
-        programProvider: "",
-        startDate: "",
-        endDate: "",
-    };
-    resetErrors(createInternshipErrors);
-    intershipVisible.value = true;
-};
-
-const handleIntershipOk = async () => {
-    if (!validateInternshipForm(createInternshipForm, createInternshipErrors)) {
-        message.error("Please fix the form errors");
-        return;
-    }
-
-    try {
-        await createInternship(createInternshipForm.value);
-        message.success("Internship added successfully");
-        intershipVisible.value = false;
-        await refreshInternships();
-    } catch (error) {
-        message.error("Failed to add internship");
-    }
-};
-
-const showInternshipEditModal = (internship) => {
-    editInternshipForm.value = {
-        id: internship.id,
-        name: internship.name,
-        description: internship.description,
-        orgName: internship.orgName,
-        position: internship.position,
-        programProvider: internship.programProvider,
-        startDate: internship.startDate,
-        endDate: internship.endDate,
-    };
-    resetErrors(editInternshipErrors);
-    intershipEditVisible.value = true;
-};
-
-const handleIntershipEditOk = async () => {
-    if (!validateInternshipForm(editInternshipForm, editInternshipErrors)) {
-        message.error("Please fix the form errors");
-        return;
-    }
-
-    try {
-        await updateInternship(editInternshipForm.value.id, {
-            name: editInternshipForm.value.name,
-            description: editInternshipForm.value.description,
-            orgName: editInternshipForm.value.orgName,
-            position: editInternshipForm.value.position,
-            programProvider: editInternshipForm.value.programProvider,
-            startDate: editInternshipForm.value.startDate,
-            endDate: editInternshipForm.value.endDate,
-        });
-        message.success("Internship updated successfully");
-        intershipEditVisible.value = false;
-        await refreshInternships();
-    } catch (error) {
-        message.error("Failed to update internship");
-    }
-};
-
-const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
-};
 </script>
 
 <template>
@@ -356,42 +208,38 @@ const formatDate = (dateString) => {
                 iconProps="/page-icons/activities.png"
             />
 
-            <div class="activities__body">
-                <div class="act__header">
-                    <h4 class="section__title">
-                        {{ t("activities.activities") }}
-                    </h4>
-
-                    <a-button @click="showModal" class="add__btn">
-                        <Icon name="lucide:plus" class="icon" />
-                        {{ t("common.add") }}
-                    </a-button>
+            <a-spin :spinning="loading">
+                <div
+                    v-if="activitySections.length === 0 && !loading"
+                    class="activities__body"
+                >
+                    <div class="empty__state">
+                        <Icon name="lucide:file-text" class="empty-icon" />
+                        {{ t("activities.no-activities") }}
+                    </div>
                 </div>
-                <!-- <div class="act__top">
-          <p class="act__total">Total Hours per School Year</p>
-          <div class="act__top-items">
-            <div class="act__top-item">
-              <p>Year 9:</p>
-              <span>0</span>
-            </div>
-            <div class="act__top-item">
-              <p>Year 10:</p>
-              <span>0</span>
-            </div>
-            <div class="act__top-item">
-              <p>Year 11:</p>
-              <span>0</span>
-            </div>
-            <div class="act__top-item">
-              <p>Year 12:</p>
-              <span>0</span>
-            </div>
-          </div>
-        </div> -->
 
-                <a-spin :spinning="loading">
+                <div
+                    v-for="section in activitySections"
+                    :key="section.category.id"
+                    class="activities__body"
+                >
+                    <div class="act__header">
+                        <h4 class="section__title">
+                            {{ section.category.name }}
+                        </h4>
+
+                        <a-button
+                            @click="showModal(section.category.id)"
+                            class="add__btn"
+                        >
+                            <Icon name="lucide:plus" class="icon" />
+                            {{ t("common.add") }}
+                        </a-button>
+                    </div>
+
                     <div
-                        v-if="activities.length === 0 && !loading"
+                        v-if="section.activities.length === 0"
                         class="empty__state"
                     >
                         <Icon name="lucide:file-text" class="empty-icon" />
@@ -399,7 +247,7 @@ const formatDate = (dateString) => {
                     </div>
 
                     <div
-                        v-for="(activity, index) in activities"
+                        v-for="(activity, index) in section.activities"
                         :key="activity.id"
                         class="programmes__item"
                     >
@@ -426,7 +274,9 @@ const formatDate = (dateString) => {
                         <div class="programmes__item-body">
                             <a-collapse
                                 accordion
-                                v-model:activeKey="activitiesActiveKey"
+                                v-model:activeKey="
+                                    activitiesActiveKeys[section.category.id]
+                                "
                             >
                                 <a-collapse-panel
                                     :key="index"
@@ -499,198 +349,8 @@ const formatDate = (dateString) => {
                             </a-collapse>
                         </div>
                     </div>
-                </a-spin>
-            </div>
-
-            <div class="activities__body">
-                <div class="act__header">
-                    <h4 class="section__title">
-                        {{ t("activities.intership") }}
-                    </h4>
-
-                    <a-button @click="showInternshipModal" class="add__btn">
-                        <Icon name="lucide:plus" class="icon" />
-                        {{ t("common.add") }}
-                    </a-button>
                 </div>
-
-                <a-spin :spinning="internshipsLoading">
-                    <div
-                        v-if="internships.length === 0 && !internshipsLoading"
-                        class="empty__state"
-                    >
-                        <Icon name="lucide:file-text" class="empty-icon" />
-                        {{ t("activities.no-intership") }}
-                    </div>
-
-                    <div
-                        v-for="(internship, index) in internships"
-                        :key="internship.id"
-                        class="programmes__item"
-                    >
-                        <div class="programmes__item-head">
-                            <div class="programmes__item-left">
-                                <div>
-                                    <h3 class="programmes__item-title">
-                                        {{ internship.name }}
-                                    </h3>
-                                    <p class="programmes__item-description">
-                                        {{ internship.orgName }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="programmes__item-right">
-                                <div class="programmes__item-date">
-                                    <span>
-                                        {{ formatDate(internship.startDate) }} -
-                                        {{ formatDate(internship.endDate) }}
-                                    </span>
-                                </div>
-
-                                <button
-                                    @click="showInternshipEditModal(internship)"
-                                    class="programmes__item-edit"
-                                >
-                                    <Icon name="lucide:pencil" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="programmes__item-body">
-                            <a-collapse
-                                accordion
-                                v-model:activeKey="internshipsActiveKey"
-                            >
-                                <a-collapse-panel
-                                    :key="index"
-                                    :show-arrow="false"
-                                >
-                                    <template #header>
-                                        <div class="panel-header">
-                                            <p>{{ t("activities.details") }}</p>
-                                            <Icon name="lucide:chevron-down" />
-                                        </div>
-                                    </template>
-                                    <div class="panel-content">
-                                        <div
-                                            class="panel__content-items new__grid"
-                                        >
-                                            <div class="separator">
-                                                <div
-                                                    class="panel__content-item"
-                                                >
-                                                    <h4
-                                                        class="panel__content-title"
-                                                    >
-                                                        {{
-                                                            t(
-                                                                "activities.position",
-                                                            )
-                                                        }}
-                                                    </h4>
-                                                    <p
-                                                        class="panel__content-text"
-                                                    >
-                                                        {{
-                                                            internship.position
-                                                        }}
-                                                    </p>
-                                                </div>
-                                                <div
-                                                    class="panel__content-item"
-                                                >
-                                                    <h4
-                                                        class="panel__content-title"
-                                                    >
-                                                        {{
-                                                            t(
-                                                                "activities.org-name",
-                                                            )
-                                                        }}
-                                                    </h4>
-                                                    <p
-                                                        class="panel__content-text"
-                                                    >
-                                                        {{ internship.orgName }}
-                                                    </p>
-                                                </div>
-                                                <div
-                                                    class="panel__content-item"
-                                                >
-                                                    <h4
-                                                        class="panel__content-title"
-                                                    >
-                                                        {{
-                                                            t(
-                                                                "activities.program-provider",
-                                                            )
-                                                        }}
-                                                    </h4>
-                                                    <p
-                                                        class="panel__content-text"
-                                                    >
-                                                        {{
-                                                            internship.programProvider
-                                                        }}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div class="separator">
-                                                <div
-                                                    class="panel__content-item"
-                                                >
-                                                    <h4
-                                                        class="panel__content-title"
-                                                    >
-                                                        {{
-                                                            t(
-                                                                "activities.period",
-                                                            )
-                                                        }}
-                                                    </h4>
-                                                    <p
-                                                        class="panel__content-text"
-                                                    >
-                                                        {{
-                                                            formatDate(
-                                                                internship.startDate,
-                                                            )
-                                                        }}
-                                                        -
-                                                        {{
-                                                            formatDate(
-                                                                internship.endDate,
-                                                            )
-                                                        }}
-                                                    </p>
-                                                </div>
-                                                <div
-                                                    class="panel__content-item"
-                                                >
-                                                    <h4
-                                                        class="panel__content-title"
-                                                    >
-                                                        {{
-                                                            t("activities.desc")
-                                                        }}
-                                                    </h4>
-                                                    <p
-                                                        class="panel__content-text"
-                                                    >
-                                                        {{
-                                                            internship.description
-                                                        }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a-collapse-panel>
-                            </a-collapse>
-                        </div>
-                    </div>
-                </a-spin>
-            </div>
+            </a-spin>
         </div>
     </div>
 
@@ -738,8 +398,8 @@ const formatDate = (dateString) => {
                     v-model:value="createForm.schoolYear"
                     :placeholder="t('activities.school')"
                     style="width: 100%"
-                    :min="1"
-                    :max="13"
+                    :min="6"
+                    :max="12"
                 />
             </a-form-item>
 
@@ -835,8 +495,8 @@ const formatDate = (dateString) => {
                     v-model:value="editForm.schoolYear"
                     :placeholder="t('activities.school')"
                     style="width: 100%"
-                    :min="1"
-                    :max="13"
+                    :min="6"
+                    :max="12"
                 />
             </a-form-item>
 
@@ -879,236 +539,6 @@ const formatDate = (dateString) => {
             >
                 <a-textarea
                     v-model:value="editForm.description"
-                    :placeholder="t('activities.desc')"
-                    :rows="4"
-                />
-            </a-form-item>
-        </a-form>
-    </a-modal>
-
-    <a-modal
-        v-model:visible="intershipVisible"
-        :title="t('activities.add-intership')"
-        @ok="handleIntershipOk"
-        :okText="'Add'"
-        :cancelText="'Cancel'"
-        width="600px"
-        class="activities__form"
-    >
-        <a-form layout="vertical">
-            <a-form-item
-                :label="t('activities.intership-name')"
-                required
-                :validate-status="createInternshipErrors.name ? 'error' : ''"
-                :help="createInternshipErrors.name"
-            >
-                <a-input
-                    v-model:value="createInternshipForm.name"
-                    :placeholder="t('activities.intership-name')"
-                />
-            </a-form-item>
-
-            <a-form-item
-                :label="t('activities.org-name')"
-                required
-                :validate-status="createInternshipErrors.orgName ? 'error' : ''"
-                :help="createInternshipErrors.orgName"
-            >
-                <a-input
-                    v-model:value="createInternshipForm.orgName"
-                    :placeholder="t('activities.org-name')"
-                />
-            </a-form-item>
-
-            <a-form-item
-                :label="t('activities.position')"
-                required
-                :validate-status="
-                    createInternshipErrors.position ? 'error' : ''
-                "
-                :help="createInternshipErrors.position"
-            >
-                <a-input
-                    v-model:value="createInternshipForm.position"
-                    :placeholder="t('activities.position')"
-                />
-            </a-form-item>
-
-            <a-form-item
-                :label="t('activities.program-provider')"
-                required
-                :validate-status="
-                    createInternshipErrors.programProvider ? 'error' : ''
-                "
-                :help="createInternshipErrors.programProvider"
-            >
-                <a-input
-                    v-model:value="createInternshipForm.programProvider"
-                    :placeholder="t('activities.program-provider')"
-                />
-            </a-form-item>
-
-            <a-row :gutter="16">
-                <a-col :span="12">
-                    <a-form-item
-                        :label="t('activities.start-date')"
-                        required
-                        :validate-status="
-                            createInternshipErrors.startDate ? 'error' : ''
-                        "
-                        :help="createInternshipErrors.startDate"
-                    >
-                        <a-date-picker
-                            v-model:value="createInternshipForm.startDate"
-                            style="width: 100%"
-                            format="YYYY-MM-DD"
-                            value-format="YYYY-MM-DD"
-                        />
-                    </a-form-item>
-                </a-col>
-                <a-col :span="12">
-                    <a-form-item
-                        :label="t('activities.end-date')"
-                        required
-                        :validate-status="
-                            createInternshipErrors.endDate ? 'error' : ''
-                        "
-                        :help="createInternshipErrors.endDate"
-                    >
-                        <a-date-picker
-                            v-model:value="createInternshipForm.endDate"
-                            style="width: 100%"
-                            format="YYYY-MM-DD"
-                            value-format="YYYY-MM-DD"
-                        />
-                    </a-form-item>
-                </a-col>
-            </a-row>
-
-            <a-form-item
-                :label="t('activities.desc')"
-                required
-                :validate-status="
-                    createInternshipErrors.description ? 'error' : ''
-                "
-                :help="createInternshipErrors.description"
-            >
-                <a-textarea
-                    v-model:value="createInternshipForm.description"
-                    :placeholder="t('activities.desc')"
-                    :rows="4"
-                />
-            </a-form-item>
-        </a-form>
-    </a-modal>
-
-    <a-modal
-        v-model:visible="intershipEditVisible"
-        :title="t('activities.edit-intership')"
-        @ok="handleIntershipEditOk"
-        :okText="'Update'"
-        :cancelText="'Cancel'"
-        width="600px"
-        class="activities__form"
-    >
-        <a-form layout="vertical">
-            <a-form-item
-                :label="t('activities.intership-name')"
-                required
-                :validate-status="editInternshipErrors.name ? 'error' : ''"
-                :help="editInternshipErrors.name"
-            >
-                <a-input
-                    v-model:value="editInternshipForm.name"
-                    :placeholder="t('activities.intership-name')"
-                />
-            </a-form-item>
-
-            <a-form-item
-                :label="t('activities.org-name')"
-                required
-                :validate-status="editInternshipErrors.orgName ? 'error' : ''"
-                :help="editInternshipErrors.orgName"
-            >
-                <a-input
-                    v-model:value="editInternshipForm.orgName"
-                    :placeholder="t('activities.org-name')"
-                />
-            </a-form-item>
-
-            <a-form-item
-                :label="t('activities.position')"
-                required
-                :validate-status="editInternshipErrors.position ? 'error' : ''"
-                :help="editInternshipErrors.position"
-            >
-                <a-input
-                    v-model:value="editInternshipForm.position"
-                    :placeholder="t('activities.position')"
-                />
-            </a-form-item>
-
-            <a-form-item
-                :label="t('activities.program-provider')"
-                required
-                :validate-status="
-                    editInternshipErrors.programProvider ? 'error' : ''
-                "
-                :help="editInternshipErrors.programProvider"
-            >
-                <a-input
-                    v-model:value="editInternshipForm.programProvider"
-                    :placeholder="t('activities.program-provider')"
-                />
-            </a-form-item>
-
-            <a-row :gutter="16">
-                <a-col :span="12">
-                    <a-form-item
-                        :label="t('activities.start-date')"
-                        required
-                        :validate-status="
-                            editInternshipErrors.startDate ? 'error' : ''
-                        "
-                        :help="editInternshipErrors.startDate"
-                    >
-                        <a-date-picker
-                            v-model:value="editInternshipForm.startDate"
-                            style="width: 100%"
-                            format="YYYY-MM-DD"
-                            value-format="YYYY-MM-DD"
-                        />
-                    </a-form-item>
-                </a-col>
-                <a-col :span="12">
-                    <a-form-item
-                        :label="t('activities.end-date')"
-                        required
-                        :validate-status="
-                            editInternshipErrors.endDate ? 'error' : ''
-                        "
-                        :help="editInternshipErrors.endDate"
-                    >
-                        <a-date-picker
-                            v-model:value="editInternshipForm.endDate"
-                            style="width: 100%"
-                            format="YYYY-MM-DD"
-                            value-format="YYYY-MM-DD"
-                        />
-                    </a-form-item>
-                </a-col>
-            </a-row>
-
-            <a-form-item
-                :label="t('activities.desc')"
-                required
-                :validate-status="
-                    editInternshipErrors.description ? 'error' : ''
-                "
-                :help="editInternshipErrors.description"
-            >
-                <a-textarea
-                    v-model:value="editInternshipForm.description"
                     :placeholder="t('activities.desc')"
                     :rows="4"
                 />
@@ -1225,14 +655,6 @@ const formatDate = (dateString) => {
     align-items: center;
     gap: 16px;
 }
-.programmes__item-date {
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 16px;
-    background: var(--border);
-    padding: 4px 8px;
-    border-radius: 8px;
-}
 :deep(.ant-select) {
     width: 167px !important;
 }
@@ -1281,20 +703,5 @@ const formatDate = (dateString) => {
     font-weight: 500;
     font-size: 14px;
     line-height: 20px;
-}
-.new__grid {
-    grid-template-columns: repeat(2, 1fr);
-}
-.separator {
-    border-right: 1px solid var(--border);
-    padding-right: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.new__grid .panel__content-item {
-    display: grid;
-    grid-template-columns: 3fr 5fr;
-    gap: 24px;
 }
 </style>

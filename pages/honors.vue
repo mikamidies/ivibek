@@ -4,19 +4,30 @@ import EntityFormModal from "@/components/forms/EntityFormModal.vue";
 import { ref } from "vue";
 import { message } from "ant-design-vue";
 
-const { fetchHonors, createHonor, updateHonor } = useHonors();
+const { fetchHonorCategories, fetchHonors, createHonor, updateHonor } =
+    useHonors();
 const { t } = useTranslations();
 
 const {
-    data: honors,
+    data: honorSections,
     pending: loading,
     refresh: refreshHonors,
-} = await useAsyncData("honors", () => fetchHonors(), {
+} = await useAsyncData("honor-sections", async () => {
+    const categories = await fetchHonorCategories();
+
+    return await Promise.all(
+        categories.map(async (category) => ({
+            category,
+            honors: await fetchHonors(category.id),
+        })),
+    );
+}, {
     default: () => [],
 });
 
 const visible = ref(false);
 const editVisible = ref(false);
+const selectedHonorCategoryId = ref(null);
 
 const createForm = ref({
     name: "",
@@ -43,6 +54,10 @@ const resetHonorErrors = (target) => {
     Object.keys(target.value).forEach((key) => {
         target.value[key] = "";
     });
+};
+
+const getCategoryTitle = (category) => {
+    return category.name || category.title || category.categoryName || "-";
 };
 
 const validateHonorForm = (form, errors) => {
@@ -83,7 +98,8 @@ const editForm = ref({
     endDate: "",
 });
 
-const showModal = () => {
+const showModal = (categoryId) => {
+    selectedHonorCategoryId.value = categoryId;
     createForm.value = {
         name: "",
         description: "",
@@ -95,13 +111,21 @@ const showModal = () => {
 };
 
 const handleOk = async () => {
+    if (selectedHonorCategoryId.value === null) {
+        message.error("Honor category is required");
+        return;
+    }
+
     if (!validateHonorForm(createForm, createErrors)) {
         message.error("Please fix the form errors");
         return;
     }
 
     try {
-        await createHonor(createForm.value);
+        await createHonor({
+            ...createForm.value,
+            categoryId: selectedHonorCategoryId.value,
+        });
         message.success("Honor added successfully");
         visible.value = false;
         await refreshHonors();
@@ -162,28 +186,45 @@ const formatDate = (dateString) => {
                 iconProps="/page-icons/honors.png"
             />
 
-            <div class="honors__body">
-                <div class="honors__header">
-                    <h4 class="section__title">
-                        {{ t("honors.honors-title") }}
-                    </h4>
-
-                    <a-button @click="showModal" class="add__btn">
-                        <Icon name="lucide:plus" class="icon" />
-                        {{ t("common.add") }}
-                    </a-button>
+            <a-spin :spinning="loading">
+                <div
+                    v-if="honorSections.length === 0 && !loading"
+                    class="honors__body"
+                >
+                    <div class="empty__state">
+                        <Icon name="lucide:file-text" />
+                        {{ t("honors.no-honors") }}
+                    </div>
                 </div>
-                <div class="honors__items">
-                    <a-spin :spinning="loading">
+
+                <div
+                    v-for="section in honorSections"
+                    :key="section.category.id"
+                    class="honors__body"
+                >
+                    <div class="honors__header">
+                        <h4 class="section__title">
+                            {{ getCategoryTitle(section.category) }}
+                        </h4>
+
+                        <a-button
+                            @click="showModal(section.category.id)"
+                            class="add__btn"
+                        >
+                            <Icon name="lucide:plus" class="icon" />
+                            {{ t("common.add") }}
+                        </a-button>
+                    </div>
+                    <div class="honors__items">
                         <div
-                            v-if="honors.length === 0 && !loading"
+                            v-if="section.honors.length === 0"
                             class="empty__state"
                         >
                             <Icon name="lucide:file-text" />
                             {{ t("honors.no-honors") }}
                         </div>
                         <div
-                            v-for="honor in honors"
+                            v-for="honor in section.honors"
                             :key="honor.id"
                             class="honors__item"
                         >
@@ -218,9 +259,9 @@ const formatDate = (dateString) => {
                                 </p>
                             </div>
                         </div>
-                    </a-spin>
+                    </div>
                 </div>
-            </div>
+            </a-spin>
         </div>
     </div>
 

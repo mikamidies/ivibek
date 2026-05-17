@@ -29,6 +29,7 @@ export const useApiClient = () => {
     requiresAuth = true
   ): Promise<T> => {
     const headers = { ...(options.headers || {}) };
+    const { params, query, ...fetchOptions } = options;
 
     if (requiresAuth) {
       if (!accessToken.value) {
@@ -39,7 +40,8 @@ export const useApiClient = () => {
     }
 
     return await $fetch<T>(buildUrl(path), {
-      ...options,
+      ...fetchOptions,
+      query: query || params,
       headers,
     });
   };
